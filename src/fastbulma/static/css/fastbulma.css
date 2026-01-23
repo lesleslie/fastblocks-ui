@@ -1,0 +1,270 @@
+/* FastBulma CSS Variable Mapping Layer */
+/* Combines Bulma CSS utilities with FAST Web Components */
+
+/* Define Bulma variables that can be customized */
+:root {
+  /* Color palette - can be overridden by users */
+  --bulma-primary: #7957d5;
+  --bulma-primary-invert: #fff;
+  --bulma-primary-light: #f1effd;
+  --bulma-primary-dark: #563acc;
+  --bulma-info: #3298dc;
+  --bulma-info-invert: #fff;
+  --bulma-success: #48c774;
+  --bulma-success-invert: #fff;
+  --bulma-warning: #ffdd57;
+  --bulma-warning-invert: #000;
+  --bulma-danger: #f14668;
+  --bulma-danger-invert: #fff;
+  --bulma-grey: #7a7a7a;
+  --bulma-grey-light: #f5f5f5;
+  --bulma-grey-lighter: #f5f5f5;
+  --bulma-grey-dark: #4a4a4a;
+  --bulma-grey-darker: #363636;
+  --bulma-white: #fff;
+  --bulma-black: #0a0a0a;
+
+  /* Sizing and spacing */
+  --bulma-radius: 4px;
+  --bulma-radius-small: 2px;
+  --bulma-radius-large: 6px;
+  --bulma-radius-rounded: 9999px;
+  --bulma-size-small: 0.75rem;
+  --bulma-size-normal: 1rem;
+  --bulma-size-medium: 1.25rem;
+  --bulma-size-large: 1.5rem;
+
+  /* Typography */
+  --bulma-family-primary: Inter, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Map Bulma variables to FAST design tokens using the @layer approach */
+@layer fast {
+  :root {
+    /* Accent colors */
+    --accent-base-color: var(--bulma-primary);
+    --accent-fill-rest: var(--bulma-primary);
+    --accent-fill-hover: color-mix(in srgb, var(--bulma-primary) 90%, black);
+    --accent-fill-active: color-mix(in srgb, var(--bulma-primary) 80%, black);
+    --accent-fill-focus: var(--bulma-primary);
+    --accent-foreground-rest: var(--bulma-primary-invert);
+    --accent-foreground-hover: var(--bulma-primary-invert);
+    --accent-foreground-active: var(--bulma-primary-invert);
+    --accent-foreground-focus: var(--bulma-primary-invert);
+
+    /* Neutral colors */
+    --neutral-base-color: var(--bulma-grey);
+    --neutral-fill-rest: var(--bulma-grey-lighter);
+    --neutral-fill-hover: var(--bulma-grey-light);
+    --neutral-fill-active: var(--bulma-grey);
+    --neutral-fill-focus: var(--bulma-grey-light);
+    --neutral-fill-input-rest: var(--bulma-white);
+    --neutral-fill-input-hover: var(--bulma-white);
+    --neutral-fill-input-active: var(--bulma-white);
+    --neutral-fill-input-focus: var(--bulma-white);
+    --neutral-foreground-rest: var(--bulma-grey-darker);
+    --neutral-foreground-hover: var(--bulma-black);
+    --neutral-foreground-active: var(--bulma-black);
+    --neutral-foreground-focus: var(--bulma-black);
+    --neutral-stroke-rest: var(--bulma-grey-light);
+    --neutral-stroke-hover: var(--bulma-grey);
+    --neutral-stroke-active: var(--bulma-grey-dark);
+    --neutral-stroke-focus: var(--bulma-primary);
+
+    /* Control dimensions */
+    --control-corner-radius: var(--bulma-radius, 4px);
+    --control-corner-radius-brand: var(--bulma-radius-large, 6px);
+    --control-corner-radius-pill: var(--bulma-radius-rounded, 9999px);
+    --control-height: 2.5em; /* Standard Bulma control height */
+    --control-height-number: 40; /* Corresponds to 2.5em at 16px base */
+    --control-line-height: 1.5;
+
+    /* Typography */
+    --neutral-font-family: var(--bulma-family-primary);
+    --type-ramp-base-font-size: var(--bulma-size-normal);
+    --type-ramp-base-line-height: 1.5;
+    --type-ramp-minus-1-font-size: var(--bulma-size-small);
+    --type-ramp-plus-1-font-size: var(--bulma-size-medium);
+    --type-ramp-plus-2-font-size: var(--bulma-size-large);
+
+    /* Spacing */
+    --design-unit: 4px;
+    --base-height-multiplier: 8;
+    --density: calc(var(--base-height-multiplier) * var(--design-unit));
+
+    /* Checkbox and Radio */
+    --checkbox-control-size: calc(var(--design-unit) * 3);
+    --radio-control-size: calc(var(--design-unit) * 3);
+  }
+}
+
+/* Component-specific mappings to allow Bulma classes to affect FAST components */
+
+/* Color variants */
+.is-primary {
+  --accent-fill-rest: var(--bulma-primary);
+  --accent-fill-hover: color-mix(in srgb, var(--bulma-primary) 90%, black);
+  --accent-fill-active: color-mix(in srgb, var(--bulma-primary) 80%, black);
+  --accent-foreground-cut-rest: var(--bulma-primary-invert);
+}
+
+.is-success {
+  --accent-fill-rest: var(--bulma-success);
+  --accent-fill-hover: color-mix(in srgb, var(--bulma-success) 90%, black);
+  --accent-fill-active: color-mix(in srgb, var(--bulma-success) 80%, black);
+  --accent-foreground-cut-rest: var(--bulma-success-invert);
+}
+
+.is-warning {
+  --accent-fill-rest: var(--bulma-warning);
+  --accent-fill-hover: color-mix(in srgb, var(--bulma-warning) 90%, black);
+  --accent-fill-active: color-mix(in srgb, var(--bulma-warning) 80%, black);
+  --accent-foreground-cut-rest: var(--bulma-warning-invert);
+}
+
+.is-danger {
+  --accent-fill-rest: var(--bulma-danger);
+  --accent-fill-hover: color-mix(in srgb, var(--bulma-danger) 90%, black);
+  --accent-fill-active: color-mix(in srgb, var(--bulma-danger) 80%, black);
+  --accent-foreground-cut-rest: var(--bulma-danger-invert);
+}
+
+.is-info {
+  --accent-fill-rest: var(--bulma-info);
+  --accent-fill-hover: color-mix(in srgb, var(--bulma-info) 90%, black);
+  --accent-fill-active: color-mix(in srgb, var(--bulma-info) 80%, black);
+  --accent-foreground-cut-rest: var(--bulma-info-invert);
+}
+
+/* Size variants */
+.is-small {
+  --type-ramp-base-font-size: var(--bulma-size-small);
+  --control-height: 2em;
+}
+
+.is-normal {
+  --type-ramp-base-font-size: var(--bulma-size-normal);
+  --control-height: 2.5em;
+}
+
+.is-medium {
+  --type-ramp-base-font-size: var(--bulma-size-medium);
+  --control-height: 3em;
+}
+
+.is-large {
+  --type-ramp-base-font-size: var(--bulma-size-large);
+  --control-height: 3.5em;
+}
+
+/* Card component mapping */
+.card,
+.is-card {
+  --neutral-fill-rest: var(--bulma-white);
+  --neutral-stroke-rest: var(--bulma-grey-light);
+  --control-corner-radius: var(--bulma-radius, 4px);
+}
+
+/* Input components mapping */
+.input,
+.textarea,
+.select select {
+  --neutral-fill-input-rest: var(--bulma-white);
+  --neutral-fill-input-hover: var(--bulma-white);
+  --neutral-fill-input-active: var(--bulma-white);
+  --neutral-fill-input-focus: var(--bulma-white);
+  --neutral-stroke-rest: var(--bulma-grey-light);
+  --neutral-stroke-hover: var(--bulma-grey);
+  --neutral-stroke-active: var(--bulma-grey-dark);
+  --neutral-stroke-focus: var(--bulma-primary);
+  --control-corner-radius: var(--bulma-radius, 4px);
+}
+
+/* Button component mapping */
+.button {
+  --control-corner-radius: var(--bulma-radius, 4px);
+}
+
+/* Checkbox and Radio component mapping */
+.checkbox input[type="checkbox"],
+.radio input[type="radio"] {
+  --checkbox-control-size: calc(var(--design-unit) * 3);
+  --radio-control-size: calc(var(--design-unit) * 3);
+}
+
+/* Select component mapping */
+.select select {
+  --neutral-stroke-rest: var(--bulma-grey-light);
+  --neutral-stroke-hover: var(--bulma-grey);
+  --neutral-stroke-active: var(--bulma-grey-dark);
+  --control-corner-radius: var(--bulma-radius, 4px);
+}
+
+/* Dialog component mapping */
+.modal,
+.dialog {
+  --neutral-fill-rest: var(--bulma-white);
+  --neutral-stroke-rest: var(--bulma-grey-light);
+  --control-corner-radius: var(--bulma-radius, 4px);
+}
+
+/* Tabs component mapping */
+.tabs {
+  --neutral-foreground-rest: var(--bulma-grey-dark);
+  --neutral-foreground-hover: var(--bulma-black);
+  --neutral-stroke-rest: var(--bulma-grey-light);
+}
+
+/* Table component mapping */
+.table {
+  --neutral-fill-rest: var(--bulma-white);
+  --neutral-stroke-rest: var(--bulma-grey-light);
+  --neutral-foreground-rest: var(--bulma-grey-darker);
+}
+
+/* Tag component mapping */
+.tag {
+  --accent-fill-rest: var(--bulma-primary);
+  --accent-foreground-rest: var(--bulma-primary-invert);
+  --control-corner-radius: var(--bulma-radius-rounded, 9999px);
+}
+
+/* Progress bar mapping */
+.progress {
+  --accent-fill-rest: var(--bulma-primary);
+  --neutral-fill-rest: var(--bulma-grey-lighter);
+  --control-corner-radius: var(--bulma-radius-rounded, 9999px);
+}
+
+/* Text field and textarea sizing */
+.is-fullwidth {
+  width: 100%;
+}
+
+/* Loading state */
+.is-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.is-loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid var(--bulma-grey-light);
+  border-top-color: var(--bulma-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

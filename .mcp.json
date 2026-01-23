@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "crackerjack": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-crackerjack@latest"
+      ],
+      "command": "npx",
+      "env": {
+        "CRACKERJACK_PORT": "8676"
+      }
+    }
+  }
+}

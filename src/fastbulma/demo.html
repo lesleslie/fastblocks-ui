@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastBulma Demo</title>
+    <!-- Include Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    <!-- Include FastBulma custom CSS -->
+    <link rel="stylesheet" href="./css/fastbulma.css">
+
+    <style>
+        /* Additional demo-specific styles */
+        .demo-section {
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .component-showcase {
+            background: var(--bulma-white);
+            border-radius: var(--bulma-radius);
+            padding: 1.5rem;
+            box-shadow: 0 0.5em 1em -0.125em rgba(10,10,10,.1), 0 0px 0 1px rgba(10,10,10,.02);
+        }
+
+        .fastbulma-fallback {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 2px dashed var(--bulma-danger);
+            border-radius: var(--bulma-radius);
+            background-color: var(--bulma-danger-light);
+            color: var(--bulma-danger);
+        }
+
+        .fastbulma-error-icon {
+            font-size: 1.2rem;
+        }
+
+        .fastbulma-retry-button {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--bulma-radius);
+            background-color: var(--bulma-primary);
+            color: var(--bulma-primary-invert);
+            border: none;
+            cursor: pointer;
+        }
+
+        .fastbulma-retry-button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">FastBulma Demo</h1>
+            <p class="subtitle">Combining Bulma's layout with FAST's components</p>
+
+            <!-- Hero section using Bulma layout with FAST components -->
+            <section class="hero is-primary">
+                <div class="hero-body">
+                    <div class="container">
+                        <h1 class="title">Hero Title</h1>
+                        <p class="subtitle">Hero Subtitle</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card using Bulma layout with FAST components -->
+            <div class="columns mt-5">
+                <div class="column is-half">
+                    <fast-card class="card">
+                        <h3 slot="heading" class="title is-4">FAST Card with Bulma Styling</h3>
+                        <p>This is a FAST card component styled with Bulma classes.</p>
+                        <fast-button appearance="accent" slot="actions" class="button is-primary">Primary Action</fast-button>
+                        <fast-button appearance="neutral" slot="actions" class="button is-light">Cancel</fast-button>
+                    </fast-card>
+                </div>
+
+                <div class="column is-half">
+                    <fast-card class="card is-success">
+                        <h3 slot="heading" class="title is-4">Success Card</h3>
+                        <p>This card uses the .is-success class to change its appearance.</p>
+                        <fast-button appearance="accent" slot="actions" class="button is-success">Success Action</fast-button>
+                    </fast-card>
+                </div>
+            </div>
+
+            <!-- Form components -->
+            <div class="columns mt-5">
+                <div class="column is-half">
+                    <fast-card class="card">
+                        <h3 slot="heading" class="title is-4">Form Components</h3>
+
+                        <form>
+                            <div class="field">
+                                <fast-text-field class="input" placeholder="Name" appearance="outline"></fast-text-field>
+                            </div>
+
+                            <div class="field mt-3">
+                                <fast-text-area class="textarea" placeholder="Message" appearance="outline" rows="3"></fast-text-area>
+                            </div>
+
+                            <div class="field mt-3">
+                                <fast-select class="select" appearance="outline">
+                                    <option>Option 1</option>
+                                    <option>Option 2</option>
+                                    <option>Option 3</option>
+                                </fast-select>
+                            </div>
+
+                            <div class="field mt-3">
+                                <label class="checkbox">
+                                    <fast-checkbox>Accept terms and conditions</fast-checkbox>
+                                </label>
+                            </div>
+
+                            <div class="field mt-3">
+                                <label class="radio">
+                                    <fast-radio name="demo-radio">Option 1</fast-radio>
+                                </label>
+                                <label class="radio ml-3">
+                                    <fast-radio name="demo-radio">Option 2</fast-radio>
+                                </label>
+                            </div>
+
+                            <div class="field mt-3">
+                                <fast-button type="submit" appearance="accent" class="button is-primary is-fullwidth">
+                                    Submit
+                                </fast-button>
+                            </div>
+                        </form>
+                    </fast-card>
+                </div>
+
+                <div class="column is-half">
+                    <fast-card class="card">
+                        <h3 slot="heading" class="title is-4">Buttons Showcase</h3>
+
+                        <div class="buttons">
+                            <fast-button appearance="accent" class="button is-primary">Primary</fast-button>
+                            <fast-button appearance="accent" class="button is-success">Success</fast-button>
+                            <fast-button appearance="accent" class="button is-info">Info</fast-button>
+                            <fast-button appearance="accent" class="button is-warning">Warning</fast-button>
+                            <fast-button appearance="accent" class="button is-danger">Danger</fast-button>
+                        </div>
+
+                        <h4 class="title is-5 mt-4">Size Variants</h4>
+                        <div class="buttons">
+                            <fast-button appearance="accent" class="button is-primary is-small">Small</fast-button>
+                            <fast-button appearance="accent" class="button is-primary is-normal">Normal</fast-button>
+                            <fast-button appearance="accent" class="button is-primary is-medium">Medium</fast-button>
+                            <fast-button appearance="accent" class="button is-primary is-large">Large</fast-button>
+                        </div>
+
+                        <h4 class="title is-5 mt-4">Toggle Theme</h4>
+                        <div class="buttons">
+                            <button class="button is-light" onclick="window.fastBulma.setTheme('light')">Light Theme</button>
+                            <button class="button is-dark" onclick="window.fastBulma.setTheme('dark')">Dark Theme</button>
+                        </div>
+                    </fast-card>
+                </div>
+            </div>
+
+            <!-- Advanced Components Section -->
+            <div class="demo-section">
+                <h2 class="title is-3">Advanced Components</h2>
+
+                <div class="columns">
+                    <div class="column is-half">
+                        <div class="component-showcase">
+                            <h3 class="title is-4">Tabs Component</h3>
+                            <fast-tabs activeid="tab1" class="tabs is-boxed">
+                                <fast-tab id="tab1">Tab 1</fast-tab>
+                                <fast-tab id="tab2">Tab 2</fast-tab>
+                                <fast-tab id="tab3">Tab 3</fast-tab>
+                            </fast-tabs>
+
+                            <fast-tab-panel id="tabpanel1" class="mt-3">
+                                <p>Content for tab 1</p>
+                            </fast-tab-panel>
+                            <fast-tab-panel id="tabpanel2" class="mt-3" hidden>
+                                <p>Content for tab 2</p>
+                            </fast-tab-panel>
+                            <fast-tab-panel id="tabpanel3" class="mt-3" hidden>
+                                <p>Content for tab 3</p>
+                            </fast-tab-panel>
+                        </div>
+                    </div>
+
+                    <div class="column is-half">
+                        <div class="component-showcase">
+                            <h3 class="title is-4">Progress Bar</h3>
+                            <fast-progress value="50" min="0" max="100" class="progress is-primary"></fast-progress>
+
+                            <h3 class="title is-4 mt-4">Switch Component</h3>
+                            <fast-switch class="switch">
+                                <span slot="checked-message">On</span>
+                                <span slot="unchecked-message">Off</span>
+                            </fast-switch>
+
+                            <h3 class="title is-4 mt-4">Anchor Component</h3>
+                            <fast-anchor href="#" appearance="hypertext" class="button is-link">Hyperlink</fast-anchor>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu Button and Dialog Section -->
+            <div class="demo-section">
+                <h2 class="title is-3">Menu Button and Dialog</h2>
+
+                <div class="columns">
+                    <div class="column is-half">
+                        <div class="component-showcase">
+                            <h3 class="title is-4">Menu Button</h3>
+                            <fast-menu-button class="button is-primary">
+                                <span slot="start">▼</span>
+                                Menu Button
+                                <fast-menu slot="menu">
+                                    <fast-menu-item>Item 1</fast-menu-item>
+                                    <fast-menu-item>Item 2</fast-menu-item>
+                                    <fast-menu-item>Item 3</fast-menu-item>
+                                </fast-menu>
+                            </fast-menu-button>
+                        </div>
+                    </div>
+
+                    <div class="column is-half">
+                        <div class="component-showcase">
+                            <h3 class="title is-4">Dialog Component</h3>
+                            <fast-button appearance="accent" class="button is-info" onclick="openDialog()">Open Dialog</fast-button>
+
+                            <fast-dialog id="demo-dialog" modal>
+                                <h3 slot="heading" class="title is-4">Sample Dialog</h3>
+                                <p>This is a FAST dialog component styled with Bulma classes.</p>
+                                <div class="field mt-3">
+                                    <fast-button appearance="neutral" class="button" onclick="closeDialog()">Close</fast-button>
+                                </div>
+                            </fast-dialog>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Grid Example -->
+            <div class="demo-section">
+                <h2 class="title is-3">Data Grid</h2>
+
+                <div class="component-showcase">
+                    <fast-data-grid class="table is-striped is-fullwidth">
+                        <fast-data-grid-row slot="header">
+                            <fast-data-grid-cell cell-type="columnheader">Name</fast-data-grid-cell>
+                            <fast-data-grid-cell cell-type="columnheader">Email</fast-data-grid-cell>
+                            <fast-data-grid-cell cell-type="columnheader">Role</fast-data-grid-cell>
+                        </fast-data-grid-row>
+                        <fast-data-grid-row>
+                            <fast-data-grid-cell>John Doe</fast-data-grid-cell>
+                            <fast-data-grid-cell>john@example.com</fast-data-grid-cell>
+                            <fast-data-grid-cell>Admin</fast-data-grid-cell>
+                        </fast-data-grid-row>
+                        <fast-data-grid-row>
+                            <fast-data-grid-cell>Jane Smith</fast-data-grid-cell>
+                            <fast-data-grid-cell>jane@example.com</fast-data-grid-cell>
+                            <fast-data-grid-cell>User</fast-data-grid-cell>
+                        </fast-data-grid-row>
+                    </fast-data-grid>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Register FAST components -->
+    <script type="module" src="https://cdn.skypack.dev/@microsoft/fast-components"></script>
+    <!-- Include FastBulma custom JS -->
+    <script type="module" src="./js/fastbulma.js"></script>
+
+    <script>
+        // Dialog helper functions
+        function openDialog() {
+            document.getElementById('demo-dialog').setAttribute('open', '');
+        }
+
+        function closeDialog() {
+            document.getElementById('demo-dialog').removeAttribute('open');
+        }
+
+        // Initialize tabs behavior
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelector('fast-tabs');
+            const tabPanels = document.querySelectorAll('fast-tab-panel');
+
+            if (tabs) {
+                tabs.addEventListener('change', (e) => {
+                    // Hide all panels
+                    tabPanels.forEach(panel => {
+                        panel.hidden = true;
+                    });
+
+                    // Show the selected panel
+                    const activePanelId = e.detail.activeid.replace('tab', 'tabpanel');
+                    const activePanel = document.getElementById(activePanelId);
+                    if (activePanel) {
+                        activePanel.hidden = false;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
