@@ -84,6 +84,14 @@ FastBulma supports all major FAST components:
 - `fast-data-grid`
 - `fast-menu-button`
 
+## Known Issues
+
+### Security Vulnerabilities
+
+As of January 2026, there is a known vulnerability in the `protobuf` dependency (CVE-2026-0994) that affects the development environment. This vulnerability exists in the latest version of protobuf (6.33.4) and cannot be resolved by upgrading. This does not affect the runtime functionality of FastBulma itself, as the vulnerability is in a development dependency.
+
+We are monitoring the situation and will update when a patched version becomes available.
+
 ## License
 
 MIT

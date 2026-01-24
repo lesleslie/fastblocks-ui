@@ -10,47 +10,52 @@ Usage:
     python scripts/generate-tests.py --all
 """
 
-import sys
 import argparse
+import sys
 from typing import Dict, List
-
 
 # Component metadata for test generation
 COMPONENT_METADATA: Dict[str, Dict] = {
-    'fast-button': {
-        'bulma_classes': ['is-primary', 'is-success', 'is-danger', 'is-warning', 'is-info'],
-        'fast_token': '--accent-fill-rest',
-        'aria_role': 'button',
-        'keyboard_support': ['Enter', 'Space'],
-        'slots': [],
+    "fast-button": {
+        "bulma_classes": [
+            "is-primary",
+            "is-success",
+            "is-danger",
+            "is-warning",
+            "is-info",
+        ],
+        "fast_token": "--accent-fill-rest",
+        "aria_role": "button",
+        "keyboard_support": ["Enter", "Space"],
+        "slots": [],
     },
-    'fast-card': {
-        'bulma_classes': [],
-        'fast_token': '--neutral-fill-rest',
-        'aria_role': 'article',
-        'keyboard_support': [],
-        'slots': ['heading', 'actions'],
+    "fast-card": {
+        "bulma_classes": [],
+        "fast_token": "--neutral-fill-rest",
+        "aria_role": "article",
+        "keyboard_support": [],
+        "slots": ["heading", "actions"],
     },
-    'fast-text-field': {
-        'bulma_classes': [],
-        'fast_token': '--neutral-fill-rest',
-        'aria_role': None,
-        'keyboard_support': ['Tab', 'Shift+Tab'],
-        'slots': [],
+    "fast-text-field": {
+        "bulma_classes": [],
+        "fast_token": "--neutral-fill-rest",
+        "aria_role": None,
+        "keyboard_support": ["Tab", "Shift+Tab"],
+        "slots": [],
     },
-    'fast-checkbox': {
-        'bulma_classes': [],
-        'fast_token': '--neutral-fill-rest',
-        'aria_role': 'checkbox',
-        'keyboard_support': ['Space'],
-        'slots': [],
+    "fast-checkbox": {
+        "bulma_classes": [],
+        "fast_token": "--neutral-fill-rest",
+        "aria_role": "checkbox",
+        "keyboard_support": ["Space"],
+        "slots": [],
     },
-    'fast-select': {
-        'bulma_classes': [],
-        'fast_token': '--neutral-fill-rest',
-        'aria_role': 'combobox',
-        'keyboard_support': ['ArrowUp', 'ArrowDown', 'Enter'],
-        'slots': [],
+    "fast-select": {
+        "bulma_classes": [],
+        "fast_token": "--neutral-fill-rest",
+        "aria_role": "combobox",
+        "keyboard_support": ["ArrowUp", "ArrowDown", "Enter"],
+        "slots": [],
     },
 }
 
@@ -82,14 +87,14 @@ describe('{component_name}', () => {{
       container.appendChild(component);
 
       const styles = getComputedStyle(component);
-      const tokenValue = styles.getPropertyValue('{metadata.get('fast_token', '--neutral-fill-rest')}');
+      const tokenValue = styles.getPropertyValue('{metadata.get("fast_token", "--neutral-fill-rest")}');
 
       // Verify CSS variable is set
       expect(tokenValue).toBeTruthy();
       expect(tokenValue).toContain('var(--bulma-primary');
     }});
 
-  {generate_bulma_class_tests(component_name, metadata.get('bulma_classes', []))}
+  {generate_bulma_class_tests(component_name, metadata.get("bulma_classes", []))}
   }});
 
   describe('Accessibility', () => {{
@@ -107,7 +112,7 @@ describe('{component_name}', () => {{
 
       // Check for proper role if applicable
       const role = component.getAttribute('role');
-      {generate_aria_test(metadata.get('aria_role'))}
+      {generate_aria_test(metadata.get("aria_role"))}
     }});
 
     test('has keyboard support', async () => {{
@@ -121,7 +126,7 @@ describe('{component_name}', () => {{
       expect(document.activeElement).toBe(component);
 
       // Test keyboard interactions
-      {generate_keyboard_tests(metadata.get('keyboard_support', []))}
+      {generate_keyboard_tests(metadata.get("keyboard_support", []))}
     }});
   }});
 
@@ -147,13 +152,13 @@ describe('{component_name}', () => {{
       expect(shadowElement).toBeTruthy();
 
       const styles = getComputedStyle(shadowElement!);
-      const tokenValue = styles.getPropertyValue('{metadata.get('fast_token', '--neutral-fill-rest')}');
+      const tokenValue = styles.getPropertyValue('{metadata.get("fast_token", "--neutral-fill-rest")}');
 
       expect(tokenValue).toBeTruthy();
     }});
   }});
 
-  {generate_slot_tests(component_name, metadata.get('slots', []))}
+  {generate_slot_tests(component_name, metadata.get("slots", []))}
 
   describe('Memory Management', () => {{
     test('does not leak event listeners on destroy', async () => {{
@@ -190,7 +195,7 @@ def generate_bulma_class_tests(component_name: str, bulma_classes: List[str]) ->
 
     tests = []
     for class_name in bulma_classes:
-        color = class_name.replace('is-', '')
+        color = class_name.replace("is-", "")
         tests.append(f"""
     test('maps .{class_name} to correct color', async () => {{
       component = document.createElement('{component_name}');
@@ -262,10 +267,18 @@ def generate_slot_tests(component_name: str, slots: List[str]) -> str:
 
 def main() -> None:
     """Main entry point."""
-    parser = argparse.ArgumentParser(description='Generate test templates for FastBulma components')
-    parser.add_argument('component', nargs='?', help='Component name (e.g., fast-button)')
-    parser.add_argument('--all', action='store_true', help='Generate tests for all components')
-    parser.add_argument('--list', action='store_true', help='List all available components')
+    parser = argparse.ArgumentParser(
+        description="Generate test templates for FastBulma components"
+    )
+    parser.add_argument(
+        "component", nargs="?", help="Component name (e.g., fast-button)"
+    )
+    parser.add_argument(
+        "--all", action="store_true", help="Generate tests for all components"
+    )
+    parser.add_argument(
+        "--list", action="store_true", help="List all available components"
+    )
 
     args = parser.parse_args()
 

@@ -5,18 +5,21 @@ This document outlines the coding standards and conventions for the FastBulma pr
 ## Python Code Standards
 
 ### Style Guide
+
 - Follow PEP 8 style guidelines
 - Use Ruff for linting and formatting (line-length 88)
 - Use descriptive variable and function names
 - Add docstrings to all public functions and classes
 
 ### Type Hints
+
 - Use type hints for all function parameters and return values
 - Use `typing` module for complex types
 - Enable Pyright strict mode for type checking
 
 ```python
 from typing import List, Optional
+
 
 def generate_theme(primary_color: str, variants: Optional[List[str]] = None) -> dict:
     """Generate a theme configuration.
@@ -34,6 +37,7 @@ def generate_theme(primary_color: str, variants: Optional[List[str]] = None) -> 
 ```
 
 ### Error Handling
+
 - Use specific exceptions (ValueError, TypeError, etc.)
 - Include helpful error messages
 - Use context managers (with statements) for resource management
@@ -41,13 +45,14 @@ def generate_theme(primary_color: str, variants: Optional[List[str]] = None) -> 
 ```python
 def validate_color(color: str) -> None:
     """Validate a color hex code."""
-    if not color.startswith('#'):
+    if not color.startswith("#"):
         raise ValueError(f"Color must start with '#', got: {color}")
     if len(color) not in (4, 7):
         raise ValueError(f"Invalid hex color length: {color}")
 ```
 
 ### Testing Standards
+
 - Write tests for all public functions
 - Use pytest markers for test categorization
 - Aim for >80% code coverage
@@ -55,6 +60,7 @@ def validate_color(color: str) -> None:
 
 ```python
 import pytest
+
 
 class TestThemeGenerator:
     """Test suite for ThemeGenerator class."""
@@ -64,14 +70,17 @@ class TestThemeGenerator:
         """Test default theme generation."""
         generator = ThemeGenerator()
         theme = generator.generate()
-        assert '--bulma-primary' in theme
-        assert theme['--bulma-primary'] == '#7957d5'
+        assert "--bulma-primary" in theme
+        assert theme["--bulma-primary"] == "#7957d5"
 
     @pytest.mark.unit
-    @pytest.mark.parametrize("color,expected", [
-        ('#ff0000', '#ff0000'),
-        ('#f00', '#ff0000'),
-    ])
+    @pytest.mark.parametrize(
+        "color,expected",
+        [
+            ("#ff0000", "#ff0000"),
+            ("#f00", "#ff0000"),
+        ],
+    )
     def test_normalize_hex_color(self, color, expected):
         """Test hex color normalization."""
         generator = ThemeGenerator()
@@ -83,12 +92,13 @@ class TestThemeGenerator:
         """Test that invalid colors raise ValueError."""
         generator = ThemeGenerator()
         with pytest.raises(ValueError, match="Invalid hex color"):
-            generator._normalize_hex_color('not-a-color')
+            generator._normalize_hex_color("not-a-color")
 ```
 
 ## JavaScript/CSS Standards
 
 ### Vanilla JavaScript Only
+
 - **NO frameworks**: No React, Vue, Angular, or other framework patterns
 - Use standard DOM APIs: `document.querySelector`, `element.classList`, etc.
 - Use modern ES6+ features: arrow functions, template literals, destructuring
@@ -109,6 +119,7 @@ const Button = ({ onClick, children }) => (
 ```
 
 ### CSS Variable Bridge Pattern
+
 - Always use CSS variables to bridge Bulma classes to FAST components
 - Never use direct CSS rules for FAST component styling (won't penetrate Shadow DOM)
 
@@ -126,6 +137,7 @@ const Button = ({ onClick, children }) => (
 ```
 
 ### Component Registration
+
 - Register FAST components before use
 - Use progressive enhancement patterns
 - Provide polyfills for older browsers
@@ -146,6 +158,7 @@ provideFASTDesignSystem()
 ## Documentation Standards
 
 ### Docstrings
+
 - Use Google style docstrings for Python
 - Include Args, Returns, Raises sections
 - Add examples for complex functions
@@ -172,6 +185,7 @@ def migrate_bulma_to_fastbulma(source_file: str, output_file: str) -> None:
 ```
 
 ### Comments
+
 - Add comments for complex logic
 - Explain "why", not "what"
 - Keep comments up-to-date with code changes
@@ -179,6 +193,7 @@ def migrate_bulma_to_fastbulma(source_file: str, output_file: str) -> None:
 ## Git Standards
 
 ### Commit Messages
+
 - Use conventional commit format
 - Start with verb: "Add", "Fix", "Update", "Refactor"
 - Include issue number if applicable
@@ -191,6 +206,7 @@ schemes and pre-built theme templates.
 ```
 
 ### Branch Naming
+
 - Use descriptive branch names
 - Include issue number
 
@@ -203,6 +219,7 @@ docs/101-api-documentation
 ## Security Standards
 
 ### Input Validation
+
 - Validate all user input
 - Sanitize HTML to prevent XSS
 - Use CSP headers for production
@@ -210,14 +227,16 @@ docs/101-api-documentation
 ```python
 import re
 
+
 def validate_color_input(color: str) -> str:
     """Validate and sanitize color input."""
-    if not re.match(r'^#[0-9a-fA-F]{3,6}$', color):
+    if not re.match(r"^#[0-9a-fA-F]{3,6}$", color):
         raise ValueError(f"Invalid color format: {color}")
     return color.lower()
 ```
 
 ### Dependency Management
+
 - Keep dependencies up-to-date
 - Run `creosote` to detect unused dependencies
 - Review security advisories regularly
@@ -225,13 +244,14 @@ def validate_color_input(color: str) -> str:
 ## Performance Standards
 
 ### Code Optimization
+
 - Profile before optimizing
 - Use built-in functions and libraries
 - Avoid premature optimization
 
 ```python
 # ✅ CORRECT - Use built-in functions
-colors = ['#ff0000', '#00ff00', '#0000ff']
+colors = ["#ff0000", "#00ff00", "#0000ff"]
 valid_colors = [c for c in colors if is_valid_color(c)]
 
 # ❌ WRONG - Manual loop when built-in exists
@@ -242,6 +262,7 @@ for color in colors:
 ```
 
 ### Asset Optimization
+
 - Minify CSS and JavaScript for production
 - Use tree-shaking for FAST components
 - Lazy load non-critical components
@@ -249,6 +270,7 @@ for color in colors:
 ## Accessibility Standards
 
 ### Web Components
+
 - Use FAST components (built with accessibility in mind)
 - Add ARIA labels where needed
 - Ensure keyboard navigation works
@@ -261,6 +283,7 @@ for color in colors:
 ```
 
 ### Color Contrast
+
 - Ensure WCAG AA compliance (4.5:1 for normal text)
 - Test with color blindness simulators
 - Provide visual indicators beyond color
@@ -268,6 +291,7 @@ for color in colors:
 ## Quality Assurance
 
 ### Pre-Commit Checks
+
 - Run `crackerjack check` before committing
 - Ensure all tests pass
 - Check code coverage doesn't decrease
@@ -281,6 +305,7 @@ crackerjack check --ai-fix
 ```
 
 ### Code Review Checklist
+
 - [ ] Tests pass and coverage adequate
 - [ ] Type checking passes (pyright)
 - [ ] No security vulnerabilities (bandit)
@@ -292,6 +317,7 @@ crackerjack check --ai-fix
 ## Project-Specific Rules
 
 ### CSS Variable Naming
+
 - Use `--bulma-` prefix for Bulma variables
 - Map to FAST tokens with semantic names
 - Document variable purpose
@@ -307,6 +333,7 @@ crackerjack check --ai-fix
 ```
 
 ### Component Integration
+
 - Always place Bulma classes on FAST components (not wrappers)
 - Use slot names for component content
 - Respect Shadow DOM boundaries
@@ -324,6 +351,7 @@ crackerjack check --ai-fix
 ```
 
 ### Browser Compatibility
+
 - Test on Tier 1 browsers (Chrome, Firefox, Safari, Edge)
 - Provide polyfills for older browsers
 - Use progressive enhancement

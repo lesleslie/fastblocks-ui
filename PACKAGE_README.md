@@ -7,6 +7,7 @@ FastBulma is a framework that combines Bulma's battle-tested CSS utilities for l
 The FastBulma framework uses a layered architecture that separates concerns between layout utilities (Bulma) and interactive components (FAST), connected through CSS variables and JavaScript adapters.
 
 ### Core Features
+
 - Bulma utilities for page layout and typography (columns, hero, helpers)
 - FAST Web Components with Bulma‑aligned tokens (colors, spacing, radius)
 - Pure CSS customization via CSS vars
@@ -57,7 +58,7 @@ css_path = fastbulma.get_css_path()
 js_path = fastbulma.get_js_path()
 
 # Copy assets to a destination directory
-fastbulma.cli.copy_assets('./static')
+fastbulma.cli.copy_assets("./static")
 ```
 
 ### CLI

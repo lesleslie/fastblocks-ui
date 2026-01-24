@@ -7,8 +7,8 @@ FastBulma's theming system is built entirely on **CSS custom properties**, allow
 Themes work through a three-layer structure:
 
 1. **Base Theme Variables** (`:root`) - Define Bulma colors, spacing, typography
-2. **FAST Token Mappings** (`@layer fast`) - Map Bulma variables to FAST tokens
-3. **Bulma Class Mappings** - Apply specific theme colors via classes
+1. **FAST Token Mappings** (`@layer fast`) - Map Bulma variables to FAST tokens
+1. **Bulma Class Mappings** - Apply specific theme colors via classes
 
 ### Visual Theme Gallery
 
@@ -22,7 +22,7 @@ The following 5 pre-built themes are available:
 
 > **Note**: Visual theme gallery mockups are available in the Excalidraw canvas (accessed via Excalidraw MCP server). Export them as PNG to include in documentation.
 
----
+______________________________________________________________________
 
 ## Pre-Built Themes
 
@@ -42,12 +42,13 @@ The following 5 pre-built themes are available:
 ```
 
 **Preview**:
+
 - Primary buttons: Purple (#7957d5)
 - Success buttons: Green (#48c774)
 - Background: White (#ffffff)
 - Text: Dark gray (#4a4a4a)
 
----
+______________________________________________________________________
 
 ### Theme 2: Dark Mode
 
@@ -64,12 +65,13 @@ The following 5 pre-built themes are available:
 ```
 
 **Preview**:
+
 - Primary buttons: Light purple (#9e86e8)
 - Success buttons: Bright green (#50fa7b)
 - Background: Nearly black (#0a0a0a)
 - Text: Off-white (#f5f5f5)
 
----
+______________________________________________________________________
 
 ### Theme 3: Solarized Light
 
@@ -87,6 +89,7 @@ The following 5 pre-built themes are available:
 ```
 
 **Preview**:
+
 - Primary buttons: Muted purple (#6c71c4)
 - Success buttons: Olive green (#859900)
 - Background: Warm cream (#fdf6e3)
@@ -94,7 +97,7 @@ The following 5 pre-built themes are available:
 
 **Designer**: Ethan Schoonover
 
----
+______________________________________________________________________
 
 ### Theme 4: Dracula
 
@@ -112,6 +115,7 @@ The following 5 pre-built themes are available:
 ```
 
 **Preview**:
+
 - Primary buttons: Bright purple (#bd93f9)
 - Success buttons: Neon green (#50fa7b)
 - Warning: Bright yellow (#f1fa8c)
@@ -121,7 +125,7 @@ The following 5 pre-built themes are available:
 
 **Inspired by**: Dracula color scheme for syntax highlighting
 
----
+______________________________________________________________________
 
 ### Theme 5: Nord
 
@@ -139,6 +143,7 @@ The following 5 pre-built themes are available:
 ```
 
 **Preview**:
+
 - Primary buttons: Ice blue (#88c0d0)
 - Success buttons: Soft green (#a3be8c)
 - Warning: Soft yellow (#ebcb8b)
@@ -148,7 +153,7 @@ The following 5 pre-built themes are available:
 
 **Designer**: Arctic Ice Studio
 
----
+______________________________________________________________________
 
 ## Theme Switching
 
@@ -209,7 +214,7 @@ Object.entries(themeColors).forEach(([varName, value]) => {
 });
 ```
 
----
+______________________________________________________________________
 
 ## Creating Custom Themes
 
@@ -260,6 +265,7 @@ Object.entries(themeColors).forEach(([varName, value]) => {
 ### Color Picker Tool
 
 For color selection, consider:
+
 - **Contrast ratio**: Must meet WCAG AA (4.5:1 for text)
 - **Color harmony**: Use complementary, triadic, or analogous color schemes
 - **Brand alignment**: Match your company's brand guidelines
@@ -282,7 +288,7 @@ fastbulma-theme-validator validate my-theme.css
 # ✓ FAST token mappings valid
 ```
 
----
+______________________________________________________________________
 
 ## Theme Usage Examples
 
@@ -319,7 +325,7 @@ fastbulma-theme-validator validate my-theme.css
 }
 ```
 
----
+______________________________________________________________________
 
 ## Accessibility Requirements
 
@@ -362,7 +368,7 @@ function validateThemeAccessibility() {
 - [ ] Color alone is not used to convey information
 - [ ] Tested with screen reader (NVDA, VoiceOver, TalkBack)
 
----
+______________________________________________________________________
 
 ## Best Practices
 
@@ -407,13 +413,14 @@ components.forEach(component => {
 });
 ```
 
----
+______________________________________________________________________
 
 ## Future Enhancements
 
 ### Theme Generator Tool (v2.0)
 
 Planned online tool for visual theme customization:
+
 - Visual color picker
 - Live preview components
 - Export theme CSS
@@ -422,11 +429,12 @@ Planned online tool for visual theme customization:
 ### Theme Marketplace (v1.2)
 
 Community-contributed themes:
+
 - Upload and share custom themes
 - Rate and review themes
 - One-click installation via CDN
 
----
+______________________________________________________________________
 
 ## Related Documentation
 

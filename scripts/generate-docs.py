@@ -10,95 +10,94 @@ Usage:
     python scripts/generate-docs.py --all
 """
 
-import sys
 import argparse
+import sys
 from typing import Dict, List
-
 
 # Component metadata for documentation generation
 COMPONENT_METADATA: Dict[str, Dict] = {
-    'fast-button': {
-        'description': 'Button component with Bulma color classes and FAST interactivity.',
-        'bulma_equivalent': '.button',
-        'aria_role': 'button',
-        'keyboard_support': 'Enter, Space',
-        'slots': [],
-        'examples': [
+    "fast-button": {
+        "description": "Button component with Bulma color classes and FAST interactivity.",
+        "bulma_equivalent": ".button",
+        "aria_role": "button",
+        "keyboard_support": "Enter, Space",
+        "slots": [],
+        "examples": [
             {
-                'title': 'Basic Button',
-                'code': '<fast-button class="is-primary">Click me</fast-button>',
+                "title": "Basic Button",
+                "code": '<fast-button class="is-primary">Click me</fast-button>',
             },
             {
-                'title': 'With Color Modifiers',
-                'code': '<fast-button class="is-success">Success</fast-button>\n<fast-button class="is-danger">Danger</fast-button>',
+                "title": "With Color Modifiers",
+                "code": '<fast-button class="is-success">Success</fast-button>\n<fast-button class="is-danger">Danger</fast-button>',
             },
             {
-                'title': 'With Sizes',
-                'code': '<fast-button class="is-small">Small</fast-button>\n<fast-button class="is-normal">Normal</fast-button>\n<fast-button class="is-large">Large</fast-button>',
-            },
-        ],
-    },
-    'fast-card': {
-        'description': 'Card component with named slots for heading and actions.',
-        'bulma_equivalent': '.box, .card',
-        'aria_role': 'article',
-        'keyboard_support': 'None (static content)',
-        'slots': ['heading', 'actions'],
-        'examples': [
-            {
-                'title': 'Basic Card',
-                'code': '<fast-card>\n  <p>Card content goes here.</p>\n</fast-card>',
-            },
-            {
-                'title': 'Card with Heading and Actions',
-                'code': '<fast-card>\n  <h3 slot="heading">Card Title</h3>\n  <p>Card content</p>\n  <fast-button slot="actions" class="is-primary">Action</fast-button>\n</fast-card>',
+                "title": "With Sizes",
+                "code": '<fast-button class="is-small">Small</fast-button>\n<fast-button class="is-normal">Normal</fast-button>\n<fast-button class="is-large">Large</fast-button>',
             },
         ],
     },
-    'fast-text-field': {
-        'description': 'Text input field with Bulma styling and FAST validation.',
-        'bulma_equivalent': '.input, .textarea',
-        'aria_role': None,
-        'keyboard_support': 'Tab, Shift+Tab',
-        'slots': [],
-        'examples': [
+    "fast-card": {
+        "description": "Card component with named slots for heading and actions.",
+        "bulma_equivalent": ".box, .card",
+        "aria_role": "article",
+        "keyboard_support": "None (static content)",
+        "slots": ["heading", "actions"],
+        "examples": [
             {
-                'title': 'Basic Text Field',
-                'code': '<fast-text-field placeholder="Enter text..."></fast-text-field>',
+                "title": "Basic Card",
+                "code": "<fast-card>\n  <p>Card content goes here.</p>\n</fast-card>",
             },
             {
-                'title': 'With Validation',
-                'code': '<fast-text-field required minlength="2"></fast-text-field>',
-            },
-        ],
-    },
-    'fast-checkbox': {
-        'description': 'Checkbox component with Bulma styling and FAST interactivity.',
-        'bulma_equivalent': '.checkbox input[type="checkbox"]',
-        'aria_role': 'checkbox',
-        'keyboard_support': 'Space',
-        'slots': [],
-        'examples': [
-            {
-                'title': 'Basic Checkbox',
-                'code': '<fast-checkbox>Accept terms</fast-checkbox>',
-            },
-            {
-                'title': 'Checked by Default',
-                'code': '<fast-checkbox checked>Subscribe</fast-checkbox>',
+                "title": "Card with Heading and Actions",
+                "code": '<fast-card>\n  <h3 slot="heading">Card Title</h3>\n  <p>Card content</p>\n  <fast-button slot="actions" class="is-primary">Action</fast-button>\n</fast-card>',
             },
         ],
     },
-    'fast-select': {
-        'description': 'Select dropdown with Bulma styling and FAST keyboard navigation.',
-        'bulma_equivalent': '.select select',
-        'aria_role': 'combobox',
-        'keyboard_support': 'ArrowUp, ArrowDown, Enter, Escape',
-        'slots': [],
-        'examples': [
+    "fast-text-field": {
+        "description": "Text input field with Bulma styling and FAST validation.",
+        "bulma_equivalent": ".input, .textarea",
+        "aria_role": None,
+        "keyboard_support": "Tab, Shift+Tab",
+        "slots": [],
+        "examples": [
             {
-                'title': 'Basic Select',
-                'code': '<fast-select>\n  <option value="1">Option 1</option>\n  <option value="2">Option 2</option>\n</fast-select>',
+                "title": "Basic Text Field",
+                "code": '<fast-text-field placeholder="Enter text..."></fast-text-field>',
+            },
+            {
+                "title": "With Validation",
+                "code": '<fast-text-field required minlength="2"></fast-text-field>',
+            },
+        ],
+    },
+    "fast-checkbox": {
+        "description": "Checkbox component with Bulma styling and FAST interactivity.",
+        "bulma_equivalent": '.checkbox input[type="checkbox"]',
+        "aria_role": "checkbox",
+        "keyboard_support": "Space",
+        "slots": [],
+        "examples": [
+            {
+                "title": "Basic Checkbox",
+                "code": "<fast-checkbox>Accept terms</fast-checkbox>",
+            },
+            {
+                "title": "Checked by Default",
+                "code": "<fast-checkbox checked>Subscribe</fast-checkbox>",
+            },
+        ],
+    },
+    "fast-select": {
+        "description": "Select dropdown with Bulma styling and FAST keyboard navigation.",
+        "bulma_equivalent": ".select select",
+        "aria_role": "combobox",
+        "keyboard_support": "ArrowUp, ArrowDown, Enter, Escape",
+        "slots": [],
+        "examples": [
+            {
+                "title": "Basic Select",
+                "code": '<fast-select>\n  <option value="1">Option 1</option>\n  <option value="2">Option 2</option>\n</fast-select>',
             },
         ],
     },
@@ -111,7 +110,7 @@ def generate_component_docs(component_name: str) -> str:
 
     docs = f"""# {component_name}
 
-{metadata.get('description', f'The {component_name} component.')}
+{metadata.get("description", f"The {component_name} component.")}
 
 ---
 
@@ -120,7 +119,7 @@ def generate_component_docs(component_name: str) -> str:
 ### Basic
 
 ```html
-{metadata.get('examples', [{}])[0].get('code', f'<{component_name}>Content</{component_name}>')}
+{metadata.get("examples", [{}])[0].get("code", f"<{component_name}>Content</{component_name}>")}
 ```
 
 ---
@@ -129,7 +128,7 @@ def generate_component_docs(component_name: str) -> str:
 
 | Property | Value |
 |----------|-------|
-| **Bulma Equivalent** | `{metadata.get('bulma_equivalent', 'None')}` |
+| **Bulma Equivalent** | `{metadata.get("bulma_equivalent", "None")}` |
 | **FAST Token** | `--accent-fill-rest` (for colors) |
 | **CSS Variable** | `var(--bulma-primary)` |
 
@@ -151,8 +150,8 @@ This allows Bulma modifier classes to style FAST components without direct CSS a
 
 | Property | Value |
 |----------|-------|
-| **ARIA Role** | `{metadata.get('aria_role', 'None') or 'N/A'}` |
-| **Keyboard Support** | {metadata.get('keyboard_support', 'None')} |
+| **ARIA Role** | `{metadata.get("aria_role", "None") or "N/A"}` |
+| **Keyboard Support** | {metadata.get("keyboard_support", "None")} |
 | **Screen Reader** | Fully supported via FAST components |
 | **Contrast Ratio** | WCAG AA compliant (4.5:1 for normal text) |
 
@@ -184,13 +183,13 @@ For older browsers, automatic fallbacks are provided:
 
 ## Examples
 
-{generate_examples_section(metadata.get('examples', []))}
+{generate_examples_section(metadata.get("examples", []))}
 
 ---
 
 ## Slots
 
-{generate_slots_section(metadata.get('slots', []))}
+{generate_slots_section(metadata.get("slots", []))}
 
 ---
 
@@ -264,8 +263,8 @@ def generate_examples_section(examples: List[Dict]) -> str:
 
     sections = []
     for i, example in enumerate(examples, 1):
-        title = example.get('title', f'Example {i}')
-        code = example.get('code', '')
+        title = example.get("title", f"Example {i}")
+        code = example.get("code", "")
 
         sections.append(f"""
 ### {title}
@@ -288,9 +287,9 @@ def generate_slots_section(slots: List[str]) -> str:
 
     for slot_name in slots:
         description = {
-            'heading': 'Card title or header content',
-            'actions': 'Action buttons or footer content',
-        }.get(slot_name, f'Content for {slot_name}')
+            "heading": "Card title or header content",
+            "actions": "Action buttons or footer content",
+        }.get(slot_name, f"Content for {slot_name}")
 
         sections.append(f"| `{slot_name}` | {description} |")
 
@@ -299,10 +298,18 @@ def generate_slots_section(slots: List[str]) -> str:
 
 def main() -> None:
     """Main entry point."""
-    parser = argparse.ArgumentParser(description='Generate documentation for FastBulma components')
-    parser.add_argument('component', nargs='?', help='Component name (e.g., fast-button)')
-    parser.add_argument('--all', action='store_true', help='Generate docs for all components')
-    parser.add_argument('--list', action='store_true', help='List all available components')
+    parser = argparse.ArgumentParser(
+        description="Generate documentation for FastBulma components"
+    )
+    parser.add_argument(
+        "component", nargs="?", help="Component name (e.g., fast-button)"
+    )
+    parser.add_argument(
+        "--all", action="store_true", help="Generate docs for all components"
+    )
+    parser.add_argument(
+        "--list", action="store_true", help="List all available components"
+    )
 
     args = parser.parse_args()
 
@@ -320,10 +327,11 @@ def main() -> None:
 
             # Create directory if needed
             import os
-            os.makedirs('docs/components', exist_ok=True)
+
+            os.makedirs("docs/components", exist_ok=True)
 
             # Write documentation
-            with open(filename, 'w') as f:
+            with open(filename, "w") as f:
                 f.write(generate_component_docs(component_name))
 
             print(f"✅ Generated: {filename}")

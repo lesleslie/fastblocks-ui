@@ -1,0 +1,4 @@
+# Pip-audit suppressions for known vulnerabilities that can't be resolved immediately
+
+# Protobuf vulnerability that exists in the latest version
+protobuf==6.33.4 CVE-2026-0994

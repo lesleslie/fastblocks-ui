@@ -8,27 +8,30 @@ Use this decision tree to choose your migration approach:
 
 ![Migration Path Decision Tree](diagrams/03-migration-path-decision-tree.png)
 
----
+______________________________________________________________________
 
 ## Quick Assessment
 
 ### Project Size
+
 - **Small** (< 50 components): 1-2 days migration
 - **Medium** (50-200 components): 1-2 weeks migration
 - **Large** (200+ components): 3-4 weeks migration
 
 ### Migration Goals
+
 - **Quick test**: Want to try FAST components without major changes
 - **Gradual adoption**: Want FAST features in specific areas
 - **Full replacement**: Want complete FAST component ecosystem
 
----
+______________________________________________________________________
 
 ## Level 1: Drop-in Replacement
 
 **Target**: Teams wanting FAST components without changing HTML structure
 
 ### Time Investment
+
 - Small projects: **1-2 days**
 - Medium projects: **3-5 days**
 - Large projects: **1-2 weeks**
@@ -36,12 +39,14 @@ Use this decision tree to choose your migration approach:
 ### What You Do
 
 1. Add FastBulma CSS and JS to your page
+
    ```html
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fastbulma@latest/css/fastbulma.min.css">
    ```
 
-2. Replace HTML elements
+1. Replace HTML elements
+
    ```html
    <!-- Before -->
    <button class="button is-primary">Click me</button>
@@ -50,21 +55,26 @@ Use this decision tree to choose your migration approach:
    <fast-button class="is-primary">Click me</fast-button>
    ```
 
-3. Run automated codemods (available in v1.0)
+1. Run automated codemods (available in v1.0)
+
    ```bash
    fastbulma-migrate src/
    ```
 
-4. Test basic functionality (clicks, form submission)
-5. Verify CSS variables are applied
-6. Check browser console for errors
+1. Test basic functionality (clicks, form submission)
+
+1. Verify CSS variables are applied
+
+1. Check browser console for errors
 
 ### What You Get
+
 - ✅ FAST components automatically
 - ✅ Minimal code changes
 - ❌ No access to FAST-specific features (slots, advanced properties)
 
 ### Example
+
 ```html
 <!-- Before (Bulma) -->
 <button class="button is-primary is-large">Primary Button</button>
@@ -73,13 +83,14 @@ Use this decision tree to choose your migration approach:
 <fast-button class="button is-primary is-large">Primary Button</fast-button>
 ```
 
----
+______________________________________________________________________
 
 ## Level 2: Gradual Adoption
 
 **Target**: Teams wanting to use FAST features in specific areas
 
 ### Time Investment
+
 - Small projects: **3-5 days**
 - Medium projects: **1-2 weeks**
 - Large projects: **3-4 weeks**
@@ -87,12 +98,14 @@ Use this decision tree to choose your migration approach:
 ### What You Do
 
 1. Identify high-value components to migrate:
+
    - Forms (text fields, selects, checkboxes)
    - Modals/dialogs
    - Data grids
    - Dropdowns
 
-2. Migrate identified components with FAST features:
+1. Migrate identified components with FAST features:
+
    ```html
    <!-- Keep Bulma for layout -->
    <div class="columns">
@@ -107,29 +120,34 @@ Use this decision tree to choose your migration approach:
    </div>
    ```
 
-3. Keep Bulma for layout and typography
-4. Test component interactions thoroughly
-5. Verify accessibility with screen reader
+1. Keep Bulma for layout and typography
+
+1. Test component interactions thoroughly
+
+1. Verify accessibility with screen reader
 
 ### What You Get
+
 - ✅ Best of both worlds (Bulma layout + FAST components)
 - ✅ Gradual learning curve
 - ✅ FAST features where you need them
 - ❌ Some inconsistency in component patterns
 
 ### When to Use Level 2
+
 - You want FAST's accessibility features
 - You need advanced form components
 - You want to try FAST incrementally
 - You have limited time/resources
 
----
+______________________________________________________________________
 
 ## Level 3: Full FAST Adoption
 
 **Target**: New projects or teams ready for complete migration
 
 ### Time Investment
+
 - Small projects: **1-2 weeks**
 - Medium projects: **3-4 weeks**
 - Large projects: **2-3 months**
@@ -137,6 +155,7 @@ Use this decision tree to choose your migration approach:
 ### What You Do
 
 1. Replace all form components with FAST equivalents:
+
    ```html
    <fast-text-field name="username"></fast-text-field>
    <fast-select name="country">
@@ -145,13 +164,18 @@ Use this decision tree to choose your migration approach:
    <fast-checkbox>Agree to terms</fast-checkbox>
    ```
 
-2. Use FAST data-grid instead of Bulma tables
-3. Use FAST dialog instead of Bulma modal
-4. Use FAST menu-button instead of Bulma dropdown
-5. Keep Bulma for columns, hero, section, typography
-6. Optimize CSS variables for your theme
+1. Use FAST data-grid instead of Bulma tables
+
+1. Use FAST dialog instead of Bulma modal
+
+1. Use FAST menu-button instead of Bulma dropdown
+
+1. Keep Bulma for columns, hero, section, typography
+
+1. Optimize CSS variables for your theme
 
 ### What You Get
+
 - ✅ Consistent component API
 - ✅ Full FAST feature set
 - ✅ Best accessibility
@@ -159,16 +183,18 @@ Use this decision tree to choose your migration approach:
 - ❌ More code changes
 
 ### When to Use Level 3
+
 - Starting a new project
 - Complete rewrite in progress
 - Full commitment to FAST ecosystem
 - Have resources for training
 
----
+______________________________________________________________________
 
 ## Pre-Migration Checklist
 
 ### Planning Phase
+
 - [ ] Audit current Bulma usage in your project
 - [ ] Identify components to migrate
 - [ ] Estimate migration effort
@@ -176,6 +202,7 @@ Use this decision tree to choose your migration approach:
 - [ ] Set up FastBulma in staging environment
 
 ### Level 1 Execution
+
 - [ ] Add FastBulma CDN links
 - [ ] Run automated codemods
 - [ ] Test basic functionality
@@ -183,12 +210,14 @@ Use this decision tree to choose your migration approach:
 - [ ] Check console for errors
 
 ### Level 2 Execution
+
 - [ ] Identify high-value components
 - [ ] Migrate with FAST slots/properties
 - [ ] Test keyboard navigation
 - [ ] Verify accessibility
 
 ### Level 3 Execution
+
 - [ ] Replace all form components
 - [ ] Use FAST data-grid/dialog/tabs
 - [ ] Optimize CSS variables
@@ -196,13 +225,14 @@ Use this decision tree to choose your migration approach:
 - [ ] Performance test
 
 ### Post-Migration
+
 - [ ] Run automated test suite
 - [ ] Manual QA testing
 - [ ] Accessibility audit
 - [ ] Performance benchmarking
 - [ ] Deploy and monitor
 
----
+______________________________________________________________________
 
 ## Common Migration Issues
 
@@ -211,6 +241,7 @@ Use this decision tree to choose your migration approach:
 **Problem**: FAST components don't inherit Bulma CSS variables
 
 **Solution**: Ensure Bulma classes are on the FAST element itself:
+
 ```html
 <!-- ✗ WRONG -->
 <div class="is-primary">
@@ -226,6 +257,7 @@ Use this decision tree to choose your migration approach:
 **Problem**: Click events on FAST components not triggering
 
 **Solution**: Events work but `event.target` is retargeted:
+
 ```javascript
 document.querySelector('fast-button').addEventListener('click', handler);
 // event.target is <fast-button>, not internal button
@@ -236,11 +268,12 @@ document.querySelector('fast-button').addEventListener('click', handler);
 **Problem**: Native form validation not working with FAST components
 
 **Solution**: Add form association polyfill:
+
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@github/form-associated-element-boundary@latest/dist/form-associated-element-boundary.min.js"></script>
 ```
 
----
+______________________________________________________________________
 
 ## Migration Timeline Estimates
 
@@ -250,11 +283,12 @@ document.querySelector('fast-button').addEventListener('click', handler);
 | Medium (50-200) | 3-5 days | 1-2 weeks | 3-4 weeks |
 | Large (200+) | 1-2 weeks | 3-4 weeks | 2-3 months |
 
----
+______________________________________________________________________
 
 ## Tools and Resources
 
 ### Automated Codemods
+
 ```bash
 # Install codemod CLI
 npm install -g jscodeshift
@@ -272,6 +306,7 @@ fastbulma-migrate src/
 **Tier 2** (Last 4 versions) - Core functionality with polyfills
 
 **Required Polyfills**:
+
 - Form association: `@github/form-associated-element-boundary`
 - Required for: Safari < 16.4, Firefox < 79, Chrome < 77
 
@@ -281,11 +316,12 @@ fastbulma-migrate src/
 - [Implementation Plan](../IMPLEMENTATION_PLAN.md) - Full technical spec
 - [Component API Reference](../IMPLEMENTATION_PLAN.md#component-api-specification) - API details
 
----
+______________________________________________________________________
 
 ## Success Criteria
 
 Your migration is successful when:
+
 - ✅ All Bulma classes work with FAST components
 - ✅ CSS variables apply correctly
 - ✅ Forms submit properly

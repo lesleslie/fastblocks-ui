@@ -5,18 +5,20 @@
 This implementation plan includes visual diagrams created with Mermaid and Excalidraw to illustrate key concepts:
 
 - **Mermaid Diagrams** (`docs/diagrams/*.png`):
+
   - `01-css-variable-inheritance-flow.png` - How CSS variables penetrate Shadow DOM
   - `02-system-architecture.png` - Layered architecture overview
   - `03-migration-path-decision-tree.png` - Choosing your migration strategy
 
 - **Excalidraw Mockups** (accessible via Excalidraw MCP):
+
   - Component Comparison (Bulma vs FastBulma side-by-side)
   - Shadow DOM Visualization (visual cutaway showing variable penetration)
   - Theme Gallery (5 pre-built themes with actual colors)
 
 Refer to these diagrams when implementing to visualize the architecture.
 
----
+______________________________________________________________________
 
 ## Project Overview
 
@@ -25,12 +27,14 @@ The FastBulma framework combines Bulma's native CSS utilities for layout with FA
 ### Important: Vanilla JavaScript Only
 
 **FastBulma is optimized for vanilla JavaScript with NO framework dependencies**. All examples and code use:
+
 - Native web components (custom elements)
 - Standard DOM APIs
 - Plain JavaScript (ES6+)
 - CSS (no preprocessors)
 
 **NOT included**:
+
 - No React integration
 - No Vue integration
 - No Angular integration
@@ -38,16 +42,17 @@ The FastBulma framework combines Bulma's native CSS utilities for layout with FA
 
 Framework integrations may be added in future releases, but the core is vanilla JS only.
 
----
+______________________________________________________________________
 
 ### Core Features
+
 - Bulma utilities for page layout and typography (columns, hero, helpers)
 - FAST Web Components with Bulma‑aligned tokens (colors, spacing, radius)
 - Pure CSS customization via CSS vars
 - Shadow DOM encapsulation for components
 - MIT licensed, no build tools required
 
----
+______________________________________________________________________
 
 ## Technical Architecture
 
@@ -55,7 +60,7 @@ Framework integrations may be added in future releases, but the core is vanilla 
 
 FastBulma uses a **layered architecture** that separates concerns between layout utilities (Bulma) and interactive components (FAST), connected through CSS variables and JavaScript adapters.
 
-![System Architecture](diagrams/02-system-architecture.png)
+![System Architecture](docs/diagrams/02-system-architecture.png)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -81,7 +86,7 @@ FastBulma uses a **layered architecture** that separates concerns between layout
 
 ### Shadow DOM Integration Strategy
 
-![CSS Variable Inheritance Flow](diagrams/01-css-variable-inheritance-flow.png)
+![CSS Variable Inheritance Flow](docs/diagrams/01-css-variable-inheritance-flow.png)
 
 #### The Challenge
 
@@ -153,6 +158,7 @@ fast-checkbox.is-primary::part(control) {
 ```
 
 If `::part(control)` is not available, alternative approach:
+
 ```css
 /* Alternative: Use CSS variables if FAST exposes them */
 fast-checkbox.is-primary {
@@ -162,6 +168,7 @@ fast-checkbox.is-primary {
 ```
 
 **2. Data Grid Styling**
+
 ```javascript
 // Workaround: Use FAST's column configuration API
 // NOTE: FAST's internal template system uses html tagged template literals
@@ -205,7 +212,7 @@ describe('Shadow DOM CSS Variable Inheritance', () => {
 
 **Success Probability: 55%** (reduced from 75% due to Safari 15.x Shadow DOM bugs, form association issues, and CSS variable recalculation overhead)
 
----
+______________________________________________________________________
 
 ### JavaScript Integration Architecture
 
@@ -397,6 +404,7 @@ button.addEventListener('click', (event) => {
 ```
 
 **Bulma compatibility**: Standard event attributes work:
+
 ```html
 <fast-button onclick="handleClick()">Click me</fast-button>
 ```
@@ -441,7 +449,7 @@ registerFastBulma().then(() => {
 
 **Success Probability: 80%** → **70%** (added error handling complexity)
 
----
+______________________________________________________________________
 
 #### Error Boundary Handling
 
@@ -450,9 +458,9 @@ registerFastBulma().then(() => {
 **Why Error Boundaries Are Essential**:
 
 1. **Network Failures**: CDN dependencies may be temporarily unavailable
-2. **Component Registration Failures**: FAST components may fail to register
-3. **JavaScript Errors**: User code may cause component crashes
-4. **Browser Compatibility**: Older browsers may not support certain features
+1. **Component Registration Failures**: FAST components may fail to register
+1. **JavaScript Errors**: User code may cause component crashes
+1. **Browser Compatibility**: Older browsers may not support certain features
 
 **Error Boundary Implementation**:
 
@@ -668,7 +676,7 @@ function testErrorBoundary() {
 
 **Success Probability: 70%** (error boundaries improve robustness but don't eliminate all failure modes)
 
----
+______________________________________________________________________
 
 ### Component API Specification
 
@@ -677,12 +685,14 @@ function testErrorBoundary() {
 **Decision**: Use FAST custom elements directly with Bulma classes. **DO NOT** create new custom elements like `<fastbulma-card>`.
 
 **Rationale**:
+
 - Prevents namespace collision
 - Leverages FAST documentation directly
 - Allows mixing FAST and Bulma components
 - Smaller bundle size (no wrapper components)
 
 **Correct usage**:
+
 ```html
 <!-- ✓ Use FAST elements with Bulma classes -->
 <fast-card class="is-primary">
@@ -731,6 +741,7 @@ Bulma data attributes map to FAST properties:
 ```
 
 **Implementation**:
+
 ```javascript
 // Data attribute to property mapper
 function mapDataAttributes(element) {
@@ -759,6 +770,7 @@ document.addEventListener('fast-component-ready', (e) => {
 #### Component Composition Rules
 
 **Rule 1**: FAST components can be nested inside Bulma structures
+
 ```html
 <div class="columns">
   <div class="column">
@@ -770,6 +782,7 @@ document.addEventListener('fast-component-ready', (e) => {
 ```
 
 **Rule 2**: Bulma utilities can wrap FAST components
+
 ```html
 <section class="section is-medium">
   <fast-button appearance="accent">Button in section</fast-button>
@@ -777,6 +790,7 @@ document.addEventListener('fast-component-ready', (e) => {
 ```
 
 **Rule 3**: FAST components should NOT contain Bulma structural classes (columns, level, etc.)
+
 ```html
 <!-- ✗ DON'T: Bulma structure inside FAST component -->
 <fast-card>
@@ -794,6 +808,7 @@ document.addEventListener('fast-component-ready', (e) => {
 ```
 
 **Rule 4**: FAST components can contain other FAST components
+
 ```html
 <fast-card>
   <fast-tabs>
@@ -829,7 +844,7 @@ document.addEventListener('fast-component-ready', (e) => {
 
 **Success Probability: 80%** (reduced from 85% - vanilla JS constraint limits API ergonomics, no framework integration)
 
----
+______________________________________________________________________
 
 ## Risk Assessment and Mitigation
 
@@ -851,20 +866,23 @@ document.addEventListener('fast-component-ready', (e) => {
 | Documentation falling behind implementation | 85% | Medium | Adopt docs-as-code approach with automated generation |
 | Community adoption challenges | 60% | Low | Early engagement with developer community |
 
----
+______________________________________________________________________
 
 ## Implementation Phases
 
 ### Phase 1: Project Setup and Dependencies
 
 #### 1.1 Environment Setup
+
 - Initialize project with uv
 - Install crackerjack for quality control & project management
 - Install session-buddy for session management
 - Configure pyproject.toml with all necessary dependencies
 
 #### 1.2 Python Package Purpose and Structure
+
 The Python package will serve primarily for development, documentation, and integration tools rather than runtime functionality:
+
 - Support development workflow with crackerjack and session-buddy
 - Provide documentation generation tools
 - Include integration utilities for FastBlocks
@@ -872,32 +890,36 @@ The Python package will serve primarily for development, documentation, and inte
 
 **Success Probability: 85%** (reduced from 95% - environment setup, dependency conflicts, tooling configuration)
 
----
+______________________________________________________________________
 
 ### Phase 2: Core Framework Implementation
 
 #### 2.1 CSS Integration
+
 - Include Bulma CSS via CDN link in base template
 - Create CSS variable mappings from Bulma to FAST tokens
 - Implement the `@layer fast` approach for CSS cascade control
 
 #### 2.2 JavaScript Integration
+
 - Register FAST components in the design system
 - Create initialization script for FastBulma components
 - Implement dynamic CSS variable updates
 
 #### 2.3 Component Development
+
 - Create base component class that integrates Bulma classes with FAST components
 - Develop wrapper components that map Bulma utilities to FAST web components
 - Implement token mapping system for consistent theming
 
 **Success Probability: 75%** (reduced from 85% - Shadow DOM variable inheritance issues, browser-specific bugs)
 
----
+______________________________________________________________________
 
 ### Phase 3: Component Mapping Implementation
 
 #### 3.1 CSS Variable Mappings
+
 Create comprehensive mapping between Bulma variables and FAST tokens:
 
 ```css
@@ -1097,6 +1119,7 @@ Create comprehensive mapping between Bulma variables and FAST tokens:
 ```
 
 #### 3.2 Component-Specific Mappings
+
 - Map Bulma color classes (.is-primary, .is-success, etc.) to FAST component states
 - Implement responsive utility mappings
 - Create typography mapping system
@@ -1130,7 +1153,7 @@ Create comprehensive mapping between Bulma variables and FAST tokens:
 
 **Success Probability: 70%** (reduced from 80% - CDN configuration complexity, polyfill compatibility issues)
 
----
+______________________________________________________________________
 
 ### Phase 4: Testing and Validation
 
@@ -1139,21 +1162,25 @@ Create comprehensive mapping between Bulma variables and FAST tokens:
 ##### Framework Selection
 
 **Unit Testing**: Vitest
+
 - **Rationale**: Fast, native ESM support, Jest-compatible API
 - **Setup**: Config files in `vitest.config.ts`
 - **Coverage**: Built-in coverage with c8
 
 **Visual Regression Testing**: Chromatic
+
 - **Rationale**: Cloud-based, integrates with Storybook, automatic diff detection
 - **Alternative**: Percy (open source) or Playwright (built-in screenshots)
 - **Storage**: 1,000+ screenshots expected for all component variations
 
 **E2E Testing**: Playwright
+
 - **Rationale**: Cross-browser, auto-waiting, built-in assertions
 - **Coverage**: Chrome, Firefox, Safari (via WebKit), Edge
 - **Test Data**: Fixture files for complex component states
 
 **Accessibility Testing**: axe-core + Playwright
+
 - **Rationale**: Automated WCAG compliance, integrates with E2E tests
 - **Manual Testing**: NVDA, JAWS, VoiceOver, TalkBack
 
@@ -1184,6 +1211,7 @@ tests/
 #### 4.2 Unit Testing
 
 **CSS Variable Mapping Tests**
+
 ```javascript
 // tests/unit/css-variable-mappings.test.ts
 describe('CSS Variable Mappings', () => {
@@ -1215,6 +1243,7 @@ describe('CSS Variable Mappings', () => {
 ```
 
 **Shadow DOM Encapsulation Tests**
+
 ```javascript
 // tests/unit/shadow-dom-encapsulation.test.ts
 describe('Shadow DOM Encapsulation', () => {
@@ -1245,6 +1274,7 @@ describe('Shadow DOM Encapsulation', () => {
 ```
 
 **Component Registration Tests**
+
 ```javascript
 // tests/unit/component-registration.test.ts
 describe('Component Registration', () => {
@@ -1271,6 +1301,7 @@ describe('Component Registration', () => {
 #### 4.3 Visual Regression Testing
 
 **Storybook Integration**
+
 ```javascript
 // tests/visual/button-variants.story.ts
 import type { Meta, StoryObj } from '@storybook/web-components';
@@ -1312,6 +1343,7 @@ export const SuccessOutline: StoryObj = {
 ```
 
 **Chromatic Configuration**
+
 ```json
 {
   "stories": ["./tests/visual/**/*.story.ts"],
@@ -1325,6 +1357,7 @@ export const SuccessOutline: StoryObj = {
 #### 4.4 Integration Testing (E2E)
 
 **Keyboard Navigation Tests**
+
 ```javascript
 // tests/e2e/keyboard-navigation.spec.ts
 import { test, expect } from '@playwright/test';
@@ -1357,6 +1390,7 @@ test.describe('Keyboard Navigation', () => {
 ```
 
 **Responsive Layout Tests**
+
 ```javascript
 // tests/e2e/responsive-layout.spec.ts
 test.describe('Responsive Layout', () => {
@@ -1385,6 +1419,7 @@ test.describe('Responsive Layout', () => {
 ```
 
 **Component Interaction Tests**
+
 ```javascript
 // tests/e2e/component-interactions.spec.ts
 test.describe('Component Interactions', () => {
@@ -1416,6 +1451,7 @@ test.describe('Component Interactions', () => {
 #### 4.5 Accessibility Testing
 
 **Automated Accessibility Tests**
+
 ```javascript
 // tests/a11y/automated-a11y.spec.ts
 import { test, expect } from '@playwright/test';
@@ -1479,6 +1515,7 @@ test.describe('Accessibility', () => {
 #### 4.6 Component Testing Strategy
 
 **Test Coverage Requirements**
+
 - **Unit tests**: >80% line coverage for JavaScript modules
 - **Visual tests**: All component variants (size × color × state combinations)
 - **E2E tests**: Critical user journeys (form submission, navigation, modal interactions)
@@ -1522,6 +1559,7 @@ crickerjack test --fix
 **Crickerjack Quality Gates** (enforced via settings/config):
 
 Crickerjack runs quality checks using its own configuration system and caches:
+
 - ✅ Unit tests pass
 - ✅ Visual regression tests pass
 - ✅ E2E tests pass
@@ -1530,6 +1568,7 @@ Crickerjack runs quality checks using its own configuration system and caches:
 - ✅ Bundle size within budget
 
 Quality gates are enforced through crickerjack's settings (not pre-commit hooks):
+
 ```bash
 # Crickerjack settings (not pre-commit hooks)
 ~/.config/crickerjack/settings.toml
@@ -1543,6 +1582,7 @@ Quality gates are enforced through crickerjack's settings (not pre-commit hooks)
 **Critical Requirement**: Shadow DOM + custom elements = high memory leak risk. Memory leak testing is mandatory for production readiness.
 
 **Why Memory Leaks Matter**
+
 - Shadow DOM creates isolated DOM trees that can retain references
 - Custom elements with event listeners can prevent garbage collection
 - MutationObserver can hold references to entire DOM subtrees
@@ -1552,6 +1592,7 @@ Quality gates are enforced through crickerjack's settings (not pre-commit hooks)
 **Test Scenarios**
 
 **1. Event Listener Leaks Test**
+
 ```javascript
 describe('Memory Leak: Event Listeners', () => {
   test('Event listeners are removed on component destroy', async () => {
@@ -1587,6 +1628,7 @@ describe('Memory Leak: Event Listeners', () => {
 ```
 
 **2. MutationObserver Leaks Test**
+
 ```javascript
 describe('Memory Leak: MutationObserver', () => {
   test('MutationObserver is properly disconnected', async () => {
@@ -1624,6 +1666,7 @@ describe('Memory Leak: MutationObserver', () => {
 ```
 
 **3. Shadow DOM Circular References Test**
+
 ```javascript
 describe('Memory Leak: Shadow DOM Circular References', () => {
   test('Components with circular refs release memory', async () => {
@@ -1665,6 +1708,7 @@ describe('Memory Leak: Shadow DOM Circular References', () => {
 ```
 
 **4. Component Pool Leaks Test**
+
 ```javascript
 describe('Memory Leak: Component Pool', () => {
   test('Component pool does not leak memory', async () => {
@@ -1693,12 +1737,14 @@ describe('Memory Leak: Component Pool', () => {
 ```
 
 **Testing Tools**
+
 - **Chrome DevTools Memory Profiler**: Take heap snapshots before/after operations
 - **Playwright with Chrome DevTools Protocol**: Automated memory profiling
 - **Crackerjack leak detection**: Built-in memory leak detection in test suite
 - **Long-running page test**: Run 24+ hour soak test to detect slow leaks
 
 **Memory Leak Testing with Crackerjack**
+
 ```bash
 # Run memory leak tests via crackerjack
 crackerjack test --memory
@@ -1714,12 +1760,14 @@ crackerjack test --memory --component=fast-button
 ```
 
 Crackerjack integrates memory leak testing into the standard test workflow:
+
 - Automatically detects memory leaks before commits
 - Generates heap snapshots on failure
 - Provides detailed leak reports with stack traces
 - No separate CI configuration needed
 
 **Success Criteria**
+
 - ✅ No memory growth after 1000 component create/destroy cycles
 - ✅ No detached DOM nodes after garbage collection (check heap snapshots)
 - ✅ Event listeners are properly removed when components are destroyed
@@ -1728,20 +1776,23 @@ Crackerjack integrates memory leak testing into the standard test workflow:
 - ✅ Long-running page test (24 hours) shows < 10MB memory growth
 
 **Performance Budget**
+
 - Maximum allowed memory growth: 10MB per 1000 component operations
 - Maximum detached DOM nodes: 0 after garbage collection
 - Maximum event listeners growth: 0 after component destruction
 
----
+______________________________________________________________________
 
 ### Phase 4.5: Performance Optimization
 
 #### 4.5.1 Performance Benchmarking
+
 - Establish baseline performance metrics
 - Implement automated performance regression testing
 - Create performance budget tracking
 
 #### 4.5.2 Optimization Strategies
+
 - CSS optimization: Critical CSS extraction, unused rule removal
 - JavaScript optimization: Tree-shaking, lazy loading
 - Rendering optimization: Virtual scrolling, efficient DOM updates
@@ -1758,6 +1809,7 @@ Crackerjack integrates memory leak testing into the standard test workflow:
 | **60 FPS Animations** | 85% probability | **60-70%** | CSS variable recalculation overhead, Shadow DOM rendering |
 
 **Performance Optimization Requirements**:
+
 - **Critical CSS extraction**: Inline above-the-fold CSS to reduce FCP
 - **Component lazy loading**: Only register above-the-fold components initially
 - **CSS containment**: Apply `contain: style` to limit recalculation scope
@@ -1766,11 +1818,12 @@ Crackerjack integrates memory leak testing into the standard test workflow:
 
 **Success Probability: 80%** → **65%** (performance targets more realistic but achievable with optimizations)
 
----
+______________________________________________________________________
 
 ### Phase 5: Documentation, Demos, and Examples
 
 #### 5.1 API Documentation
+
 - Document component interfaces with detailed property/method listings
 - Provide comprehensive usage examples for each component
 - Create customization guides for theming and styling
@@ -1778,6 +1831,7 @@ Crackerjack integrates memory leak testing into the standard test workflow:
 - Generate documentation automatically from source code comments
 
 #### 5.2 Interactive Documentation Site
+
 - Build documentation site using FastBulma components
 - Include live code examples that users can modify
 - Provide side-by-side comparisons of Bulma vs FastBulma implementations
@@ -1785,17 +1839,19 @@ Crackerjack integrates memory leak testing into the standard test workflow:
 
 **Success Probability: 75%** (reduced from 90% - SSR limitations complex to document, migration paths need extensive examples)
 
----
+______________________________________________________________________
 
 ## Browser Support Strategy
 
 ### Tier 1 Support (Full functionality)
+
 - Chrome (latest 2 versions)
 - Firefox (latest 2 versions)
 - Safari (latest 2 versions)
 - Edge (latest 2 versions)
 
 **Features Supported**:
+
 - All components and features
 - Native form association (no polyfill needed)
 - CSS `color-mix()` function for advanced theming
@@ -1803,45 +1859,52 @@ Crackerjack integrates memory leak testing into the standard test workflow:
 - Full Shadow DOM encapsulation
 
 ### Tier 2 Support (Core functionality)
+
 - Chrome (last 4 versions)
 - Firefox (last 4 versions)
 - Safari (last 3 versions)
 - Edge (last 3 versions)
 
 **Features Supported**:
+
 - All components and features
 - Form association requires polyfill for older versions
 - CSS `color-mix()` requires fallback to predefined color variants
 - CSS Shadow Parts API where available
 
 **Polyfills Required**:
+
 - `@github/form-associated-element-boundary` for form association (Safari < 16.4, Firefox < 79, Chrome < 77)
 - Fallback CSS variables for `color-mix()` (Safari < 16.2, Firefox < 113, Chrome < 111)
 
 ### Tier 3 Support (Best effort)
+
 - Mobile browsers (iOS Safari, Chrome Android)
 - Legacy browsers with polyfills
 
 **Limitations**:
+
 - Some advanced features may not work
 - Performance may be degraded
 - Polyfills increase bundle size
 
 **Implementation Probability: 70%** (Reduced from 88% due to Safari 15.x Shadow DOM bugs)
 
----
+______________________________________________________________________
 
 ### Server-Side Rendering Strategy
 
 **Decision**: FastBulma does **NOT** support server-side rendering.
 
 **Reasoning**:
+
 1. FAST components use Shadow DOM, which doesn't exist on the server
-2. No SSR framework integration (React, Vue, Angular, etc.)
-3. Vanilla JavaScript constraint precludes SSR solutions
-4. Web Components require browser JavaScript to initialize
+1. No SSR framework integration (React, Vue, Angular, etc.)
+1. Vanilla JavaScript constraint precludes SSR solutions
+1. Web Components require browser JavaScript to initialize
 
 **Implications**:
+
 - Initial HTML will show unstyled `<fast-button>` elements
 - Content only visible after JavaScript loads and components register
 - **NOT suitable for SEO-critical pages** (search engines won't see component content)
@@ -1849,6 +1912,7 @@ Crackerjack integrates memory leak testing into the standard test workflow:
 - **NOT suitable for users with JavaScript disabled**
 
 **Impact on Core Web Vitals**:
+
 - **LCP (Largest Contentful Paint)**: Will be delayed until after component registration
 - **FCP (First Contentful Paint)**: May show unstyled custom elements
 - **CLS (Cumulative Layout Shift)**: Possible layout shift when components render
@@ -1856,6 +1920,7 @@ Crackerjack integrates memory leak testing into the standard test workflow:
 **Alternatives for SSR**:
 
 **Option 1: Hybrid Approach (Recommended for SEO)**
+
 ```html
 <!-- Server-rendered Bulma content for SEO -->
 <head>
@@ -1884,6 +1949,7 @@ Crackerjack integrates memory leak testing into the standard test workflow:
 ```
 
 **Option 2: Declarative Shadow DOM (Experimental)**
+
 ```html
 <!-- Experimental: Declarative Shadow DOM (Chrome 111+, Safari 16.4+) -->
 <fast-button class="is-primary">
@@ -1898,6 +1964,7 @@ Crackerjack integrates memory leak testing into the standard test workflow:
 ```
 
 **Limitations of Option 2**:
+
 - Browser support is limited (Chrome 111+, Safari 16.4+)
 - Bloats HTML with duplicated component internals
 - No hydration - static only
@@ -1906,19 +1973,22 @@ Crackerjack integrates memory leak testing into the standard test workflow:
 
 **Migration Guidance**:
 If you need SSR:
+
 1. Use Bulma components for server-rendered content (SEO-critical areas)
-2. Hydrate with FAST components after page load (interactive regions)
-3. Accept hydration complexity and potential layout shift
-4. Consider using Bulma-only for SEO-critical pages
-5. Use FastBulma only for interactive dashboards, admin panels, etc.
+1. Hydrate with FAST components after page load (interactive regions)
+1. Accept hydration complexity and potential layout shift
+1. Consider using Bulma-only for SEO-critical pages
+1. Use FastBulma only for interactive dashboards, admin panels, etc.
 
 **Examples of When FastBulma is Appropriate**:
+
 - ✅ Admin dashboards (login required, not SEO-critical)
 - ✅ Internal tools (authentication gate, no indexing)
 - ✅ Interactive applications (SPA-like behavior)
 - ✅ Progressive Web Apps (JavaScript required anyway)
 
 **Examples of When to Use Bulma Instead**:
+
 - ❌ Marketing landing pages (SEO-critical)
 - ❌ Public documentation (needs SEO, no-JS fallback)
 - ❌ E-commerce product pages (SEO + performance critical)
@@ -1926,11 +1996,11 @@ If you need SSR:
 
 **Implementation Probability: 50%** (Hybrid approach adds significant complexity)
 
----
+______________________________________________________________________
 
 ## Migration Path from Bulma
 
-![Migration Decision Tree](diagrams/03-migration-path-decision-tree.png)
+![Migration Decision Tree](docs/diagrams/03-migration-path-decision-tree.png)
 
 ### Migration Strategy Overview
 
@@ -1945,6 +2015,7 @@ Migrating from pure Bulma to FastBulma can be done **incrementally**, allowing t
 **Approach**: Use FAST components with Bulma classes, no JavaScript changes required.
 
 **Example**:
+
 ```html
 <!-- Before (Bulma) -->
 <button class="button is-primary">Click me</button>
@@ -1954,10 +2025,11 @@ Migrating from pure Bulma to FastBulma can be done **incrementally**, allowing t
 ```
 
 **Migration Steps**:
+
 1. Add FastBulma CSS and JS to your page
-2. Replace `<button class="button">` with `<fast-button class="button">`
-3. Replace `<input class="input">` with `<fast-text-field class="input">`
-4. Replace `<div class="select">` with `<fast-select class="select">`
+1. Replace `<button class="button">` with `<fast-button class="button">`
+1. Replace `<input class="input">` with `<fast-text-field class="input">`
+1. Replace `<div class="select">` with `<fast-select class="select">`
 
 **Benefits**: FAST components automatically, minimal code changes
 **Limitations**: No access to FAST-specific features (slots, advanced properties)
@@ -1969,6 +2041,7 @@ Migrating from pure Bulma to FastBulma can be done **incrementally**, allowing t
 **Approach**: Migrate high-value components first (forms, modals, data grids).
 
 **Example**:
+
 ```html
 <!-- Keep Bulma for simple layout -->
 <div class="columns">
@@ -1998,11 +2071,12 @@ Migrating from pure Bulma to FastBulma can be done **incrementally**, allowing t
 ```
 
 **Migration Steps**:
+
 1. Identify high-value components (forms, modals, data grids)
-2. Migrate identified components to FAST with slots and properties
-3. Use vanilla JavaScript for dynamic values (no templating engine required)
-4. Keep Bulma for layout and typography
-5. Test component interactions thoroughly
+1. Migrate identified components to FAST with slots and properties
+1. Use vanilla JavaScript for dynamic values (no templating engine required)
+1. Keep Bulma for layout and typography
+1. Test component interactions thoroughly
 
 **Benefits**: Best of both worlds, gradual learning curve
 **Limitations**: Some inconsistency in component patterns
@@ -2014,6 +2088,7 @@ Migrating from pure Bulma to FastBulma can be done **incrementally**, allowing t
 **Approach**: Use FAST components throughout with Bulma utilities only for layout.
 
 **Example**:
+
 ```html
 <section class="hero is-primary">
   <div class="hero-body">
@@ -2028,12 +2103,13 @@ Migrating from pure Bulma to FastBulma can be done **incrementally**, allowing t
 ```
 
 **Migration Steps**:
+
 1. Replace all form components with FAST equivalents
-2. Use FAST data-grid instead of Bulma tables
-3. Use FAST dialog instead of Bulma modal
-4. Use FAST menu-button instead of Bulma dropdown
-5. Keep Bulma for columns, hero, section, typography
-6. Optimize CSS variables for your theme
+1. Use FAST data-grid instead of Bulma tables
+1. Use FAST dialog instead of Bulma modal
+1. Use FAST menu-button instead of Bulma dropdown
+1. Keep Bulma for columns, hero, section, typography
+1. Optimize CSS variables for your theme
 
 **Benefits**: Consistent component API, full FAST feature set
 **Limitations**: Steeper learning curve, more code changes
@@ -2059,6 +2135,7 @@ fastbulma-migrate src/
 ```
 
 **Example Codemod: Button Migration**
+
 ```javascript
 // fastbulma-codemods/src/button.js
 module.exports = function(fileInfo, api) {
@@ -2109,6 +2186,7 @@ module.exports = function(fileInfo, api) {
 #### Breaking Changes from Pure Bulma
 
 1. **Event Handlers**
+
    ```javascript
    // Before (Bulma)
    <button onclick="handleClick()">Click</button>
@@ -2118,7 +2196,8 @@ module.exports = function(fileInfo, api) {
    <fast-button onclick="handleClick()">Click</fast-button>
    ```
 
-2. **Form Submission**
+1. **Form Submission**
+
    ```html
    <!-- Before (Bulma) -->
    <form onsubmit="handleSubmit()">
@@ -2138,15 +2217,18 @@ module.exports = function(fileInfo, api) {
    ```
 
    **Browser Support for Native Form Association**:
+
    - Chrome 77+, Firefox 79+, Safari 16.4+: Native support (no polyfill needed)
    - Older browsers: Polyfill required (as shown above)
 
    **Polyfill Details**:
+
    - Package: `@github/form-associated-element-boundary`
    - CDN: jsDelivr, unpkg
    - Load before FastBulma JavaScript
 
-3. **CSS Specificity**
+1. **CSS Specificity**
+
    ```css
    /* Before: Direct element styling */
    .button { background: var(--bulma-primary); }
@@ -2168,6 +2250,7 @@ module.exports = function(fileInfo, api) {
 ### Migration Checklist
 
 #### Pre-Migration Planning
+
 - [ ] Audit current Bulma usage in your project
 - [ ] Identify components to migrate (use automated audit tool)
 - [ ] Estimate migration effort (use complexity matrix)
@@ -2175,6 +2258,7 @@ module.exports = function(fileInfo, api) {
 - [ ] Set up FastBulma in staging environment
 
 #### Level 1 Migration (Drop-in Replacement)
+
 - [ ] Add FastBulma CDN links to HTML
 - [ ] Run automated codemods for buttons and inputs
 - [ ] Test basic functionality (clicks, form submission)
@@ -2182,6 +2266,7 @@ module.exports = function(fileInfo, api) {
 - [ ] Check browser console for errors
 
 #### Level 2 Migration (Gradual Adoption)
+
 - [ ] Identify high-value components (forms, modals, data grids)
 - [ ] Migrate identified components to FAST with slots
 - [ ] Update event handlers to use Shadow DOM-aware patterns
@@ -2189,6 +2274,7 @@ module.exports = function(fileInfo, api) {
 - [ ] Verify accessibility with screen reader
 
 #### Level 3 Migration (Full FAST Adoption)
+
 - [ ] Replace all form components with FAST equivalents
 - [ ] Use FAST data-grid instead of Bulma tables
 - [ ] Use FAST dialog instead of Bulma modal
@@ -2197,6 +2283,7 @@ module.exports = function(fileInfo, api) {
 - [ ] Performance test and optimize bundle size
 
 #### Post-Migration Validation
+
 - [ ] Run automated test suite
 - [ ] Manual QA testing across browsers
 - [ ] Accessibility audit with axe-core
@@ -2211,6 +2298,7 @@ module.exports = function(fileInfo, api) {
 **Problem**: FAST components don't inherit Bulma CSS variables.
 
 **Solution**: Ensure Bulma classes are on the same element as FAST component:
+
 ```html
 <!-- ✗ WRONG -->
 <div class="is-primary">
@@ -2226,6 +2314,7 @@ module.exports = function(fileInfo, api) {
 **Problem**: Click events on FAST components not triggering.
 
 **Solution**: Use Shadow DOM-aware event handling:
+
 ```javascript
 // Before
 document.querySelector('.button').addEventListener('click', handler);
@@ -2239,6 +2328,7 @@ document.querySelector('fast-button').addEventListener('click', handler);
 **Problem**: Native form validation not working with FAST components.
 
 **Solution**: Use FAST's validation API or enable form association polyfill:
+
 ```html
 <form id="my-form">
   <fast-text-field name="email" required></fast-text-field>
@@ -2262,7 +2352,7 @@ document.querySelector('fast-button').addEventListener('click', handler);
 
 **Success Probability: 50%** (reduced from 75% - hybrid SSR approach complexity, hydration challenges, layout shift risks)
 
----
+______________________________________________________________________
 
 ## Theming System
 
@@ -2312,6 +2402,7 @@ FastBulma's theming system is built entirely on **CSS custom properties**, allow
 FastBulma will ship with 5 pre-built themes:
 
 #### Default Theme (Light)
+
 ```css
 /* FastestBulma default */
 --bulma-primary: #7957d5;
@@ -2320,6 +2411,7 @@ FastBulma will ship with 5 pre-built themes:
 ```
 
 #### Dark Theme
+
 ```css
 [data-theme="dark"] {
   --bulma-scheme-main: #0a0a0a;
@@ -2331,6 +2423,7 @@ FastBulma will ship with 5 pre-built themes:
 ```
 
 #### Solarized Light Theme
+
 ```css
 [data-theme="solarized-light"] {
   --bulma-primary: #6c71c4;
@@ -2343,6 +2436,7 @@ FastBulma will ship with 5 pre-built themes:
 ```
 
 #### Dracula Theme
+
 ```css
 [data-theme="dracula"] {
   --bulma-primary: #bd93f9;
@@ -2355,6 +2449,7 @@ FastBulma will ship with 5 pre-built themes:
 ```
 
 #### Nord Theme
+
 ```css
 [data-theme="nord"] {
   --bulma-primary: #88c0d0;
@@ -2493,17 +2588,20 @@ fastbulma-theme-validator validate my-theme.css
 ### Theme Marketplace Strategy
 
 **Phase 1**: Community Themes (v1.0)
+
 - Accept community-contributed themes via GitHub PRs
 - Curate and review themes for quality
 - Include 10-15 community themes in v1.0 release
 
 **Phase 2**: Theme Marketplace (v1.2)
+
 - Build online theme gallery
 - Allow users to upload and share themes
 - Implement theme rating and review system
 - Provide theme preview/playground
 
 **Phase 3**: Theme Generator Tool (v2.0)
+
 - Visual theme editor with live preview
 - Export theme as CSS file
 - One-click installation via CDN
@@ -2542,13 +2640,14 @@ function validateThemeAccessibility() {
 
 **Success Probability: 70%** (reduced from 80% - color-mix() fallback complexity, accessibility validation overhead)
 
----
+______________________________________________________________________
 
 ## Build and Deployment Strategy
 
 ### Two-Tier Build System
 
 FastBulma uses a **two-tier build system**:
+
 - **Tier 1 (User-facing)**: No build tools required for users
 - **Tier 2 (Developer-facing)**: Build tools for generating distribution assets
 
@@ -2613,18 +2712,22 @@ fastbulma/
 #### Build Tools
 
 **Primary Build Tool**: Vite
+
 - **Rationale**: Fast, native ESM support, built-in TypeScript
 - **Usage**: Bundle JavaScript, minify CSS, generate distribution files
 
 **CSS Processing**: PostCSS + csso
+
 - **PostCSS plugins**: autoprefixer, postcss-nested, postcss-import
 - **Minification**: csso for optimal CSS compression
 
 **JavaScript Bundling**: Vite (Rollup under the hood)
+
 - **Output formats**: ESM, IIFE (for browser), CJS (for Node.js)
 - **Tree-shaking**: Automatic dead code elimination
 
 **TypeScript**: esbuild (via Vite)
+
 - **Rationale**: Fastest TypeScript compiler
 - **Config**: Strict mode, path aliases
 
@@ -2740,16 +2843,18 @@ export default defineConfig({
 The original Vite configuration had a **critical bug** that broke CDN usage:
 
 1. **Externalized FAST components**: This assumed users would load FAST separately
-2. **Assumed global 'FAST' variable**: This doesn't exist for CDN users
-3. **Result**: `fastbulma.esm.js` would fail with "FAST is not defined"
+1. **Assumed global 'FAST' variable**: This doesn't exist for CDN users
+1. **Result**: `fastbulma.esm.js` would fail with "FAST is not defined"
 
 **Revised approach**:
+
 - Bundle FAST components directly for CDN users
 - No assumptions about external globals
 - Single-file distribution that works out-of-the-box
 - Trade-off: Larger bundle size, but actually works for CDN users
 
 **For advanced users**: Provide separate build configurations:
+
 - `vite.config.cdn.ts` - Bundles everything (for CDN users)
 - `vite.config.npm.ts` - Externalizes FAST (for npm users with tree-shaking)
 
@@ -2776,6 +2881,7 @@ crackerjack check
 ```
 
 **Quality Gates Enforced by Crackerjack** (via settings/config and caches):
+
 - ✅ All tests pass (unit, integration, e2e)
 - ✅ Code coverage threshold met (>80%)
 - ✅ Bundle size within budget (CSS: 35KB, JS: 80KB, Total: 420KB)
@@ -2786,6 +2892,7 @@ crackerjack check
 - ✅ Accessibility tests pass (axe-core)
 
 **Release Workflow** (simplified, no CI needed):
+
 ```bash
 # 1. Run full quality check
 crackerjack check
@@ -2802,13 +2909,14 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
----
+______________________________________________________________________
 
 ### Distribution Channels
 
 #### Channel 1: CDN (Primary)
 
 **jsDelivr** (Recommended)
+
 - Base URL: `https://cdn.jsdelivr.net/npm/fastbulma@latest/`
 - Features: Automatic caching, multiple CDNs, real-time analytics
 - Usage:
@@ -2818,11 +2926,12 @@ git push origin v0.1.0
   ```
 
 **unpkg** (Alternative)
-- Base URL: `https://unpkg.com/fastbulma@latest/`
+
+- Base URL: `https://unpkg.com/fastbulma@latest/` (placeholder - package not yet published)
 - Features: Fast, reliable, maintained by Mocha team
 - Usage:
   ```html
-  <link rel="stylesheet" href="https://unpkg.com/fastbulma@latest/css/fastbulma.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/fastbulma@latest/css/fastbulma.min.css"> (placeholder - package not yet published)
   ```
 
 #### Channel 2: NPM Package
@@ -2830,11 +2939,13 @@ git push origin v0.1.0
 **Package**: `fastbulma`
 **Contents**: CSS files, JavaScript bundles, TypeScript definitions
 **Installation**:
+
 ```bash
 npm install fastbulma
 ```
 
 **Usage**:
+
 ```javascript
 import { registerFastBulma } from 'fastbulma';
 import 'fastbulma/css/fastbulma.css';
@@ -2847,21 +2958,23 @@ registerFastBulma();
 **Package**: `fastbulma` (PyPI)
 **Purpose**: Development tools, FastBlocks integration, asset bundling
 **Installation**:
+
 ```bash
 pip install fastbulma
 ```
 
 **Usage**:
+
 ```python
 from fastbulma import ThemeGenerator, MigrationAssistant
 
 # Generate custom theme
 generator = ThemeGenerator()
-theme = generator.generate(primary='#7957d5')
-theme.save('my-theme.css')
+theme = generator.generate(primary="#7957d5")
+theme.save("my-theme.css")
 
 # Migrate Bulma project
-migrator = MigrationAssistant('src/')
+migrator = MigrationAssistant("src/")
 migrator.migrate_buttons()
 migrator.migrate_forms()
 ```
@@ -2871,6 +2984,7 @@ migrator.migrate_forms()
 #### Semantic Versioning
 
 FastBulma follows **semantic versioning** (SemVer):
+
 - **MAJOR**: Breaking changes
 - **MINOR**: New features, backward compatible
 - **PATCH**: Bug fixes, backward compatible
@@ -2913,28 +3027,34 @@ v2.0.0 - Major release
 #### CSS Optimization
 
 1. **Critical CSS Extraction**
+
    - Extract above-the-fold CSS for critical rendering path
    - Lazy load non-critical CSS
 
-2. **Unused CSS Removal**
+1. **Unused CSS Removal**
+
    - Use PurgeCSS to remove unused Bulma classes
    - Configure safelist for dynamic classes
 
-3. **Minification**
+1. **Minification**
+
    - csso for optimal compression
    - Target: < 20KB for core CSS
 
 #### JavaScript Optimization
 
 1. **Tree Shaking**
+
    - Remove unused FAST components
    - Support for tree-shakeable ESM imports
 
-2. **Code Splitting**
+1. **Code Splitting**
+
    - Separate bundles for each registration mode
    - Lazy load component variants
 
-3. **Minification**
+1. **Minification**
+
    - Terser for JavaScript compression
    - Target: < 30KB for core JS
 
@@ -2953,6 +3073,7 @@ v2.0.0 - Major release
 | **TOTAL** | **150KB** ❌ | **~416KB** ✅ | 177% over original - realistic |
 
 **Optimization Strategy**:
+
 - Aggressive code splitting by component type
 - Lazy load non-critical components
 - Critical CSS extraction for above-the-fold
@@ -2962,11 +3083,12 @@ v2.0.0 - Major release
 
 **Success Probability: 80%** (reduced from 90% - two-tier build system complexity, CDN vs npm trade-offs)
 
----
+______________________________________________________________________
 
 ## Enhanced Success Metrics
 
 ### Technical Success Metrics
+
 - [ ] Successful integration of Bulma and FAST components (60% probability) - revised from 90%
 - [ ] Proper CSS variable mapping system (70% probability) - revised from 85%
 - [ ] Responsive and accessible components (65% probability) - revised from 80%
@@ -2974,17 +3096,19 @@ v2.0.0 - Major release
 - [ ] Performance benchmarks met (60% probability) - revised from 75%
 
 ### Quality Metrics
+
 - [ ] Zero critical accessibility violations (75% probability) - revised from 85%
-- [ ] <5% test failure rate (80% probability) - revised from 90%
+- [ ] \<5% test failure rate (80% probability) - revised from 90%
 - [ ] Documentation completeness >90% (75% probability) - revised from 85%
 - [ ] Cross-browser compatibility >95% (70% probability) - revised from 80%
 
 ### Adoption Metrics
+
 - [ ] GitHub stars >500 within 6 months (60% probability)
 - [ ] Weekly downloads >1,000 within 12 months (65% probability)
 - [ ] Community contributions >10 within 12 months (55% probability)
 
----
+______________________________________________________________________
 
 ## 🚀 Implementation Optimization Strategy
 
@@ -3002,23 +3126,26 @@ This section details the optimization strategies that reduce the implementation 
 | 6 | **Simplified registration** | 1 week | Low | Low |
 | **TOTAL** | | **11-16 weeks** | | |
 
----
+______________________________________________________________________
 
 ### Optimization 1: CDN-Only Build System
 
 **Problem** (Lines 2552-2757):
+
 - Two-tier build system requires maintaining both CDN (no build) and Vite (build) approaches
 - Dual maintenance burden increases complexity
 - Configuration divergences cause bugs
 - CDN users experienced "FAST is not defined" errors due to externalization
 
 **Solution**:
+
 - **Primary distribution**: CDN-only (jsDelivr/unpkg)
 - **Build tool**: Simple npm scripts for minification and bundling
 - **Advanced users**: Can use Vite independently (not officially supported)
 - **Vite for development**: Optional, not part of core distribution
 
 **Implementation**:
+
 ```json
 // package.json - simplified build scripts
 {
@@ -3034,23 +3161,26 @@ This section details the optimization strategies that reduce the implementation 
 ```
 
 **Benefits**:
+
 - Eliminates 2-3 weeks of dual build system maintenance
 - Simpler onboarding for users (just add CDN links)
 - Faster releases (no complex build pipeline)
 - Reduced bug surface area
 
 **Trade-offs**:
+
 - Advanced users lose tree-shaking (acceptable for v1.0)
 - No official TypeScript source maps (can add later)
 - Build customization requires npm (document workarounds)
 
 **Success Probability**: 95% (low risk, high confidence)
 
----
+______________________________________________________________________
 
 ### Optimization 2: Parallel Testing with Development
 
 **Problem** (Lines 1135-1738):
+
 - Sequential testing (Phase 4) waits until all components complete
 - Long feedback loop between implementation and test results
 - Bugs discovered late in development cycle
@@ -3073,12 +3203,14 @@ python scripts/generate-tests.py fast-button > tests/fast-button.test.js
 ```
 
 **Implementation Workflow**:
+
 1. **Week 1-2**: Develop `fast-button` → generate test → crickerjack settings enforce quality
-2. **Week 2-3**: Develop `fast-card` → generate test → crickerjack validates via config
-3. **Week 3-4**: Develop `fast-text-field` → generate test → crickerjack quality gates
-4. **Continuous**: Crickerjack settings/config enforce quality through cache system
+1. **Week 2-3**: Develop `fast-card` → generate test → crickerjack validates via config
+1. **Week 3-4**: Develop `fast-text-field` → generate test → crickerjack quality gates
+1. **Continuous**: Crickerjack settings/config enforce quality through cache system
 
 **Test Template Generator** (see Optimization 5):
+
 ```javascript
 // scripts/generate-component-test.js
 function generateComponentTest(componentName) {
@@ -3108,23 +3240,26 @@ describe('${componentName}', () => {
 ```
 
 **Benefits**:
+
 - 2-3 weeks saved by overlapping testing with development
 - Faster bug detection (hours instead of weeks)
 - Higher code quality (test coverage never lags)
 - Continuous integration prevents regressions
 
 **Trade-offs**:
+
 - Requires disciplined development workflow
 - Test infrastructure needed earlier (Week 1 instead of Week 9)
 - Developers must write tests (no dedicated QA phase)
 
 **Success Probability**: 80% (medium risk, requires discipline)
 
----
+______________________________________________________________________
 
 ### Optimization 3: Proactive Performance Budgets
 
 **Problem** (Lines 1740-1770):
+
 - Phase 4.5 treats performance as separate optimization phase
 - Performance issues discovered after implementation complete
 - Expensive rework when budgets exceeded
@@ -3133,6 +3268,7 @@ describe('${componentName}', () => {
 **Solution**: Performance budgets enforced from Phase 1
 
 **Budget Definition** (Phase 1, Week 1):
+
 ```json
 // .github/performance-budget.json
 {
@@ -3178,6 +3314,7 @@ npm run check-bundle
 ```
 
 **Budget Configuration** (`.crackerjack/config.toml`):
+
 ```toml
 [budgets]
 css_max_size_kb = 35
@@ -3199,10 +3336,11 @@ crackerjack test --performance
 crackerjack check --performance
 
 # Run with Lighthouse (manual verification)
-npx lighthouse http://localhost:3000 --view
+npx lighthouse http://your-app-url --view  # Replace with your actual deployment URL
 ```
 
 **Benefits**:
+
 - 2-3 weeks saved (no separate optimization phase)
 - Performance issues caught immediately
 - No expensive rework
@@ -3210,17 +3348,19 @@ npx lighthouse http://localhost:3000 --view
 - Integrated into existing crackerjack workflow
 
 **Trade-offs**:
+
 - Requires upfront performance research
 - May limit feature scope (budget enforcement)
 - Manual Lighthouse verification (not automated)
 
 **Success Probability**: 85% (low risk, high value)
 
----
+______________________________________________________________________
 
 ### Optimization 4: Iterative Documentation
 
 **Problem** (Lines 1774-1789):
+
 - Phase 5 concentrates all documentation into 3-4 weeks
 - Big-bang documentation becomes disconnected from code
 - Hard to recall implementation details months later
@@ -3229,6 +3369,7 @@ npx lighthouse http://localhost:3000 --view
 **Solution**: Docs-as-code approach (write alongside implementation)
 
 **Documentation Template** (created in Phase 1, Week 1):
+
 ```markdown
 # Component: ${COMPONENT_NAME}
 
@@ -3267,12 +3408,14 @@ npx lighthouse http://localhost:3000 --view
 ```
 
 **Workflow**:
+
 1. **Phase 2, Week 1**: Document `fast-button` while implementing
-2. **Phase 2, Week 2**: Document `fast-card` while implementing
-3. **Phase 3**: Document each component as it's completed
-4. **Phase 4**: Review and polish (1-2 weeks, not 3-4)
+1. **Phase 2, Week 2**: Document `fast-card` while implementing
+1. **Phase 3**: Document each component as it's completed
+1. **Phase 4**: Review and polish (1-2 weeks, not 3-4)
 
 **Automated Docs Generation**:
+
 ```javascript
 // scripts/generate-docs.js
 function generateComponentDocs(componentName) {
@@ -3285,23 +3428,26 @@ function generateComponentDocs(componentName) {
 ```
 
 **Benefits**:
+
 - 1-2 weeks saved (spread across phases instead of concentrated)
 - Documentation is accurate (written while code is fresh)
 - No documentation debt accumulation
 - Easier to maintain (docs track code changes)
 
 **Trade-offs**:
+
 - Developers must write documentation
 - Requires documentation discipline
 - Template enforcement needed
 
 **Success Probability**: 90% (low risk, high value)
 
----
+______________________________________________________________________
 
 ### Optimization 5: Automated Component Mapping
 
 **Problem** (Lines 1104-1130, 900-1097):
+
 - Manual mapping of 50+ Bulma classes to FAST components
 - Labor-intensive (6-8 weeks)
 - Error-prone (typos, missed mappings)
@@ -3310,6 +3456,7 @@ function generateComponentDocs(componentName) {
 **Solution**: Automated CSS variable generation scripts
 
 **CSS Variable Generator** (Phase 1, Week 2):
+
 ```python
 # scripts/generate-css-variables.py
 """
@@ -3321,23 +3468,24 @@ from typing import Dict, List
 import os
 
 BULMA_COLORS = {
-    'primary': '#7957d5',
-    'success': '#48c774',
-    'danger': '#f14668',
-    'warning': '#ffdd57',
-    'info': '#3298dc',
-    'light': '#f5f5f5',
-    'dark': '#363636',
+    "primary": "#7957d5",
+    "success": "#48c774",
+    "danger": "#f14668",
+    "warning": "#ffdd57",
+    "info": "#3298dc",
+    "light": "#f5f5f5",
+    "dark": "#363636",
 }
 
 FAST_TOKENS = {
-    'primary': '--accent-fill-rest',
-    'neutral': '--neutral-fill-rest',
-    'success': '--success-fill-rest',
-    'danger': '--danger-fill-rest',
-    'warning': '--warning-fill-rest',
-    'info': '--info-fill-rest',
+    "primary": "--accent-fill-rest",
+    "neutral": "--neutral-fill-rest",
+    "success": "--success-fill-rest",
+    "danger": "--danger-fill-rest",
+    "warning": "--warning-fill-rest",
+    "info": "--info-fill-rest",
 }
+
 
 def generate_color_mappings() -> str:
     """Generate CSS color variable mappings."""
@@ -3354,7 +3502,7 @@ def generate_color_mappings() -> str:
     css.append("  :root {")
 
     for bulma_name, hex_value in BULMA_COLORS.items():
-        fast_token = FAST_TOKENS.get(bulma_name, '--neutral-fill-rest')
+        fast_token = FAST_TOKENS.get(bulma_name, "--neutral-fill-rest")
         css.append(f"    /* Map .is-{bulma_name} to FAST */")
         css.append(f"    .is-{bulma_name} {{")
         css.append(f"      {fast_token}: var(--bulma-{bulma_name});")
@@ -3364,6 +3512,7 @@ def generate_color_mappings() -> str:
     css.append("}")
 
     return "\\n".join(css)
+
 
 def generate_dark_variants() -> str:
     """Generate @supports fallbacks for color-mix()."""
@@ -3376,10 +3525,10 @@ def generate_dark_variants() -> str:
 
     # Pre-computed dark variants (10% and 20% darker)
     dark_variants = {
-        'primary': {'10%': '#6c4dc0', '20%': '#5f43ab'},
-        'success': {'10%': '#3dad66', '20%': '#32d358'},
-        'danger': {'10%': '#d93d5c', '20%': '#c13450'},
-        'warning': {'10%': '#e6c84e', '20%': '#ccb345'},
+        "primary": {"10%": "#6c4dc0", "20%": "#5f43ab"},
+        "success": {"10%": "#3dad66", "20%": "#32d358"},
+        "danger": {"10%": "#d93d5c", "20%": "#c13450"},
+        "warning": {"10%": "#e6c84e", "20%": "#ccb345"},
     }
 
     for color_name, variants in dark_variants.items():
@@ -3394,6 +3543,7 @@ def generate_dark_variants() -> str:
 
     return "\\n".join(css)
 
+
 if __name__ == "__main__":
     # Generate output
     output = []
@@ -3401,14 +3551,15 @@ if __name__ == "__main__":
     output.append(generate_dark_variants())
 
     # Write to file
-    os.makedirs('src/fastbulma/static/css', exist_ok=True)
-    with open('src/fastbulma/static/css/fastbulma.css', 'w') as f:
+    os.makedirs("src/fastbulma/static/css", exist_ok=True)
+    with open("src/fastbulma/static/css/fastbulma.css", "w") as f:
         f.write("\\n\\n".join(output))
 
     print("✅ Generated CSS variables: src/fastbulma/static/css/fastbulma.css")
 ```
 
 **Component Mapping Generator** (Phase 1, Week 2):
+
 ```python
 # scripts/generate-component-mapping.py
 """
@@ -3417,36 +3568,47 @@ Automates the manual component mapping table.
 """
 
 COMPONENT_MAPPINGS = {
-    'button': {
-        'bulma_classes': ['.is-primary', '.is-success', '.is-danger', '.is-warning', '.is-info'],
-        'fast_element': 'fast-button',
-        'mapping_type': 'class_to_token',
-        'complexity': 'low'
+    "button": {
+        "bulma_classes": [
+            ".is-primary",
+            ".is-success",
+            ".is-danger",
+            ".is-warning",
+            ".is-info",
+        ],
+        "fast_element": "fast-button",
+        "mapping_type": "class_to_token",
+        "complexity": "low",
     },
-    'card': {
-        'bulma_classes': ['.box'],
-        'fast_element': 'fast-card',
-        'mapping_type': 'class_to_token',
-        'complexity': 'low'
+    "card": {
+        "bulma_classes": [".box"],
+        "fast_element": "fast-card",
+        "mapping_type": "class_to_token",
+        "complexity": "low",
     },
-    'text-field': {
-        'bulma_classes': ['.input', '.textarea'],
-        'fast_element': 'fast-text-field',
-        'mapping_type': 'element_replacement',
-        'complexity': 'medium'
+    "text-field": {
+        "bulma_classes": [".input", ".textarea"],
+        "fast_element": "fast-text-field",
+        "mapping_type": "element_replacement",
+        "complexity": "medium",
     },
     # ... 50+ more mappings
 }
 
+
 def generate_mapping_matrix() -> str:
     """Generate component mapping table."""
     markdown = ["## Bulma to FAST Component Mapping\\n"]
-    markdown.append("| Bulma Class/Element | FAST Component | Mapping Type | Complexity | Priority |")
-    markdown.append("|---------------------|----------------|--------------|------------|----------|")
+    markdown.append(
+        "| Bulma Class/Element | FAST Component | Mapping Type | Complexity | Priority |"
+    )
+    markdown.append(
+        "|---------------------|----------------|--------------|------------|----------|"
+    )
 
     for bulma_info in COMPONENT_MAPPINGS.values():
-        for bulma_class in bulma_info['bulma_classes']:
-            priority = 'P0' if bulma_info['complexity'] == 'low' else 'P1'
+        for bulma_class in bulma_info["bulma_classes"]:
+            priority = "P0" if bulma_info["complexity"] == "low" else "P1"
             markdown.append(
                 f"| {bulma_class} | {bulma_info['fast_element']} | "
                 f"{bulma_info['mapping_type']} | {bulma_info['complexity']} | {priority} |"
@@ -3454,11 +3616,13 @@ def generate_mapping_matrix() -> str:
 
     return "\\n".join(markdown)
 
+
 if __name__ == "__main__":
     print(generate_mapping_matrix())
 ```
 
 **Benefits**:
+
 - 3-4 weeks saved (automation vs. manual work)
 - Consistent code style
 - Easy to regenerate when Bulma/FAST versions update
@@ -3466,17 +3630,19 @@ if __name__ == "__main__":
 - Scalable to 100+ components
 
 **Trade-offs**:
+
 - Requires upfront script development (1 week)
 - Need to validate generated code
 - Less flexibility for edge cases
 
 **Success Probability**: 75% (medium risk, high value)
 
----
+______________________________________________________________________
 
 ### Optimization 6: Simplified Component Registration
 
 **Problem** (Lines 215-379):
+
 - Three registration modes (global, eager, lazy) add complexity
 - All modes must be tested and documented
 - Most users only need global mode
@@ -3485,6 +3651,7 @@ if __name__ == "__main__":
 **Solution**: Global-only registration for v1.0
 
 **Simplified Registration**:
+
 ```javascript
 // src/fastbulma/static/js/fastbulma.js (optimized)
 import { provideFASTDesignSystem } from '@microsoft/fast-components';
@@ -3510,6 +3677,7 @@ registerFastBulma();
 ```
 
 **Usage**:
+
 ```html
 <!-- Single script tag, no configuration needed -->
 <script type="module" src="https://cdn.jsdelivr.net/npm/fastbulma@latest/js/fastbulma.js"></script>
@@ -3519,24 +3687,27 @@ registerFastBulma();
 ```
 
 **Future Expansion** (v1.1+):
+
 - Add eager mode if users request dynamic component loading
 - Add lazy mode if performance monitoring indicates need
 - Base decision on actual user data, not speculation
 
 **Benefits**:
+
 - 1 week saved (simplified implementation)
 - Easier for users (zero configuration)
 - Less code to test and maintain
 - Faster to market
 
 **Trade-offs**:
+
 - All components loaded upfront (larger initial bundle)
 - No dynamic registration (can add in v1.1 if needed)
 - Less flexibility (acceptable for v1.0)
 
 **Success Probability**: 95% (low risk, simplifies v1.0)
 
----
+______________________________________________________________________
 
 ### Risk Mitigation Summary
 
@@ -3549,39 +3720,43 @@ registerFastBulma();
 | Automated mapping | Edge cases missed | Manual validation of generated code | Hybrid approach (auto + manual) |
 | Global-only registration | Performance complaints | Bundle size monitoring | Add lazy mode in v1.1 if needed |
 
----
+______________________________________________________________________
 
 ### Implementation Order
 
 **Week 1-2: Foundation (Phase 1)**
+
 1. Set up CDN-only build system
-2. Create CSS variable generator script
-3. Create test generator script
-4. Define performance budgets in crickerjack config
-5. Configure crickerjack quality gates (via settings/config)
+1. Create CSS variable generator script
+1. Create test generator script
+1. Define performance budgets in crickerjack config
+1. Configure crickerjack quality gates (via settings/config)
 
 **Week 3-6: Core + Performance (Phase 2)**
+
 1. Implement CSS/JS integration with budgets
-2. Write tests alongside each component
-3. Document each component as built
-4. Continuous performance monitoring
+1. Write tests alongside each component
+1. Document each component as built
+1. Continuous performance monitoring
 
 **Week 7-12: Component Factory (Phase 3)**
+
 1. Run automated CSS variable generation
-2. Generate test templates for all components
-3. Fill in component-specific implementations
-4. Validate all generated code
-5. Parallel testing continues
+1. Generate test templates for all components
+1. Fill in component-specific implementations
+1. Validate all generated code
+1. Parallel testing continues
 
 **Week 13-14: Polish & Docs (Phase 4)**
+
 1. Review and polish documentation
-2. Final testing and bug fixes
-3. Deploy to CDN
-4. Community announcement
+1. Final testing and bug fixes
+1. Deploy to CDN
+1. Community announcement
 
 **Total: 10-16 weeks** (3-4 months)
 
----
+______________________________________________________________________
 
 ### ⚡ Optimized Timeline (Recommended)
 
@@ -3594,13 +3769,14 @@ registerFastBulma();
 | **TOTAL** | **10-16 weeks** (3-4 months) | **Production-ready** | **65-75%** |
 
 **Optimization Timeline Notes**:
+
 - **Phase 1: Foundation** (2 weeks) - CDN-only distribution (no Vite dual maintenance), automation scripts created
 - **Phase 2: Core + Performance** (3-4 weeks) - Performance budgets enforced from start, no separate optimization phase
 - **Phase 3: Component Factory** (4-6 weeks) - Automated CSS variable generation, test-as-you-go approach, parallel testing
 - **Phase 4: Polish & Docs** (1-2 weeks) - Documentation written iteratively during development, only final review needed
 - **Key Improvement**: 48-59% reduction from 21-27 weeks through automation and parallelization
 
----
+______________________________________________________________________
 
 ### Original Timeline (For Reference)
 
@@ -3626,36 +3802,40 @@ registerFastBulma();
 | Documentation | Big bang (Phase 5) | Iterative (ongoing) | Lower risk |
 | Component Mapping | Manual (6-8 weeks) | Automated (3-4 weeks) | 50% faster |
 
----
+______________________________________________________________________
 
 ## Overall Success Assessment
 
 **Optimized Probability of Success: 65-75%** (improved from 60-70% through automation and parallelization)
 
 The optimized plan improves upon the original by:
+
 1. **Automation over manual work** - CSS variable generators, test generators reduce human error
-2. **Parallel execution** - Testing alongside development instead of sequential
-3. **Proactive performance** - Budgets enforced from start, not reactive optimization
-4. **Simplified architecture** - CDN-only distribution eliminates dual maintenance
-5. **Iterative documentation** - Docs-as-code instead of big-bang approach
-6. **Realistic timeline** - 10-16 weeks (3-4 months) with clear milestones
+1. **Parallel execution** - Testing alongside development instead of sequential
+1. **Proactive performance** - Budgets enforced from start, not reactive optimization
+1. **Simplified architecture** - CDN-only distribution eliminates dual maintenance
+1. **Iterative documentation** - Docs-as-code instead of big-bang approach
+1. **Realistic timeline** - 10-16 weeks (3-4 months) with clear milestones
 
 This optimized plan provides faster delivery with higher success probability by reducing complexity and leveraging automation.
 
 ## Future Enhancements
 
 ### Theme Generator Tool
+
 As a potential future enhancement, develop an online tool where users can visually customize their FastBulma theme and download the corresponding CSS variables. This would allow users to:
+
 - Visually adjust color palettes, spacing, and typography
 - Preview changes in real-time
 - Export custom CSS variable definitions
 - Generate downloadable theme packages
 
----
+______________________________________________________________________
 
 ## Technical Implementation Details
 
 ### Base Template Structure
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -3688,6 +3868,7 @@ As a potential future enhancement, develop an online tool where users can visual
 ```
 
 ### Component Usage Example
+
 ```html
 <section class="hero is-primary">
     <div class="hero-body">
@@ -3700,6 +3881,7 @@ As a potential future enhancement, develop an online tool where users can visual
 ```
 
 ### CSS Customization
+
 ```css
 /* Allow Bulma classes to affect FAST components */
 .is-primary {
@@ -3710,25 +3892,28 @@ As a potential future enhancement, develop an online tool where users can visual
 }
 ```
 
----
+______________________________________________________________________
 
 ## Quality Assurance
 
 ### Code Quality
+
 - Use crackerjack for linting and formatting
 - Implement automated testing
 - Follow semantic versioning
 
 ### Performance
+
 - Optimize CSS delivery
 - Minimize JavaScript bundle size
 - Ensure efficient rendering
 
----
+______________________________________________________________________
 
 ## Distribution Strategy
 
 ### CDN-First Distribution
+
 - Create CDN distribution as the primary distribution method
 - Host FastBulma CSS variable mapping files and initialization scripts on CDN
 - Provide simple HTML snippet for quick integration:
@@ -3742,6 +3927,7 @@ As a potential future enhancement, develop an online tool where users can visual
 - Ensure CDN assets are optimized for performance (minified, compressed)
 
 ### Secondary Distribution Channels
+
 - Prepare Python package for PyPI (for development tools and FastBlocks integration only)
 - Create NPM package for CSS and web components (mirroring CDN assets)
 - Implement synchronized versioning strategy across CDN, NPM, and Python packages
@@ -3750,18 +3936,21 @@ As a potential future enhancement, develop an online tool where users can visual
 ## Dependency Management Strategy
 
 ### Version Synchronization
+
 - Maintain synchronized versioning between FastBulma releases and underlying dependencies
 - Track Bulma and FAST component releases separately
 - Create compatibility matrix for different versions of Bulma and FAST
 - Implement automated checks for breaking changes in upstream dependencies
 
 ### Update Process
+
 - Monitor Bulma and FAST releases for updates
 - Test compatibility before updating dependencies
 - Provide migration guides for breaking changes
 - Maintain LTS versions for stability in production environments
 
 ### Package Management
+
 - Use package-lock.json for NPM dependencies
 - Use uv.lock for Python dependencies
 - Ensure consistent dependency versions across all distributions

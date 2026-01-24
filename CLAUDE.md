@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 FastBulma combines Bulma's CSS utilities with FAST's web components through CSS variables. This is a **vanilla JavaScript framework** - no React, Vue, Angular, or other framework integrations.
 
 **Critical Architecture**: The entire framework works through the CSS Variable Bridge Pattern:
+
 - Bulma classes (`.is-primary`, `.is-success`, etc.) update CSS variables
 - Those CSS variables penetrate Shadow DOM boundaries
 - FAST components read those CSS variables internally
@@ -31,6 +32,7 @@ tests/
 ## Development Commands
 
 ### Python Package Development
+
 ```bash
 # Install in development mode
 pip install -e ".[dev]"
@@ -46,17 +48,20 @@ python -m pytest --cov=fastbulma tests/
 ```
 
 ### Frontend Development
+
 Currently, frontend assets are static files in `src/fastbulma/static/`. The build system has not been implemented yet. See IMPLEMENTATION_PLAN.md for the planned build system (Vite, PostCSS, etc.).
 
 ## Critical Constraints
 
 ### Vanilla JavaScript Only
+
 - **NO React patterns**: Never use `className`, JSX props, or React-specific syntax
 - **NO framework integration code**: All examples must use vanilla JS web components
 - **Standard DOM APIs only**: Use `document.querySelector`, `element.classList`, etc.
 - **Web Components**: Use FAST custom elements directly (`<fast-button>`, `<fast-card>`, etc.)
 
 ### CSS Variable Bridge Pattern
+
 When styling FAST components with Bulma classes, ALWAYS use CSS variables, never direct CSS:
 
 ```css
@@ -72,13 +77,16 @@ When styling FAST components with Bulma classes, ALWAYS use CSS variables, never
 ```
 
 ### Browser Compatibility Requirements
+
 The framework must support:
+
 - **Tier 1** (latest 2 versions): Chrome, Firefox, Safari, Edge - full functionality
 - **Tier 2** (last 4 versions): Core functionality with polyfills
 - **color-mix() function**: Requires Chrome 111+, Firefox 113+, Safari 16.2+ OR fallback
 - **Form Association**: Chrome 77+, Firefox 79+, Safari 16.4+ OR polyfill
 
 Always include the form association polyfill for older browsers:
+
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@github/form-associated-element-boundary@latest/dist/form-associated-element-boundary.min.js"></script>
 ```
@@ -86,7 +94,9 @@ Always include the form association polyfill for older browsers:
 ## Component API Patterns
 
 ### FAST Component Usage
+
 Use FAST custom elements with Bulma classes:
+
 ```html
 <!-- Correct: Bulma class on the FAST element itself -->
 <fast-button class="is-primary is-large">Click me</fast-button>
@@ -98,7 +108,9 @@ Use FAST custom elements with Bulma classes:
 ```
 
 ### Slot Naming Conventions
+
 FAST components use named slots (not props):
+
 ```html
 <fast-card>
   <h3 slot="heading">Card Title</h3>
@@ -110,11 +122,13 @@ FAST components use named slots (not props):
 ## CSS Architecture
 
 ### Three-Layer Structure
+
 1. **Base Variables** (`:root`): Define Bulma colors, spacing, typography
-2. **FAST Token Mapping** (`@layer fast`): Map Bulma variables to FAST design tokens
-3. **Bulma Class Mappings**: Bulma classes (`.is-primary`, etc.) update CSS variables
+1. **FAST Token Mapping** (`@layer fast`): Map Bulma variables to FAST design tokens
+1. **Bulma Class Mappings**: Bulma classes (`.is-primary`, etc.) update CSS variables
 
 ### CSS Customization Example
+
 ```css
 :root {
   --bulma-primary: #7957d5;  /* User customizes here */
@@ -134,6 +148,7 @@ FAST components use named slots (not props):
 ## Testing Strategy
 
 See IMPLEMENTATION_PLAN.md Phase 4 for comprehensive testing strategy. Key points:
+
 - **Vitest** for unit tests (JavaScript)
 - **Playwright** for E2E tests
 - **Chromatic** for visual regression testing
@@ -143,6 +158,7 @@ See IMPLEMENTATION_PLAN.md Phase 4 for comprehensive testing strategy. Key point
 ## Implementation Plan
 
 This project is following a comprehensive implementation plan documented in **IMPLEMENTATION_PLAN.md**. Always reference that document for:
+
 - Technical architecture details
 - Shadow DOM integration strategy
 - Component API specifications
@@ -153,6 +169,7 @@ This project is following a comprehensive implementation plan documented in **IM
 ## Common Patterns
 
 ### Dynamic Theme Switching
+
 ```javascript
 // Set theme via data attribute (recommended)
 document.documentElement.setAttribute('data-theme', 'dark');
@@ -162,13 +179,17 @@ document.documentElement.style.setProperty('--bulma-primary', '#ff0000');
 ```
 
 ### Component Registration
+
 Three modes are planned (see IMPLEMENTATION_PLAN.md):
+
 1. **Global mode**: Register all components upfront (v1.0)
-2. **Eager mode**: Register on-demand when elements appear in DOM
-3. **Lazy mode**: Register only when components enter viewport
+1. **Eager mode**: Register on-demand when elements appear in DOM
+1. **Lazy mode**: Register only when components enter viewport
 
 ### Form Integration
+
 FAST components participate in native forms with the polyfill:
+
 ```html
 <form id="my-form">
   <fast-text-field name="username"></fast-text-field>
@@ -195,13 +216,14 @@ FAST components participate in native forms with the polyfill:
 ## Development Workflow
 
 1. Read IMPLEMENTATION_PLAN.md to understand the architecture
-2. Implement features following the vanilla JavaScript constraint
-3. Use CSS Variable Bridge Pattern for all styling
-4. Test with Vitest (JS) and pytest (Python)
-5. Ensure browser compatibility with Tier 1/2 requirements
-6. Include polyfills for older browsers
+1. Implement features following the vanilla JavaScript constraint
+1. Use CSS Variable Bridge Pattern for all styling
+1. Test with Vitest (JS) and pytest (Python)
+1. Ensure browser compatibility with Tier 1/2 requirements
+1. Include polyfills for older browsers
 
 <!-- CRACKERJACK_START -->
+
 ## Crackerjack Integration
 
 This project uses Crackerjack for automated quality checks and AI-powered code improvement.
@@ -281,5 +303,6 @@ Access 12 specialized AI agents via crackerjack's skill system:
 - **DocumentationAgent**: Documentation generation
 - And 7 more specialized agents
 
-See [crackerjack documentation](https://github.com/your-org/crackerjack) for complete skill system reference.
+See [crackerjack documentation](https://github.com/crackerjack/crackerjack) for complete skill system reference.
+
 <!-- CRACKERJACK_END -->

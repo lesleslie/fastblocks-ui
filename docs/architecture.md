@@ -11,11 +11,13 @@ FastBulma uses a **layered architecture** that separates concerns between layout
 ### Layer Breakdown
 
 #### Application Layer
+
 - **What**: User's HTML and content
 - **Responsibility**: Structure and content using Bulma utilities
 - **Example**: Sections, columns, typography
 
 #### FastBulma Integration Layer
+
 - **What**: CSS Variable Mapping + JavaScript Adapter
 - **Responsibility**: Bridges Bulma classes to FAST components
 - **Components**:
@@ -23,6 +25,7 @@ FastBulma uses a **layered architecture** that separates concerns between layout
   - JavaScript Adapter (registers FAST components, handles data attributes)
 
 #### Bulma CSS Layer
+
 - **What**: Layout and typography utilities
 - **Responsibility**: Page layout, responsive design, helper classes
 - **Components**:
@@ -31,11 +34,12 @@ FastBulma uses a **layered architecture** that separates concerns between layout
   - Helpers: spacing, sizing, visibility, colors
 
 #### FAST Components Layer
+
 - **What**: Encapsulated web components with Shadow DOM
 - **Responsibility**: Interactive UI components
 - **Components**: 50+ components (buttons, cards, forms, etc.)
 
----
+______________________________________________________________________
 
 ## CSS Variable Bridge Pattern
 
@@ -48,23 +52,27 @@ The core innovation of FastBulma is the **CSS Variable Bridge Pattern** that all
 ### Step-by-Step Process
 
 1. **Developer adds Bulma class to FAST element**
+
    ```html
    <fast-button class="is-primary">Click me</fast-button>
    ```
 
-2. **CSS variable is set on the element**
+1. **CSS variable is set on the element**
+
    ```css
    .is-primary {
      --accent-fill-rest: var(--bulma-primary);
    }
    ```
 
-3. **CSS variable penetrates Shadow DOM boundary**
+1. **CSS variable penetrates Shadow DOM boundary**
+
    - CSS custom properties CAN cross Shadow DOM boundaries
    - Regular CSS rules CANNOT cross Shadow DOM boundaries
    - This is the key to FastBulma's architecture
 
-4. **FAST component reads the variable internally**
+1. **FAST component reads the variable internally**
+
    - FAST component's Shadow Root accesses `--accent-fill-rest`
    - Applies it to internal button element
    - Button renders with Bulma primary color
@@ -77,7 +85,7 @@ The core innovation of FastBulma is the **CSS Variable Bridge Pattern** that all
 
 **Benefit**: Bulma classes work seamlessly with FAST components.
 
----
+______________________________________________________________________
 
 ## Shadow DOM Compatibility
 
@@ -111,7 +119,7 @@ These components require workarounds:
 | `fast-radio-group` | △ Limited (size only) | Use `::part()` or CSS variables |
 | `fast-data-grid` | ✗ Minimal | Use FAST column configuration API |
 
----
+______________________________________________________________________
 
 ## Component API Patterns
 
@@ -149,7 +157,7 @@ FAST components use named slots for content organization:
 | `fast-dialog` | `heading` | Modal title |
 | `fast-menu-button` | `start` | Icon placement |
 
----
+______________________________________________________________________
 
 ## JavaScript Integration
 
@@ -158,12 +166,15 @@ FAST components use named slots for content organization:
 FastBulma supports three registration modes:
 
 #### Mode 1: Global Registration (v1.0)
+
 Register all components upfront for simplicity.
 
 #### Mode 2: Eager Registration (v1.1)
+
 Register components as they appear in the DOM.
 
 #### Mode 3: Lazy Registration (v1.1)
+
 Register components only when they enter the viewport.
 
 ### Event Handling
@@ -202,14 +213,14 @@ FAST components participate in native forms:
 
 **Note**: Requires form association polyfill for older browsers (Chrome < 77, Firefox < 79, Safari < 16.4).
 
----
+______________________________________________________________________
 
 ## Key Takeaways
 
 1. **CSS Variables are the Bridge**: They connect Bulma classes to FAST components
-2. **Shadow DOM is Preserved**: Components remain encapsulated while being themeable
-3. **Vanilla JavaScript Only**: No framework dependencies required
-4. **Drop-in Replacement**: Existing Bulma projects can adopt FAST components incrementally
+1. **Shadow DOM is Preserved**: Components remain encapsulated while being themeable
+1. **Vanilla JavaScript Only**: No framework dependencies required
+1. **Drop-in Replacement**: Existing Bulma projects can adopt FAST components incrementally
 
 ## Related Documentation
 

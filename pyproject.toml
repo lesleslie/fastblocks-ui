@@ -92,6 +92,7 @@ addopts = [
     "--cov-report=term-missing:skip-covered",
     "--cov-report=html",
     "--cov-report=json",
+    "-p", "no:benchmark",  # Disable benchmark plugin to avoid conflict with xdist
 ]
 markers = [
     # Core test categories
@@ -146,3 +147,30 @@ exclude_lines = [
 [tool.bandit]
 exclude_dirs = [".venv", "tests"]
 skips = ["B101"]
+
+[tool.pyscn]
+# Configuration for pyscn complexity analysis
+paths = ["src", "tests", "scripts"]
+max_complexity = 10
+
+[tool.zuban]
+# Configuration for zuban type checking
+config_file = "mypy.ini"
+
+[tool.refurb]
+# Configuration for refurb code quality tool
+python_version = "3.13"
+
+[tool.linkcheckmd]
+# Configuration for linkcheckmd to ignore certain patterns
+ignore_patterns = [
+    "http://localhost:*",
+    "http://your-app-url*",
+    "*unpkg.com/fastbulma*",
+    "*jsdelivr.net/npm/fastbulma*"  # Exclude our own package which may not be published yet
+]
+
+[dependency-groups]
+dev = [
+    "crackerjack>=0.50.1",
+]

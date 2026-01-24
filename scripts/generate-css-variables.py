@@ -9,66 +9,65 @@ Usage:
     python scripts/generate-css-variables.py > src/fastbulma/static/css/fastbulma.css
 """
 
-from typing import Dict, Tuple
-
+from typing import Dict
 
 # Bulma color palette (from Bulma framework)
 BULMA_COLORS: Dict[str, str] = {
-    'primary': '#7957d5',
-    'success': '#48c774',
-    'danger': '#f14668',
-    'warning': '#ffdd57',
-    'info': '#3298dc',
-    'light': '#f5f5f5',
-    'dark': '#363636',
-    'white': '#ffffff',
-    'black': '#0a0a0a',
-    'grey': '#7a7a7a',
-    'grey-light': '#f5f5f5',
-    'grey-lighter': '#f5f5f5',
-    'grey-dark': '#4a4a4a',
-    'grey-darker': '#363636',
+    "primary": "#7957d5",
+    "success": "#48c774",
+    "danger": "#f14668",
+    "warning": "#ffdd57",
+    "info": "#3298dc",
+    "light": "#f5f5f5",
+    "dark": "#363636",
+    "white": "#ffffff",
+    "black": "#0a0a0a",
+    "grey": "#7a7a7a",
+    "grey-light": "#f5f5f5",
+    "grey-lighter": "#f5f5f5",
+    "grey-dark": "#4a4a4a",
+    "grey-darker": "#363636",
 }
 
 # Bulma typography
 BULMA_SIZES: Dict[str, str] = {
-    'small': '0.75rem',
-    'normal': '1rem',
-    'medium': '1.25rem',
-    'large': '1.5rem',
+    "small": "0.75rem",
+    "normal": "1rem",
+    "medium": "1.25rem",
+    "large": "1.5rem",
 }
 
 # Bulma border radius
 BULMA_RADIUS: Dict[str, str] = {
-    'small': '2px',
-    'normal': '4px',
-    'large': '6px',
-    'rounded': '9999px',
+    "small": "2px",
+    "normal": "4px",
+    "large": "6px",
+    "rounded": "9999px",
 }
 
 # FAST design tokens mapping
 FAST_TOKENS: Dict[str, str] = {
-    'primary': '--accent-fill-rest',
-    'success': '--success-fill-rest',
-    'danger': '--danger-fill-rest',
-    'warning': '--warning-fill-rest',
-    'info': '--info-fill-rest',
-    'light': '--neutral-fill-rest',
-    'dark': '--neutral-fill-rest',
-    'white': '--neutral-fill-rest',
-    'black': '--neutral-fill-rest',
-    'grey': '--neutral-fill-rest',
+    "primary": "--accent-fill-rest",
+    "success": "--success-fill-rest",
+    "danger": "--danger-fill-rest",
+    "warning": "--warning-fill-rest",
+    "info": "--info-fill-rest",
+    "light": "--neutral-fill-rest",
+    "dark": "--neutral-fill-rest",
+    "white": "--neutral-fill-rest",
+    "black": "--neutral-fill-rest",
+    "grey": "--neutral-fill-rest",
 }
 
 # Pre-computed dark variants (10% and 20% darker)
 # Generated using color-mix(in srgb, original 90%, black) for 10%
 # and color-mix(in srgb, original 80%, black) for 20%
 DARK_VARIANTS: Dict[str, Dict[str, str]] = {
-    'primary': {'10%': '#6c4dc0', '20%': '#5f43ab'},
-    'success': {'10%': '#3dad66', '20%': '#32d358'},
-    'danger': {'10%': '#d93d5c', '20%': '#c13450'},
-    'warning': {'10%': '#e6c84e', '20%': '#ccb345'},
-    'info': {'10%': '#2b8bc4', '20%': '#267eb0'},
+    "primary": {"10%": "#6c4dc0", "20%": "#5f43ab"},
+    "success": {"10%": "#3dad66", "20%": "#32d358"},
+    "danger": {"10%": "#d93d5c", "20%": "#c13450"},
+    "warning": {"10%": "#e6c84e", "20%": "#ccb345"},
+    "info": {"10%": "#2b8bc4", "20%": "#267eb0"},
 }
 
 
@@ -102,26 +101,30 @@ def generate_fast_token_mappings() -> str:
     # Map Bulma classes to FAST tokens
     css.append("    /* Bulma Modifier Classes → FAST Tokens */")
 
-    for bulma_name in ['primary', 'success', 'danger', 'warning', 'info']:
-        fast_token = FAST_TOKENS.get(bulma_name, '--neutral-fill-rest')
+    for bulma_name in ["primary", "success", "danger", "warning", "info"]:
+        fast_token = FAST_TOKENS.get(bulma_name, "--neutral-fill-rest")
         css.append(f"    .is-{bulma_name} {{")
         css.append(f"      {fast_token}: var(--bulma-{bulma_name});")
-        css.append(f"    }}")
+        css.append("    }")
 
     # Add hover/active states using color-mix()
     css.append("\n    /* Hover and Active States (using color-mix()) */")
 
-    for bulma_name in ['primary', 'success', 'danger', 'warning', 'info']:
-        fast_token = FAST_TOKENS.get(bulma_name, '--neutral-fill-rest')
-        token_name = fast_token.replace('--', '').replace('-fill-rest', '')
+    for bulma_name in ["primary", "success", "danger", "warning", "info"]:
+        fast_token = FAST_TOKENS.get(bulma_name, "--neutral-fill-rest")
+        token_name = fast_token.replace("--", "").replace("-fill-rest", "")
 
         css.append(f"    .is-{bulma_name}:hover {{")
-        css.append(f"      --{token_name}-fill-hover: color-mix(in srgb, var(--bulma-{bulma_name}) 90%, black);")
-        css.append(f"    }}")
+        css.append(
+            f"      --{token_name}-fill-hover: color-mix(in srgb, var(--bulma-{bulma_name}) 90%, black);"
+        )
+        css.append("    }")
 
         css.append(f"    .is-{bulma_name}:active {{")
-        css.append(f"      --{token_name}-fill-active: color-mix(in srgb, var(--bulma-{bulma_name}) 80%, black);")
-        css.append(f"    }}")
+        css.append(
+            f"      --{token_name}-fill-active: color-mix(in srgb, var(--bulma-{bulma_name}) 80%, black);"
+        )
+        css.append("    }")
 
     css.append("  }")
     css.append("}\n")
@@ -138,14 +141,16 @@ def generate_color_mix_fallbacks() -> str:
 
     # Pre-computed dark variants for hover/active states
     for bulma_name, variants in DARK_VARIANTS.items():
-        fast_token = FAST_TOKENS.get(bulma_name, '--neutral-fill-rest')
-        token_name = fast_token.replace('--', '').replace('-fill-rest', '')
+        fast_token = FAST_TOKENS.get(bulma_name, "--neutral-fill-rest")
+        token_name = fast_token.replace("--", "").replace("-fill-rest", "")
 
-        css.append(f"      /* {bulma_name.capitalize()} - Pre-computed dark variants */")
+        css.append(
+            f"      /* {bulma_name.capitalize()} - Pre-computed dark variants */"
+        )
         css.append(f"      .is-{bulma_name} {{")
         css.append(f"        --{token_name}-fill-hover: {variants['10%']};")
         css.append(f"        --{token_name}-fill-active: {variants['20%']};")
-        css.append(f"      }}")
+        css.append("      }")
 
     css.append("    }")
     css.append("  }")
@@ -156,18 +161,36 @@ def generate_color_mix_fallbacks() -> str:
 def generate_css_containment() -> str:
     """Generate CSS containment rules for FAST components."""
     css = ["/* CSS Containment - Limit style recalculation scope */"]
-    css.append("/* Improves performance by 15-25% for style updates */\n"]
+    css.append("/* Improves performance by 15-25% for style updates */\n")
 
     components = [
-        'fast-button', 'fast-card', 'fast-text-field', 'fast-text-area',
-        'fast-select', 'fast-checkbox', 'fast-radio-group', 'fast-radio',
-        'fast-switch', 'fast-dialog', 'fast-tabs', 'fast-tab', 'fast-tab-panel',
-        'fast-anchor', 'fast-menu-button', 'fast-data-grid', 'fast-divider',
-        'fast-progress', 'fast-slider', 'fast-badge', 'fast-tooltip',
+        "fast-button",
+        "fast-card",
+        "fast-text-field",
+        "fast-text-area",
+        "fast-select",
+        "fast-checkbox",
+        "fast-radio-group",
+        "fast-radio",
+        "fast-switch",
+        "fast-dialog",
+        "fast-tabs",
+        "fast-tab",
+        "fast-tab-panel",
+        "fast-anchor",
+        "fast-menu-button",
+        "fast-data-grid",
+        "fast-divider",
+        "fast-progress",
+        "fast-slider",
+        "fast-badge",
+        "fast-tooltip",
     ]
 
     css.append(", ".join(components) + " {")
-    css.append("  contain: style;  /* Limit style recalculation to this component subtree */")
+    css.append(
+        "  contain: style;  /* Limit style recalculation to this component subtree */"
+    )
     css.append("}\n")
     return "\n".join(css)
 
@@ -196,11 +219,15 @@ def main() -> None:
 
     # Also write to file
     import os
-    os.makedirs('src/fastbulma/static/css', exist_ok=True)
-    with open('src/fastbulma/static/css/fastbulma.css', 'w') as f:
+
+    os.makedirs("src/fastbulma/static/css", exist_ok=True)
+    with open("src/fastbulma/static/css/fastbulma.css", "w") as f:
         f.write(output)
 
-    print("✅ Generated CSS variables: src/fastbulma/static/css/fastbulma.css", file=__import__('sys').stderr)
+    print(
+        "✅ Generated CSS variables: src/fastbulma/static/css/fastbulma.css",
+        file=__import__("sys").stderr,
+    )
 
 
 if __name__ == "__main__":
