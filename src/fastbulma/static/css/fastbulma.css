@@ -1,58 +1,180 @@
-/* FastBulma CSS Variable Mapping Layer */
-/* Combines Bulma CSS utilities with FAST Web Components */
+/**
+ * FastBulma CSS Variable Bridge Layer
+ *
+ * This file implements the CSS Variable Bridge Pattern that allows Bulma CSS
+ * utilities to style FAST Web Components through Shadow DOM boundaries.
+ *
+ * ARCHITECTURE:
+ * - CSS custom properties penetrate Shadow DOM boundaries by design
+ * - Bulma classes update CSS variables at the document level
+ * - FAST components read those CSS variables internally
+ * - This preserves encapsulation while enabling theming
+ *
+ * LAYER STRUCTURE:
+ * - @layer fast: FAST token mappings (base layer)
+ * - Bulma classes: Override tokens for specific styles
+ * - Specificity: utilities > components > base
+ *
+ * BROWSER COMPATIBILITY:
+ * - CSS Variables: Chrome 49+, Firefox 31+, Safari 9.1+
+ * - color-mix(): Chrome 111+, Firefox 113+, Safari 16.2+
+ * - @supports: All modern browsers
+ * - Fallbacks provided for Tier 2 browsers
+ */
 
-/* Define Bulma variables that can be customized */
+/* ============================================================================
+   BULMA BASE VARIABLES
+   =========================================================================== */
+
+/**
+ * Bulma Color Palette & Design Tokens
+ *
+ * These variables define the Bulma design system and can be customized by
+ * users. All FAST components map to these variables.
+ */
 :root {
-  /* Color palette - can be overridden by users */
+  /* === Color Palette === */
+  /* Primary color (purple by default) */
   --bulma-primary: #7957d5;
   --bulma-primary-invert: #fff;
   --bulma-primary-light: #f1effd;
   --bulma-primary-dark: #563acc;
+
+  /* Info color (blue) */
   --bulma-info: #3298dc;
   --bulma-info-invert: #fff;
+  --bulma-info-light: #eef6fc;
+  --bulma-info-dark: #2286c4;
+
+  /* Success color (green) */
   --bulma-success: #48c774;
   --bulma-success-invert: #fff;
+  --bulma-success-light: #effaf3;
+  --bulma-success-dark: #3abe6b;
+
+  /* Warning color (yellow) */
   --bulma-warning: #ffdd57;
   --bulma-warning-invert: #000;
+  --bulma-warning-light: #fff9e6;
+  --bulma-warning-dark: #ffd336;
+
+  /* Danger color (red) */
   --bulma-danger: #f14668;
   --bulma-danger-invert: #fff;
+  --bulma-danger-light: #feecf0;
+  --bulma-danger-dark: #ef2e55;
+
+  /* Neutral colors (grey scale) */
   --bulma-grey: #7a7a7a;
   --bulma-grey-light: #f5f5f5;
-  --bulma-grey-lighter: #f5f5f5;
+  --bulma-grey-lighter: #fafafa;
   --bulma-grey-dark: #4a4a4a;
   --bulma-grey-darker: #363636;
+
+  /* Black and white */
   --bulma-white: #fff;
   --bulma-black: #0a0a0a;
 
-  /* Sizing and spacing */
+  /* Background and text colors */
+  --bulma-background: var(--bulma-white);
+  --bulma-text: var(--bulma-grey-dark);
+
+  /* === Sizing & Spacing === */
+  /* Border radius */
   --bulma-radius: 4px;
   --bulma-radius-small: 2px;
   --bulma-radius-large: 6px;
   --bulma-radius-rounded: 9999px;
+
+  /* Font sizes */
   --bulma-size-small: 0.75rem;
   --bulma-size-normal: 1rem;
   --bulma-size-medium: 1.25rem;
   --bulma-size-large: 1.5rem;
 
-  /* Typography */
+  /* === Typography === */
   --bulma-family-primary: Inter, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bulma-family-secondary: "Georgia", "Times New Roman", serif;
+  --bulma-family-monospace: "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace;
+
+  /* === Focus Indicators === */
+  --bulma-focus-color: var(--bulma-primary);
+  --bulma-focus-width: 2px;
 }
 
-/* Map Bulma variables to FAST design tokens using the @layer approach */
+/* ============================================================================
+   THEME VARIANTS
+   =========================================================================== */
+
+/**
+ * Dark Theme
+ *
+ * In dark mode, colors are inverted for better contrast. Hover states mix
+ * with WHITE instead of black to maintain proper contrast.
+ */
+[data-theme="dark"] {
+  /* Darken primary color for dark backgrounds */
+  --bulma-primary: #9e86e8;
+  --bulma-primary-invert: #fff;
+  --bulma-primary-light: #4a3a7a;
+  --bulma-primary-dark: #b8a8f0;
+
+  /* Adjust other colors for dark mode */
+  --bulma-info: #64b5f6;
+  --bulma-info-invert: #000;
+  --bulma-success: #81c784;
+  --bulma-success-invert: #000;
+  --bulma-warning: #ffd54f;
+  --bulma-warning-invert: #000;
+  --bulma-danger: #ef5350;
+  --bulma-danger-invert: #000;
+
+  /* Background and text (inverted) */
+  --bulma-background: #0a0a0a;
+  --bulma-text: #e0e0e0;
+
+  /* Adjust neutral colors for dark mode */
+  --bulma-grey: #9e9e9e;
+  --bulma-grey-light: #2d2d2d;
+  --bulma-grey-lighter: #1f1f1f;
+  --bulma-grey-dark: #e0e0e0;
+  --bulma-grey-darker: #ffffff;
+}
+
+/* ============================================================================
+   FAST DESIGN TOKEN MAPPINGS
+   =========================================================================== */
+
+/**
+ * FAST Design Token Mappings
+ *
+ * This layer maps Bulma variables to FAST's design token naming convention.
+ * FAST components read these tokens internally within their Shadow DOM.
+ *
+ * Token Naming Convention:
+ * - {property}-{state}: e.g., --accent-fill-rest (background at rest state)
+ * - Properties: fill (background), foreground (text/icon), stroke (border)
+ * - States: rest, hover, active, focus
+ */
 @layer fast {
   :root {
-    /* Accent colors */
+    /* === Accent Colors (Primary, Info, Success, Warning, Danger) === */
     --accent-base-color: var(--bulma-primary);
     --accent-fill-rest: var(--bulma-primary);
-    --accent-fill-hover: color-mix(in srgb, var(--bulma-primary) 90%, black);
-    --accent-fill-active: color-mix(in srgb, var(--bulma-primary) 80%, black);
+    --accent-fill-hover: var(--bulma-primary-dark, var(--bulma-primary)); /* Fallback for color-mix() */
+    --accent-fill-active: var(--bulma-primary-dark, var(--bulma-primary));
     --accent-fill-focus: var(--bulma-primary);
     --accent-foreground-rest: var(--bulma-primary-invert);
     --accent-foreground-hover: var(--bulma-primary-invert);
     --accent-foreground-active: var(--bulma-primary-invert);
     --accent-foreground-focus: var(--bulma-primary-invert);
+    --accent-stroke-rest: var(--bulma-primary);
+    --accent-stroke-hover: var(--bulma-primary-dark);
+    --accent-stroke-active: var(--bulma-primary-dark);
+    --accent-stroke-focus: var(--bulma-primary);
+    --accent-foreground-cut-rest: var(--bulma-primary-invert); /* For high contrast */
 
-    /* Neutral colors */
+    /* === Neutral Colors === */
     --neutral-base-color: var(--bulma-grey);
     --neutral-fill-rest: var(--bulma-grey-lighter);
     --neutral-fill-hover: var(--bulma-grey-light);
@@ -69,9 +191,15 @@
     --neutral-stroke-rest: var(--bulma-grey-light);
     --neutral-stroke-hover: var(--bulma-grey);
     --neutral-stroke-active: var(--bulma-grey-dark);
-    --neutral-stroke-focus: var(--bulma-primary);
+    --neutral-stroke-focus: var(--bulma-focus-color);
 
-    /* Control dimensions */
+    /* === Background Colors === */
+    --background-color: var(--bulma-background);
+    --foreground-color: var(--bulma-text);
+    --layering-layer-1: var(--bulma-white);
+    --layering-layer-2: var(--bulma-grey-lighter);
+
+    /* === Control Dimensions === */
     --control-corner-radius: var(--bulma-radius, 4px);
     --control-corner-radius-brand: var(--bulma-radius-large, 6px);
     --control-corner-radius-pill: var(--bulma-radius-rounded, 9999px);
@@ -79,85 +207,221 @@
     --control-height-number: 40; /* Corresponds to 2.5em at 16px base */
     --control-line-height: 1.5;
 
-    /* Typography */
+    /* === Typography === */
     --neutral-font-family: var(--bulma-family-primary);
+    --font-family-base: var(--bulma-family-primary);
+    --font-weight-base: 400;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
     --type-ramp-base-font-size: var(--bulma-size-normal);
     --type-ramp-base-line-height: 1.5;
     --type-ramp-minus-1-font-size: var(--bulma-size-small);
+    --type-ramp-minus-1-line-height: 1.5;
     --type-ramp-plus-1-font-size: var(--bulma-size-medium);
+    --type-ramp-plus-1-line-height: 1.5;
     --type-ramp-plus-2-font-size: var(--bulma-size-large);
+    --type-ramp-plus-2-line-height: 1.5;
+    --type-ramp-plus-3-font-size: 2rem;
+    --type-ramp-plus-3-line-height: 1.5;
+    --type-ramp-plus-4-font-size: 2.5rem;
+    --type-ramp-plus-4-line-height: 1.5;
+    --type-ramp-plus-5-font-size: 3rem;
+    --type-ramp-plus-5-line-height: 1.5;
+    --type-ramp-plus-6-font-size: 4rem;
+    --type-ramp-plus-6-line-height: 1.5;
 
-    /* Spacing */
+    /* === Spacing === */
     --design-unit: 4px;
     --base-height-multiplier: 8;
     --density: calc(var(--base-height-multiplier) * var(--design-unit));
+    --spacing-horizontal: var(--bulma-size-normal);
+    --spacing-vertical: var(--bulma-size-normal);
 
-    /* Checkbox and Radio */
-    --checkbox-control-size: calc(var(--design-unit) * 3);
-    --radio-control-size: calc(var(--design-unit) * 3);
+    /* === Focus Indicators === */
+    --focus-stroke-outer: var(--bulma-focus-color);
+    --focus-stroke-width: var(--bulma-focus-width);
+
+    /* === Checkbox and Radio === */
+    --checkbox-control-size: calc(var(--design-unit) * 5);
+    --checkbox-control-corner-radius: var(--bulma-radius-small, 2px);
+    --radio-control-size: calc(var(--design-unit) * 5);
+
+    /* === Stroke Widths === */
+    --stroke-width-thin: 1px;
+    --stroke-width-normal: 2px;
+    --stroke-width-thick: 3px;
+
+    /* === Z-Index Layers === */
+    --layering-z-index-base: 0;
+    --layering-z-index-overlay: 1000;
+    --layering-z-index-modal: 2000;
+    --layering-z-index-toast: 3000;
   }
 }
 
-/* Component-specific mappings to allow Bulma classes to affect FAST components */
+/* ============================================================================
+   COLOR-MIX() FEATURE DETECTION
+   =========================================================================== */
 
-/* Color variants */
+/**
+ * Modern Browsers (Chrome 111+, Firefox 113+, Safari 16.2+)
+ *
+ * Use color-mix() for smooth color transitions and hover states.
+ */
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  /* Primary color with color-mix() support */
+  .is-primary {
+    --accent-fill-hover: color-mix(in srgb, var(--bulma-primary) 90%, black);
+    --accent-fill-active: color-mix(in srgb, var(--bulma-primary) 80%, black);
+  }
+
+  .is-success {
+    --accent-fill-hover: color-mix(in srgb, var(--bulma-success) 90%, black);
+    --accent-fill-active: color-mix(in srgb, var(--bulma-success) 80%, black);
+  }
+
+  .is-warning {
+    --accent-fill-hover: color-mix(in srgb, var(--bulma-warning) 90%, black);
+    --accent-fill-active: color-mix(in srgb, var(--bulma-warning) 80%, black);
+  }
+
+  .is-danger {
+    --accent-fill-hover: color-mix(in srgb, var(--bulma-danger) 90%, black);
+    --accent-fill-active: color-mix(in srgb, var(--bulma-danger) 80%, black);
+  }
+
+  .is-info {
+    --accent-fill-hover: color-mix(in srgb, var(--bulma-info) 90%, black);
+    --accent-fill-active: color-mix(in srgb, var(--bulma-info) 80%, black);
+  }
+
+  /* Dark mode: mix with WHITE instead of black for proper contrast */
+  [data-theme="dark"] .is-primary {
+    --accent-fill-hover: color-mix(in srgb, var(--bulma-primary) 90%, white);
+    --accent-fill-active: color-mix(in srgb, var(--bulma-primary) 80%, white);
+  }
+
+  [data-theme="dark"] .is-success {
+    --accent-fill-hover: color-mix(in srgb, var(--bulma-success) 90%, white);
+    --accent-fill-active: color-mix(in srgb, var(--bulma-success) 80%, white);
+  }
+
+  [data-theme="dark"] .is-warning {
+    --accent-fill-hover: color-mix(in srgb, var(--bulma-warning) 90%, black); /* Yellow needs black */
+    --accent-fill-active: color-mix(in srgb, var(--bulma-warning) 80%, black);
+  }
+
+  [data-theme="dark"] .is-danger {
+    --accent-fill-hover: color-mix(in srgb, var(--bulma-danger) 90%, white);
+    --accent-fill-active: color-mix(in srgb, var(--bulma-danger) 80%, white);
+  }
+
+  [data-theme="dark"] .is-info {
+    --accent-fill-hover: color-mix(in srgb, var(--bulma-info) 90%, white);
+    --accent-fill-active: color-mix(in srgb, var(--bulma-info) 80%, white);
+  }
+}
+
+/**
+ * Legacy Browsers (Chrome < 111, Firefox < 113, Safari < 16.2)
+ *
+ * Fallback: Use predefined dark variants instead of color-mix()
+ * This ensures basic functionality in older browsers.
+ */
+
+/* Primary color variant */
 .is-primary {
   --accent-fill-rest: var(--bulma-primary);
-  --accent-fill-hover: color-mix(in srgb, var(--bulma-primary) 90%, black);
-  --accent-fill-active: color-mix(in srgb, var(--bulma-primary) 80%, black);
   --accent-foreground-cut-rest: var(--bulma-primary-invert);
+  --accent-stroke-rest: var(--bulma-primary);
+  --accent-stroke-hover: var(--bulma-primary-dark);
+  --accent-stroke-active: var(--bulma-primary-dark);
 }
 
 .is-success {
   --accent-fill-rest: var(--bulma-success);
-  --accent-fill-hover: color-mix(in srgb, var(--bulma-success) 90%, black);
-  --accent-fill-active: color-mix(in srgb, var(--bulma-success) 80%, black);
   --accent-foreground-cut-rest: var(--bulma-success-invert);
+  --accent-stroke-rest: var(--bulma-success);
+  --accent-stroke-hover: var(--bulma-success-dark);
+  --accent-stroke-active: var(--bulma-success-dark);
 }
 
 .is-warning {
   --accent-fill-rest: var(--bulma-warning);
-  --accent-fill-hover: color-mix(in srgb, var(--bulma-warning) 90%, black);
-  --accent-fill-active: color-mix(in srgb, var(--bulma-warning) 80%, black);
   --accent-foreground-cut-rest: var(--bulma-warning-invert);
+  --accent-stroke-rest: var(--bulma-warning);
+  --accent-stroke-hover: var(--bulma-warning-dark);
+  --accent-stroke-active: var(--bulma-warning-dark);
 }
 
 .is-danger {
   --accent-fill-rest: var(--bulma-danger);
-  --accent-fill-hover: color-mix(in srgb, var(--bulma-danger) 90%, black);
-  --accent-fill-active: color-mix(in srgb, var(--bulma-danger) 80%, black);
   --accent-foreground-cut-rest: var(--bulma-danger-invert);
+  --accent-stroke-rest: var(--bulma-danger);
+  --accent-stroke-hover: var(--bulma-danger-dark);
+  --accent-stroke-active: var(--bulma-danger-dark);
 }
 
 .is-info {
   --accent-fill-rest: var(--bulma-info);
-  --accent-fill-hover: color-mix(in srgb, var(--bulma-info) 90%, black);
-  --accent-fill-active: color-mix(in srgb, var(--bulma-info) 80%, black);
   --accent-foreground-cut-rest: var(--bulma-info-invert);
+  --accent-stroke-rest: var(--bulma-info);
+  --accent-stroke-hover: var(--bulma-info-dark);
+  --accent-stroke-active: var(--bulma-info-dark);
 }
 
-/* Size variants */
+/* ============================================================================
+   BULMA CLASS MAPPINGS
+   =========================================================================== */
+
+/**
+ * Bulma Size Modifiers
+ *
+ * Map Bulma size classes to FAST control dimensions and typography.
+ */
+
+/* Small size */
 .is-small {
   --type-ramp-base-font-size: var(--bulma-size-small);
+  --type-ramp-minus-1-font-size: calc(var(--bulma-size-small) * 0.875);
   --control-height: 2em;
+  --control-height-number: 32;
+  --design-unit: 3px;
 }
 
+/* Normal size (default) */
 .is-normal {
   --type-ramp-base-font-size: var(--bulma-size-normal);
   --control-height: 2.5em;
+  --control-height-number: 40;
+  --design-unit: 4px;
 }
 
+/* Medium size */
 .is-medium {
   --type-ramp-base-font-size: var(--bulma-size-medium);
+  --type-ramp-plus-1-font-size: var(--bulma-size-medium);
   --control-height: 3em;
+  --control-height-number: 48;
+  --design-unit: 5px;
 }
 
+/* Large size */
 .is-large {
   --type-ramp-base-font-size: var(--bulma-size-large);
+  --type-ramp-plus-1-font-size: var(--bulma-size-large);
   --control-height: 3.5em;
+  --control-height-number: 56;
+  --design-unit: 6px;
 }
 
-/* Card component mapping */
+/**
+ * Component-Specific Mappings
+ *
+ * These mappings customize FAST components to match Bulma's design language.
+ */
+
+/* Card component */
 .card,
 .is-card {
   --neutral-fill-rest: var(--bulma-white);
@@ -165,7 +429,13 @@
   --control-corner-radius: var(--bulma-radius, 4px);
 }
 
-/* Input components mapping */
+[data-theme="dark"] .card,
+[data-theme="dark"].is-card {
+  --neutral-fill-rest: var(--bulma-grey-lighter);
+  --neutral-stroke-rest: var(--bulma-grey-light);
+}
+
+/* Input components (text-field, text-area, select) */
 .input,
 .textarea,
 .select select {
@@ -176,23 +446,36 @@
   --neutral-stroke-rest: var(--bulma-grey-light);
   --neutral-stroke-hover: var(--bulma-grey);
   --neutral-stroke-active: var(--bulma-grey-dark);
-  --neutral-stroke-focus: var(--bulma-primary);
+  --neutral-stroke-focus: var(--bulma-focus-color);
   --control-corner-radius: var(--bulma-radius, 4px);
 }
 
-/* Button component mapping */
+[data-theme="dark"] .input,
+[data-theme="dark"].textarea,
+[data-theme="dark"] .select select {
+  --neutral-fill-input-rest: var(--bulma-grey-light);
+  --neutral-fill-input-hover: var(--bulma-grey-lighter);
+  --neutral-fill-input-active: var(--bulma-grey-lighter);
+  --neutral-fill-input-focus: var(--bulma-grey-lighter);
+  --neutral-stroke-rest: var(--bulma-grey);
+  --neutral-stroke-hover: var(--bulma-grey-dark);
+  --neutral-stroke-active: var(--bulma-grey-darker);
+  --neutral-stroke-focus: var(--bulma-focus-color);
+}
+
+/* Button component */
 .button {
   --control-corner-radius: var(--bulma-radius, 4px);
 }
 
-/* Checkbox and Radio component mapping */
+/* Checkbox and Radio components */
 .checkbox input[type="checkbox"],
 .radio input[type="radio"] {
-  --checkbox-control-size: calc(var(--design-unit) * 3);
-  --radio-control-size: calc(var(--design-unit) * 3);
+  --checkbox-control-size: calc(var(--design-unit) * 5);
+  --radio-control-size: calc(var(--design-unit) * 5);
 }
 
-/* Select component mapping */
+/* Select component */
 .select select {
   --neutral-stroke-rest: var(--bulma-grey-light);
   --neutral-stroke-hover: var(--bulma-grey);
@@ -200,48 +483,80 @@
   --control-corner-radius: var(--bulma-radius, 4px);
 }
 
-/* Dialog component mapping */
+/* Dialog/Modal component */
 .modal,
 .dialog {
   --neutral-fill-rest: var(--bulma-white);
   --neutral-stroke-rest: var(--bulma-grey-light);
-  --control-corner-radius: var(--bulma-radius, 4px);
+  --control-corner-radius: var(--bulma-radius-large, 6px);
+  --layering-z-index-modal: 2000;
 }
 
-/* Tabs component mapping */
+[data-theme="dark"] .modal,
+[data-theme="dark"].dialog {
+  --neutral-fill-rest: var(--bulma-grey-lighter);
+  --neutral-stroke-rest: var(--bulma-grey);
+}
+
+/* Tabs component */
 .tabs {
   --neutral-foreground-rest: var(--bulma-grey-dark);
   --neutral-foreground-hover: var(--bulma-black);
   --neutral-stroke-rest: var(--bulma-grey-light);
 }
 
-/* Table component mapping */
+[data-theme="dark"] .tabs {
+  --neutral-foreground-rest: var(--bulma-grey);
+  --neutral-foreground-hover: var(--bulma-white);
+  --neutral-stroke-rest: var(--bulma-grey-dark);
+}
+
+/* Table component */
 .table {
   --neutral-fill-rest: var(--bulma-white);
   --neutral-stroke-rest: var(--bulma-grey-light);
   --neutral-foreground-rest: var(--bulma-grey-darker);
 }
 
-/* Tag component mapping */
+[data-theme="dark"] .table {
+  --neutral-fill-rest: var(--bulma-grey-lighter);
+  --neutral-stroke-rest: var(--bulma-grey-dark);
+  --neutral-foreground-rest: var(--bulma-grey);
+}
+
+/* Tag component */
 .tag {
   --accent-fill-rest: var(--bulma-primary);
   --accent-foreground-rest: var(--bulma-primary-invert);
   --control-corner-radius: var(--bulma-radius-rounded, 9999px);
 }
 
-/* Progress bar mapping */
+/* Progress bar component */
 .progress {
   --accent-fill-rest: var(--bulma-primary);
   --neutral-fill-rest: var(--bulma-grey-lighter);
   --control-corner-radius: var(--bulma-radius-rounded, 9999px);
 }
 
-/* Text field and textarea sizing */
+/* ============================================================================
+   UTILITY CLASSES
+   =========================================================================== */
+
+/**
+ * Full Width Utility
+ *
+ * Make components span their full container width.
+ */
 .is-fullwidth {
   width: 100%;
 }
 
-/* Loading state */
+/**
+ * Loading State
+ *
+ * Shows a loading spinner overlay on components.
+ * Uses CSS animation for smooth rotation.
+ */
 .is-loading {
   position: relative;
   pointer-events: none;
@@ -268,3 +583,72 @@
     transform: rotate(360deg);
   }
 }
+
+/* ============================================================================
+   THEME TRANSITIONS
+   =========================================================================== */
+
+/**
+ * Smooth Theme Transitions
+ *
+ * Add smooth transitions when theme changes occur.
+ * Prevents FOUC (Flash of Unstyled Content) during theme switches.
+ */
+:root {
+  --theme-transition-duration: 0.3s;
+  --theme-transition-easing: ease;
+}
+
+* {
+  transition-property:
+    background-color,
+    color,
+    border-color,
+    fill,
+    stroke;
+  transition-duration: var(--theme-transition-duration);
+  transition-timing-function: var(--theme-transition-easing);
+}
+
+/* Exclude these elements from theme transitions for performance */
+*,
+*::before,
+*::after {
+  transition: none !important;
+}
+
+/* Only transition specific properties */
+fast-button,
+fast-card,
+fast-text-field,
+fast-text-area,
+fast-select,
+fast-checkbox,
+fast-radio,
+fast-switch,
+fast-tabs,
+fast-dialog {
+  transition-property:
+    background-color,
+    color,
+    border-color,
+    fill,
+    stroke,
+    box-shadow;
+  transition-duration: var(--theme-transition-duration);
+  transition-timing-function: var(--theme-transition-easing);
+}
+
+/* ============================================================================
+   SAFARI 15.X SHADOW DOM BUG WORKAROUND
+   =========================================================================== */
+
+/**
+ * Safari 15.x Bug: CSS variables don't recalculate in Shadow DOM when updated
+ * via JavaScript in some cases.
+ *
+ * Workaround: Force layout recalculation by toggling a dummy property.
+ *
+ * This is handled in JavaScript via FastBulma.setCSSVariable() with Safari
+ * detection and forced reflow.
+ */
