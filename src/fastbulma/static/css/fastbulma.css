@@ -7,7 +7,7 @@
  * ARCHITECTURE:
  * - CSS custom properties penetrate Shadow DOM boundaries by design
  * - Bulma classes update CSS variables at the document level
- * - FAST components read those CSS variables internally
+ * - FAST components read these CSS variables internally
  * - This preserves encapsulation while enabling theming
  *
  * LAYER STRUCTURE:
@@ -20,86 +20,107 @@
  * - color-mix(): Chrome 111+, Firefox 113+, Safari 16.2+
  * - @supports: All modern browsers
  * - Fallbacks provided for Tier 2 browsers
+ *
+ * COLOR SCHEME:
+ * - Uses Tailwind CSS default colors (NOT Bulma's original colors)
+ * - Primary: indigo-600 (#4f46e5) - most common Tailwind default
+ * - Success: green-500 (#22c55e)
+ * - Warning: yellow-500 (#eab308)
+ * - Danger: red-500 (#ef4444)
+ * - Info: cyan-500 (#06b6d4)
+ *
+ * VARIABLE NAMING:
+ * - Uses --fast-* prefix (NOT --bulma-*) for accurate naming
+ * - Framework identity: Bulma layout + Tailwind colors + FAST components
+ * - All CSS variables use --fast-* namespace
  */
 
 /* ============================================================================
-   BULMA BASE VARIABLES
+   TAILWIND CSS COLOR PALETTE (DEFAULT)
    =========================================================================== */
 
 /**
- * Bulma Color Palette & Design Tokens
+ * Tailwind CSS Color Palette & Design Tokens
  *
- * These variables define the Bulma design system and can be customized by
- * users. All FAST components map to these variables.
+ * FastBulma uses Tailwind's default color scheme (not Bulma's original colors).
+ * Uses --fast-* variable prefix for accurate naming: Bulma layout + Tailwind colors + FAST components.
+ * Works with Bulma class names (.is-primary, .is-success, etc.) while using Tailwind's color palette.
+ *
+ * Standard Tailwind Semantic Mappings:
+ * - primary → indigo-600 (#4f46e5)
+ * - info → cyan-500 (#06b6d4)
+ * - success → green-500 (#22c55e)
+ * - warning → yellow-500 (#eab308)
+ * - danger → red-500 (#ef4444)
  */
 :root {
-  /* === Color Palette === */
-  /* Primary color (purple by default) */
-  --bulma-primary: #7957d5;
-  --bulma-primary-invert: #fff;
-  --bulma-primary-light: #f1effd;
-  --bulma-primary-dark: #563acc;
+  /* === Tailwind Color Palette === */
+  /* Primary color (indigo-600 - Tailwind default) */
+  --fast-primary: #4f46e5;
+  --fast-primary-invert: #fff;
+  --fast-primary-light: #e0e7ff;  /* indigo-100 */
+  --fast-primary-dark: #4338ca;  /* indigo-700 */
 
-  /* Info color (blue) */
-  --bulma-info: #3298dc;
-  --bulma-info-invert: #fff;
-  --bulma-info-light: #eef6fc;
-  --bulma-info-dark: #2286c4;
+  /* Info color (cyan-500 - Tailwind cyan) */
+  --fast-info: #06b6d4;
+  --fast-info-invert: #fff;
+  --fast-info-light: #cffafe;  /* cyan-100 */
+  --fast-info-dark: #0891b2;  /* cyan-600 */
 
-  /* Success color (green) */
-  --bulma-success: #48c774;
-  --bulma-success-invert: #fff;
-  --bulma-success-light: #effaf3;
-  --bulma-success-dark: #3abe6b;
+  /* Success color (green-500 - Tailwind green) */
+  --fast-success: #22c55e;
+  --fast-success-invert: #fff;
+  --fast-success-light: #dcfce7;  /* green-100 */
+  --fast-success-dark: #16a34a;  /* green-600 */
 
-  /* Warning color (yellow) */
-  --bulma-warning: #ffdd57;
-  --bulma-warning-invert: #000;
-  --bulma-warning-light: #fff9e6;
-  --bulma-warning-dark: #ffd336;
+  /* Warning color (yellow-500 - Tailwind yellow) */
+  --fast-warning: #eab308;
+  --fast-warning-invert: #000;
+  --fast-warning-light: #fef9c3;  /* yellow-100 */
+  --fast-warning-dark: #ca8a04;  /* yellow-600 */
 
-  /* Danger color (red) */
-  --bulma-danger: #f14668;
-  --bulma-danger-invert: #fff;
-  --bulma-danger-light: #feecf0;
-  --bulma-danger-dark: #ef2e55;
+  /* Danger color (red-500 - Tailwind red) */
+  --fast-danger: #ef4444;
+  --fast-danger-invert: #fff;
+  --fast-danger-light: #fee2e2;  /* red-100 */
+  --fast-danger-dark: #dc2626;  /* red-600 */
 
-  /* Neutral colors (grey scale) */
-  --bulma-grey: #7a7a7a;
-  --bulma-grey-light: #f5f5f5;
-  --bulma-grey-lighter: #fafafa;
-  --bulma-grey-dark: #4a4a4a;
-  --bulma-grey-darker: #363636;
+  /* Neutral colors (Tailwind gray scale) */
+  --fast-grey: #6b7280;      /* gray-500 */
+  --fast-grey-light: #f3f4f6;  /* gray-100 */
+  --fast-grey-lighter: #f9fafb; /* gray-50 */
+  --fast-grey-dark: #374151;    /* gray-700 */
+  --fast-grey-darker: #111827;  /* gray-900 */
 
   /* Black and white */
-  --bulma-white: #fff;
-  --bulma-black: #0a0a0a;
+  --fast-white: #ffffff;
+  --fast-black: #000000;
 
   /* Background and text colors */
-  --bulma-background: var(--bulma-white);
-  --bulma-text: var(--bulma-grey-dark);
+  --fast-background: var(--fast-white);
+  --fast-text: var(--fast-grey-dark);
 
   /* === Sizing & Spacing === */
-  /* Border radius */
-  --bulma-radius: 4px;
-  --bulma-radius-small: 2px;
-  --bulma-radius-large: 6px;
-  --bulma-radius-rounded: 9999px;
+  /* Border radius (Tailwind default) */
+  --fast-radius: 4px;        /* rounded (0.25rem) */
+  --fast-radius-small: 2px;  /* rounded-sm (0.125rem) */
+  --fast-radius-large: 8px;  /* rounded-lg (0.5rem) */
+  --fast-radius-rounded: 9999px; /* rounded-full */
 
-  /* Font sizes */
-  --bulma-size-small: 0.75rem;
-  --bulma-size-normal: 1rem;
-  --bulma-size-medium: 1.25rem;
-  --bulma-size-large: 1.5rem;
+  /* Font sizes (Tailwind default) */
+  --fast-size-small: 0.875rem;  /* text-sm (14px) */
+  --fast-size-normal: 1rem;     /* text-base (16px) */
+  --fast-size-medium: 1.125rem; /* text-lg (18px) */
+  --fast-size-large: 1.25rem;   /* text-xl (20px) */
 
   /* === Typography === */
-  --bulma-family-primary: Inter, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --bulma-family-secondary: "Georgia", "Times New Roman", serif;
-  --bulma-family-monospace: "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace;
+  --fast-family-primary: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --fast-family-secondary: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --fast-family-monospace: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   /* === Focus Indicators === */
-  --bulma-focus-color: var(--bulma-primary);
-  --bulma-focus-width: 2px;
+  --fast-focus-color: var(--fast-primary);
+  --fast-focus-width: 2px;
 }
 
 /* ============================================================================
@@ -113,32 +134,43 @@
  * with WHITE instead of black to maintain proper contrast.
  */
 [data-theme="dark"] {
-  /* Darken primary color for dark backgrounds */
-  --bulma-primary: #9e86e8;
-  --bulma-primary-invert: #fff;
-  --bulma-primary-light: #4a3a7a;
-  --bulma-primary-dark: #b8a8f0;
+  /* Lighten primary color for dark backgrounds */
+  --fast-primary: #818cf8;  /* indigo-400 */
+  --fast-primary-invert: #fff;
+  --fast-primary-light: #312e81;  /* indigo-900 */
+  --fast-primary-dark: #a5b4fc;  /* indigo-300 */
 
   /* Adjust other colors for dark mode */
-  --bulma-info: #64b5f6;
-  --bulma-info-invert: #000;
-  --bulma-success: #81c784;
-  --bulma-success-invert: #000;
-  --bulma-warning: #ffd54f;
-  --bulma-warning-invert: #000;
-  --bulma-danger: #ef5350;
-  --bulma-danger-invert: #000;
+  --fast-info: #22d3ee;  /* cyan-400 */
+  --fast-info-invert: #000;
+  --fast-info-light: #164e63;  /* cyan-900 */
+  --fast-info-dark: #67e8f9;  /* cyan-300 */
+
+  --fast-success: #4ade80;  /* green-400 */
+  --fast-success-invert: #000;
+  --fast-success-light: #14532d;  /* green-950 */
+  --fast-success-dark: #86efac;  /* green-300 */
+
+  --fast-warning: #facc15;  /* yellow-400 */
+  --fast-warning-invert: #000;
+  --fast-warning-light: #713f12;  /* yellow-900 */
+  --fast-warning-dark: #fde047;  /* yellow-300 */
+
+  --fast-danger: #f87171;  /* red-400 */
+  --fast-danger-invert: #fff;
+  --fast-danger-light: #7f1d1d;  /* red-950 */
+  --fast-danger-dark: #fca5a5;  /* red-300 */
 
   /* Background and text (inverted) */
-  --bulma-background: #0a0a0a;
-  --bulma-text: #e0e0e0;
+  --fast-background: #0f172a;  /* slate-900 */
+  --fast-text: #f1f5f9;        /* slate-100 */
 
   /* Adjust neutral colors for dark mode */
-  --bulma-grey: #9e9e9e;
-  --bulma-grey-light: #2d2d2d;
-  --bulma-grey-lighter: #1f1f1f;
-  --bulma-grey-dark: #e0e0e0;
-  --bulma-grey-darker: #ffffff;
+  --fast-grey: #94a3b8;      /* slate-400 */
+  --fast-grey-light: #1e293b;  /* slate-800 */
+  --fast-grey-lighter: #0f172a; /* slate-900 */
+  --fast-grey-dark: #cbd5e1;    /* slate-300 */
+  --fast-grey-darker: #f1f5f9;  /* slate-100 */
 }
 
 /* ============================================================================
@@ -159,67 +191,67 @@
 @layer fast {
   :root {
     /* === Accent Colors (Primary, Info, Success, Warning, Danger) === */
-    --accent-base-color: var(--bulma-primary);
-    --accent-fill-rest: var(--bulma-primary);
-    --accent-fill-hover: var(--bulma-primary-dark, var(--bulma-primary)); /* Fallback for color-mix() */
-    --accent-fill-active: var(--bulma-primary-dark, var(--bulma-primary));
-    --accent-fill-focus: var(--bulma-primary);
-    --accent-foreground-rest: var(--bulma-primary-invert);
-    --accent-foreground-hover: var(--bulma-primary-invert);
-    --accent-foreground-active: var(--bulma-primary-invert);
-    --accent-foreground-focus: var(--bulma-primary-invert);
-    --accent-stroke-rest: var(--bulma-primary);
-    --accent-stroke-hover: var(--bulma-primary-dark);
-    --accent-stroke-active: var(--bulma-primary-dark);
-    --accent-stroke-focus: var(--bulma-primary);
-    --accent-foreground-cut-rest: var(--bulma-primary-invert); /* For high contrast */
+    --accent-base-color: var(--fast-primary);
+    --accent-fill-rest: var(--fast-primary);
+    --accent-fill-hover: var(--fast-primary-dark, var(--fast-primary)); /* Fallback for color-mix() */
+    --accent-fill-active: var(--fast-primary-dark, var(--fast-primary));
+    --accent-fill-focus: var(--fast-primary);
+    --accent-foreground-rest: var(--fast-primary-invert);
+    --accent-foreground-hover: var(--fast-primary-invert);
+    --accent-foreground-active: var(--fast-primary-invert);
+    --accent-foreground-focus: var(--fast-primary-invert);
+    --accent-stroke-rest: var(--fast-primary);
+    --accent-stroke-hover: var(--fast-primary-dark);
+    --accent-stroke-active: var(--fast-primary-dark);
+    --accent-stroke-focus: var(--fast-primary);
+    --accent-foreground-cut-rest: var(--fast-primary-invert); /* For high contrast */
 
     /* === Neutral Colors === */
-    --neutral-base-color: var(--bulma-grey);
-    --neutral-fill-rest: var(--bulma-grey-lighter);
-    --neutral-fill-hover: var(--bulma-grey-light);
-    --neutral-fill-active: var(--bulma-grey);
-    --neutral-fill-focus: var(--bulma-grey-light);
-    --neutral-fill-input-rest: var(--bulma-white);
-    --neutral-fill-input-hover: var(--bulma-white);
-    --neutral-fill-input-active: var(--bulma-white);
-    --neutral-fill-input-focus: var(--bulma-white);
-    --neutral-foreground-rest: var(--bulma-grey-darker);
-    --neutral-foreground-hover: var(--bulma-black);
-    --neutral-foreground-active: var(--bulma-black);
-    --neutral-foreground-focus: var(--bulma-black);
-    --neutral-stroke-rest: var(--bulma-grey-light);
-    --neutral-stroke-hover: var(--bulma-grey);
-    --neutral-stroke-active: var(--bulma-grey-dark);
-    --neutral-stroke-focus: var(--bulma-focus-color);
+    --neutral-base-color: var(--fast-grey);
+    --neutral-fill-rest: var(--fast-grey-lighter);
+    --neutral-fill-hover: var(--fast-grey-light);
+    --neutral-fill-active: var(--fast-grey);
+    --neutral-fill-focus: var(--fast-grey-light);
+    --neutral-fill-input-rest: var(--fast-white);
+    --neutral-fill-input-hover: var(--fast-white);
+    --neutral-fill-input-active: var(--fast-white);
+    --neutral-fill-input-focus: var(--fast-white);
+    --neutral-foreground-rest: var(--fast-grey-darker);
+    --neutral-foreground-hover: var(--fast-black);
+    --neutral-foreground-active: var(--fast-black);
+    --neutral-foreground-focus: var(--fast-black);
+    --neutral-stroke-rest: var(--fast-grey-light);
+    --neutral-stroke-hover: var(--fast-grey);
+    --neutral-stroke-active: var(--fast-grey-dark);
+    --neutral-stroke-focus: var(--fast-focus-color);
 
     /* === Background Colors === */
-    --background-color: var(--bulma-background);
-    --foreground-color: var(--bulma-text);
-    --layering-layer-1: var(--bulma-white);
-    --layering-layer-2: var(--bulma-grey-lighter);
+    --background-color: var(--fast-background);
+    --foreground-color: var(--fast-text);
+    --layering-layer-1: var(--fast-white);
+    --layering-layer-2: var(--fast-grey-lighter);
 
     /* === Control Dimensions === */
-    --control-corner-radius: var(--bulma-radius, 4px);
-    --control-corner-radius-brand: var(--bulma-radius-large, 6px);
-    --control-corner-radius-pill: var(--bulma-radius-rounded, 9999px);
+    --control-corner-radius: var(--fast-radius, 4px);
+    --control-corner-radius-brand: var(--fast-radius-large, 8px);
+    --control-corner-radius-pill: var(--fast-radius-rounded, 9999px);
     --control-height: 2.5em; /* Standard Bulma control height */
     --control-height-number: 40; /* Corresponds to 2.5em at 16px base */
     --control-line-height: 1.5;
 
     /* === Typography === */
-    --neutral-font-family: var(--bulma-family-primary);
-    --font-family-base: var(--bulma-family-primary);
+    --neutral-font-family: var(--fast-family-primary);
+    --font-family-base: var(--fast-family-primary);
     --font-weight-base: 400;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
-    --type-ramp-base-font-size: var(--bulma-size-normal);
+    --type-ramp-base-font-size: var(--fast-size-normal);
     --type-ramp-base-line-height: 1.5;
-    --type-ramp-minus-1-font-size: var(--bulma-size-small);
+    --type-ramp-minus-1-font-size: var(--fast-size-small);
     --type-ramp-minus-1-line-height: 1.5;
-    --type-ramp-plus-1-font-size: var(--bulma-size-medium);
+    --type-ramp-plus-1-font-size: var(--fast-size-medium);
     --type-ramp-plus-1-line-height: 1.5;
-    --type-ramp-plus-2-font-size: var(--bulma-size-large);
+    --type-ramp-plus-2-font-size: var(--fast-size-large);
     --type-ramp-plus-2-line-height: 1.5;
     --type-ramp-plus-3-font-size: 2rem;
     --type-ramp-plus-3-line-height: 1.5;
@@ -234,16 +266,16 @@
     --design-unit: 4px;
     --base-height-multiplier: 8;
     --density: calc(var(--base-height-multiplier) * var(--design-unit));
-    --spacing-horizontal: var(--bulma-size-normal);
-    --spacing-vertical: var(--bulma-size-normal);
+    --spacing-horizontal: var(--fast-size-normal);
+    --spacing-vertical: var(--fast-size-normal);
 
     /* === Focus Indicators === */
-    --focus-stroke-outer: var(--bulma-focus-color);
-    --focus-stroke-width: var(--bulma-focus-width);
+    --focus-stroke-outer: var(--fast-focus-color);
+    --focus-stroke-width: var(--fast-focus-width);
 
     /* === Checkbox and Radio === */
     --checkbox-control-size: calc(var(--design-unit) * 5);
-    --checkbox-control-corner-radius: var(--bulma-radius-small, 2px);
+    --checkbox-control-corner-radius: var(--fast-radius-small, 2px);
     --radio-control-size: calc(var(--design-unit) * 5);
 
     /* === Stroke Widths === */
@@ -271,54 +303,54 @@
 @supports (color: color-mix(in srgb, red 50%, blue)) {
   /* Primary color with color-mix() support */
   .is-primary {
-    --accent-fill-hover: color-mix(in srgb, var(--bulma-primary) 90%, black);
-    --accent-fill-active: color-mix(in srgb, var(--bulma-primary) 80%, black);
+    --accent-fill-hover: color-mix(in srgb, var(--fast-primary) 90%, black);
+    --accent-fill-active: color-mix(in srgb, var(--fast-primary) 80%, black);
   }
 
   .is-success {
-    --accent-fill-hover: color-mix(in srgb, var(--bulma-success) 90%, black);
-    --accent-fill-active: color-mix(in srgb, var(--bulma-success) 80%, black);
+    --accent-fill-hover: color-mix(in srgb, var(--fast-success) 90%, black);
+    --accent-fill-active: color-mix(in srgb, var(--fast-success) 80%, black);
   }
 
   .is-warning {
-    --accent-fill-hover: color-mix(in srgb, var(--bulma-warning) 90%, black);
-    --accent-fill-active: color-mix(in srgb, var(--bulma-warning) 80%, black);
+    --accent-fill-hover: color-mix(in srgb, var(--fast-warning) 90%, black);
+    --accent-fill-active: color-mix(in srgb, var(--fast-warning) 80%, black);
   }
 
   .is-danger {
-    --accent-fill-hover: color-mix(in srgb, var(--bulma-danger) 90%, black);
-    --accent-fill-active: color-mix(in srgb, var(--bulma-danger) 80%, black);
+    --accent-fill-hover: color-mix(in srgb, var(--fast-danger) 90%, black);
+    --accent-fill-active: color-mix(in srgb, var(--fast-danger) 80%, black);
   }
 
   .is-info {
-    --accent-fill-hover: color-mix(in srgb, var(--bulma-info) 90%, black);
-    --accent-fill-active: color-mix(in srgb, var(--bulma-info) 80%, black);
+    --accent-fill-hover: color-mix(in srgb, var(--fast-info) 90%, black);
+    --accent-fill-active: color-mix(in srgb, var(--fast-info) 80%, black);
   }
 
   /* Dark mode: mix with WHITE instead of black for proper contrast */
   [data-theme="dark"] .is-primary {
-    --accent-fill-hover: color-mix(in srgb, var(--bulma-primary) 90%, white);
-    --accent-fill-active: color-mix(in srgb, var(--bulma-primary) 80%, white);
+    --accent-fill-hover: color-mix(in srgb, var(--fast-primary) 90%, white);
+    --accent-fill-active: color-mix(in srgb, var(--fast-primary) 80%, white);
   }
 
   [data-theme="dark"] .is-success {
-    --accent-fill-hover: color-mix(in srgb, var(--bulma-success) 90%, white);
-    --accent-fill-active: color-mix(in srgb, var(--bulma-success) 80%, white);
+    --accent-fill-hover: color-mix(in srgb, var(--fast-success) 90%, white);
+    --accent-fill-active: color-mix(in srgb, var(--fast-success) 80%, white);
   }
 
   [data-theme="dark"] .is-warning {
-    --accent-fill-hover: color-mix(in srgb, var(--bulma-warning) 90%, black); /* Yellow needs black */
-    --accent-fill-active: color-mix(in srgb, var(--bulma-warning) 80%, black);
+    --accent-fill-hover: color-mix(in srgb, var(--fast-warning) 90%, black); /* Yellow needs black */
+    --accent-fill-active: color-mix(in srgb, var(--fast-warning) 80%, black);
   }
 
   [data-theme="dark"] .is-danger {
-    --accent-fill-hover: color-mix(in srgb, var(--bulma-danger) 90%, white);
-    --accent-fill-active: color-mix(in srgb, var(--bulma-danger) 80%, white);
+    --accent-fill-hover: color-mix(in srgb, var(--fast-danger) 90%, white);
+    --accent-fill-active: color-mix(in srgb, var(--fast-danger) 80%, white);
   }
 
   [data-theme="dark"] .is-info {
-    --accent-fill-hover: color-mix(in srgb, var(--bulma-info) 90%, white);
-    --accent-fill-active: color-mix(in srgb, var(--bulma-info) 80%, white);
+    --accent-fill-hover: color-mix(in srgb, var(--fast-info) 90%, white);
+    --accent-fill-active: color-mix(in srgb, var(--fast-info) 80%, white);
   }
 }
 
@@ -331,43 +363,43 @@
 
 /* Primary color variant */
 .is-primary {
-  --accent-fill-rest: var(--bulma-primary);
-  --accent-foreground-cut-rest: var(--bulma-primary-invert);
-  --accent-stroke-rest: var(--bulma-primary);
-  --accent-stroke-hover: var(--bulma-primary-dark);
-  --accent-stroke-active: var(--bulma-primary-dark);
+  --accent-fill-rest: var(--fast-primary);
+  --accent-foreground-cut-rest: var(--fast-primary-invert);
+  --accent-stroke-rest: var(--fast-primary);
+  --accent-stroke-hover: var(--fast-primary-dark);
+  --accent-stroke-active: var(--fast-primary-dark);
 }
 
 .is-success {
-  --accent-fill-rest: var(--bulma-success);
-  --accent-foreground-cut-rest: var(--bulma-success-invert);
-  --accent-stroke-rest: var(--bulma-success);
-  --accent-stroke-hover: var(--bulma-success-dark);
-  --accent-stroke-active: var(--bulma-success-dark);
+  --accent-fill-rest: var(--fast-success);
+  --accent-foreground-cut-rest: var(--fast-success-invert);
+  --accent-stroke-rest: var(--fast-success);
+  --accent-stroke-hover: var(--fast-success-dark);
+  --accent-stroke-active: var(--fast-success-dark);
 }
 
 .is-warning {
-  --accent-fill-rest: var(--bulma-warning);
-  --accent-foreground-cut-rest: var(--bulma-warning-invert);
-  --accent-stroke-rest: var(--bulma-warning);
-  --accent-stroke-hover: var(--bulma-warning-dark);
-  --accent-stroke-active: var(--bulma-warning-dark);
+  --accent-fill-rest: var(--fast-warning);
+  --accent-foreground-cut-rest: var(--fast-warning-invert);
+  --accent-stroke-rest: var(--fast-warning);
+  --accent-stroke-hover: var(--fast-warning-dark);
+  --accent-stroke-active: var(--fast-warning-dark);
 }
 
 .is-danger {
-  --accent-fill-rest: var(--bulma-danger);
-  --accent-foreground-cut-rest: var(--bulma-danger-invert);
-  --accent-stroke-rest: var(--bulma-danger);
-  --accent-stroke-hover: var(--bulma-danger-dark);
-  --accent-stroke-active: var(--bulma-danger-dark);
+  --accent-fill-rest: var(--fast-danger);
+  --accent-foreground-cut-rest: var(--fast-danger-invert);
+  --accent-stroke-rest: var(--fast-danger);
+  --accent-stroke-hover: var(--fast-danger-dark);
+  --accent-stroke-active: var(--fast-danger-dark);
 }
 
 .is-info {
-  --accent-fill-rest: var(--bulma-info);
-  --accent-foreground-cut-rest: var(--bulma-info-invert);
-  --accent-stroke-rest: var(--bulma-info);
-  --accent-stroke-hover: var(--bulma-info-dark);
-  --accent-stroke-active: var(--bulma-info-dark);
+  --accent-fill-rest: var(--fast-info);
+  --accent-foreground-cut-rest: var(--fast-info-invert);
+  --accent-stroke-rest: var(--fast-info);
+  --accent-stroke-hover: var(--fast-info-dark);
+  --accent-stroke-active: var(--fast-info-dark);
 }
 
 /* ============================================================================
@@ -382,8 +414,8 @@
 
 /* Small size */
 .is-small {
-  --type-ramp-base-font-size: var(--bulma-size-small);
-  --type-ramp-minus-1-font-size: calc(var(--bulma-size-small) * 0.875);
+  --type-ramp-base-font-size: var(--fast-size-small);
+  --type-ramp-minus-1-font-size: calc(var(--fast-size-small) * 0.875);
   --control-height: 2em;
   --control-height-number: 32;
   --design-unit: 3px;
@@ -391,7 +423,7 @@
 
 /* Normal size (default) */
 .is-normal {
-  --type-ramp-base-font-size: var(--bulma-size-normal);
+  --type-ramp-base-font-size: var(--fast-size-normal);
   --control-height: 2.5em;
   --control-height-number: 40;
   --design-unit: 4px;
@@ -399,8 +431,8 @@
 
 /* Medium size */
 .is-medium {
-  --type-ramp-base-font-size: var(--bulma-size-medium);
-  --type-ramp-plus-1-font-size: var(--bulma-size-medium);
+  --type-ramp-base-font-size: var(--fast-size-medium);
+  --type-ramp-plus-1-font-size: var(--fast-size-medium);
   --control-height: 3em;
   --control-height-number: 48;
   --design-unit: 5px;
@@ -408,8 +440,8 @@
 
 /* Large size */
 .is-large {
-  --type-ramp-base-font-size: var(--bulma-size-large);
-  --type-ramp-plus-1-font-size: var(--bulma-size-large);
+  --type-ramp-base-font-size: var(--fast-size-large);
+  --type-ramp-plus-1-font-size: var(--fast-size-large);
   --control-height: 3.5em;
   --control-height-number: 56;
   --design-unit: 6px;
@@ -418,54 +450,54 @@
 /**
  * Component-Specific Mappings
  *
- * These mappings customize FAST components to match Bulma's design language.
+ * These mappings customize FAST components to match Tailwind's design language.
  */
 
 /* Card component */
 .card,
 .is-card {
-  --neutral-fill-rest: var(--bulma-white);
-  --neutral-stroke-rest: var(--bulma-grey-light);
-  --control-corner-radius: var(--bulma-radius, 4px);
+  --neutral-fill-rest: var(--fast-white);
+  --neutral-stroke-rest: var(--fast-grey-light);
+  --control-corner-radius: var(--fast-radius, 4px);
 }
 
 [data-theme="dark"] .card,
 [data-theme="dark"].is-card {
-  --neutral-fill-rest: var(--bulma-grey-lighter);
-  --neutral-stroke-rest: var(--bulma-grey-light);
+  --neutral-fill-rest: var(--fast-grey-lighter);
+  --neutral-stroke-rest: var(--fast-grey-light);
 }
 
 /* Input components (text-field, text-area, select) */
 .input,
 .textarea,
 .select select {
-  --neutral-fill-input-rest: var(--bulma-white);
-  --neutral-fill-input-hover: var(--bulma-white);
-  --neutral-fill-input-active: var(--bulma-white);
-  --neutral-fill-input-focus: var(--bulma-white);
-  --neutral-stroke-rest: var(--bulma-grey-light);
-  --neutral-stroke-hover: var(--bulma-grey);
-  --neutral-stroke-active: var(--bulma-grey-dark);
-  --neutral-stroke-focus: var(--bulma-focus-color);
-  --control-corner-radius: var(--bulma-radius, 4px);
+  --neutral-fill-input-rest: var(--fast-white);
+  --neutral-fill-input-hover: var(--fast-white);
+  --neutral-fill-input-active: var(--fast-white);
+  --neutral-fill-input-focus: var(--fast-white);
+  --neutral-stroke-rest: var(--fast-grey-light);
+  --neutral-stroke-hover: var(--fast-grey);
+  --neutral-stroke-active: var(--fast-grey-dark);
+  --neutral-stroke-focus: var(--fast-focus-color);
+  --control-corner-radius: var(--fast-radius, 4px);
 }
 
 [data-theme="dark"] .input,
 [data-theme="dark"].textarea,
 [data-theme="dark"] .select select {
-  --neutral-fill-input-rest: var(--bulma-grey-light);
-  --neutral-fill-input-hover: var(--bulma-grey-lighter);
-  --neutral-fill-input-active: var(--bulma-grey-lighter);
-  --neutral-fill-input-focus: var(--bulma-grey-lighter);
-  --neutral-stroke-rest: var(--bulma-grey);
-  --neutral-stroke-hover: var(--bulma-grey-dark);
-  --neutral-stroke-active: var(--bulma-grey-darker);
-  --neutral-stroke-focus: var(--bulma-focus-color);
+  --neutral-fill-input-rest: var(--fast-grey-light);
+  --neutral-fill-input-hover: var(--fast-grey-lighter);
+  --neutral-fill-input-active: var(--fast-grey-lighter);
+  --neutral-fill-input-focus: var(--fast-grey-lighter);
+  --neutral-stroke-rest: var(--fast-grey);
+  --neutral-stroke-hover: var(--fast-grey-dark);
+  --neutral-stroke-active: var(--fast-grey-darker);
+  --neutral-stroke-focus: var(--fast-focus-color);
 }
 
 /* Button component */
 .button {
-  --control-corner-radius: var(--bulma-radius, 4px);
+  --control-corner-radius: var(--fast-radius, 4px);
 }
 
 /* Checkbox and Radio components */
@@ -477,65 +509,65 @@
 
 /* Select component */
 .select select {
-  --neutral-stroke-rest: var(--bulma-grey-light);
-  --neutral-stroke-hover: var(--bulma-grey);
-  --neutral-stroke-active: var(--bulma-grey-dark);
-  --control-corner-radius: var(--bulma-radius, 4px);
+  --neutral-stroke-rest: var(--fast-grey-light);
+  --neutral-stroke-hover: var(--fast-grey);
+  --neutral-stroke-active: var(--fast-grey-dark);
+  --control-corner-radius: var(--fast-radius, 4px);
 }
 
 /* Dialog/Modal component */
 .modal,
 .dialog {
-  --neutral-fill-rest: var(--bulma-white);
-  --neutral-stroke-rest: var(--bulma-grey-light);
-  --control-corner-radius: var(--bulma-radius-large, 6px);
+  --neutral-fill-rest: var(--fast-white);
+  --neutral-stroke-rest: var(--fast-grey-light);
+  --control-corner-radius: var(--fast-radius-large, 8px);
   --layering-z-index-modal: 2000;
 }
 
 [data-theme="dark"] .modal,
 [data-theme="dark"].dialog {
-  --neutral-fill-rest: var(--bulma-grey-lighter);
-  --neutral-stroke-rest: var(--bulma-grey);
+  --neutral-fill-rest: var(--fast-grey-lighter);
+  --neutral-stroke-rest: var(--fast-grey);
 }
 
 /* Tabs component */
 .tabs {
-  --neutral-foreground-rest: var(--bulma-grey-dark);
-  --neutral-foreground-hover: var(--bulma-black);
-  --neutral-stroke-rest: var(--bulma-grey-light);
+  --neutral-foreground-rest: var(--fast-grey-dark);
+  --neutral-foreground-hover: var(--fast-black);
+  --neutral-stroke-rest: var(--fast-grey-light);
 }
 
 [data-theme="dark"] .tabs {
-  --neutral-foreground-rest: var(--bulma-grey);
-  --neutral-foreground-hover: var(--bulma-white);
-  --neutral-stroke-rest: var(--bulma-grey-dark);
+  --neutral-foreground-rest: var(--fast-grey);
+  --neutral-foreground-hover: var(--fast-white);
+  --neutral-stroke-rest: var(--fast-grey-dark);
 }
 
 /* Table component */
 .table {
-  --neutral-fill-rest: var(--bulma-white);
-  --neutral-stroke-rest: var(--bulma-grey-light);
-  --neutral-foreground-rest: var(--bulma-grey-darker);
+  --neutral-fill-rest: var(--fast-white);
+  --neutral-stroke-rest: var(--fast-grey-light);
+  --neutral-foreground-rest: var(--fast-grey-darker);
 }
 
 [data-theme="dark"] .table {
-  --neutral-fill-rest: var(--bulma-grey-lighter);
-  --neutral-stroke-rest: var(--bulma-grey-dark);
-  --neutral-foreground-rest: var(--bulma-grey);
+  --neutral-fill-rest: var(--fast-grey-lighter);
+  --neutral-stroke-rest: var(--fast-grey-dark);
+  --neutral-foreground-rest: var(--fast-grey);
 }
 
 /* Tag component */
 .tag {
-  --accent-fill-rest: var(--bulma-primary);
-  --accent-foreground-rest: var(--bulma-primary-invert);
-  --control-corner-radius: var(--bulma-radius-rounded, 9999px);
+  --accent-fill-rest: var(--fast-primary);
+  --accent-foreground-rest: var(--fast-primary-invert);
+  --control-corner-radius: var(--fast-radius-rounded, 9999px);
 }
 
 /* Progress bar component */
 .progress {
-  --accent-fill-rest: var(--bulma-primary);
-  --neutral-fill-rest: var(--bulma-grey-lighter);
-  --control-corner-radius: var(--bulma-radius-rounded, 9999px);
+  --accent-fill-rest: var(--fast-primary);
+  --neutral-fill-rest: var(--fast-grey-lighter);
+  --control-corner-radius: var(--fast-radius-rounded, 9999px);
 }
 
 /* ============================================================================
@@ -572,8 +604,8 @@
   height: 16px;
   margin-left: -8px;
   margin-top: -8px;
-  border: 2px solid var(--bulma-grey-light);
-  border-top-color: var(--bulma-primary);
+  border: 2px solid var(--fast-grey-light);
+  border-top-color: var(--fast-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

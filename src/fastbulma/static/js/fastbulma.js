@@ -137,22 +137,22 @@ class FastBulma {
     switch(theme) {
       case 'dark':
         return {
-          '--bulma-primary': '#5e35b1',
-          '--bulma-primary-invert': '#fff',
-          '--bulma-background': '#121212',
-          '--bulma-text': '#e0e0e0',
-          '--bulma-grey-dark': '#dbdbdb',
-          '--bulma-grey-darker': '#ffffff'
+           '--fast-primary': '#5e35b1',
+           '--fast-primary-invert': '#fff',
+           '--fast-background': '#121212',
+           '--fast-text': '#e0e0e0',
+           '--fast-grey-dark': '#dbdbdb',
+           '--fast-grey-darker': '#ffffff'
         };
       case 'light':
       default:
         return {
-          '--bulma-primary': '#7957d5',
-          '--bulma-primary-invert': '#fff',
-          '--bulma-background': '#fff',
-          '--bulma-text': '#4a4a4a',
-          '--bulma-grey-dark': '#4a4a4a',
-          '--bulma-grey-darker': '#363636'
+           '--fast-primary': '#7957d5',
+           '--fast-primary-invert': '#fff',
+           '--fast-background': '#fff',
+           '--fast-text': '#4a4a4a',
+           '--fast-grey-dark': '#4a4a4a',
+           '--fast-grey-darker': '#363636'
         };
     }
   }
