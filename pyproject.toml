@@ -1,6 +1,6 @@
 [project]
 name = "fastbulma"
-version = "0.2.0"
+version = "0.3.0"
 description = "FastBulma framework: Combining Bulma CSS utilities with FAST web components"
 authors = [{name = "FastBulma Team", email = "team@fastbulma.dev"}]
 readme = "README.md"
