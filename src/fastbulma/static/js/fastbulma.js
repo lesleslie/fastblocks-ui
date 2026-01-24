@@ -1,9 +1,24 @@
 /* FastBulma JavaScript Initialization */
 /* Sets up FAST components and provides utility functions */
 
+/**
+ * Error boundary class for handling FAST component failures gracefully.
+ *
+ * Provides error tracking, fallback UI rendering, and safe component registration.
+ */
 class FastBulmaErrorBoundary {
-  static errors = new Map(); // Track errors by component
+  /** @type {Map<string, Object>} Track errors by component name */
+  static errors = new Map();
 
+  /**
+   * Handle a component error by logging it and displaying fallback UI.
+   *
+   * @static
+   * @param {string} componentName - Name of the failed component
+   * @param {Error} error - The error object
+   * @param {Element|null} element - The DOM element that failed (optional)
+   * @returns {Element|null} The fallback DOM element or null if no element provided
+   */
   static handleComponentError(componentName, error, element) {
     console.error(`FastBulma component ${componentName} failed:`, error);
 
@@ -14,27 +29,45 @@ class FastBulmaErrorBoundary {
       element: element?.tagName || 'unknown'
     });
 
-    // Show fallback UI
-    const fallbackHTML = `
-      <div class="fastbulma-fallback is-${componentName}">
-        <span class="fastbulma-error-icon" aria-hidden="true">⚠️</span>
-        <span class="fastbulma-error-message">
-          Component temporarily unavailable
-        </span>
-        <button class="fastbulma-retry-button" onclick="window.location.reload()">
-          Retry
-        </button>
-      </div>
-    `;
+    // Show fallback UI using safe DOM methods
+    const fallbackDiv = document.createElement('div');
+    fallbackDiv.className = `fastbulma-fallback is-${componentName}`;
+
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'fastbulma-error-icon';
+    iconSpan.setAttribute('aria-hidden', 'true');
+    iconSpan.textContent = '⚠️';
+
+    const messageSpan = document.createElement('span');
+    messageSpan.className = 'fastbulma-error-message';
+    messageSpan.textContent = 'Component temporarily unavailable';
+
+    const retryButton = document.createElement('button');
+    retryButton.className = 'fastbulma-retry-button';
+    retryButton.textContent = 'Retry';
+    retryButton.addEventListener('click', () => window.location.reload());
+
+    fallbackDiv.appendChild(iconSpan);
+    fallbackDiv.appendChild(messageSpan);
+    fallbackDiv.appendChild(retryButton);
 
     if (element) {
-      element.insertAdjacentHTML('afterend', fallbackHTML);
+      element.insertAdjacentElement('afterend', fallbackDiv);
       element.style.display = 'none'; // Hide failed component
     }
 
-    return fallbackHTML;
+    return fallbackDiv;
   }
 
+  /**
+   * Safely register a component with error handling.
+   *
+   * @static
+   * @async
+   * @param {string} componentName - Name of the component to register
+   * @param {Function} componentFn - Function that registers the component
+   * @returns {Promise<boolean>} True if registration succeeded, false if failed
+   */
   static async safeRegister(componentName, componentFn) {
     try {
       await componentFn();
@@ -45,6 +78,14 @@ class FastBulmaErrorBoundary {
     }
   }
 
+  /**
+   * Wrap a component function with error handling.
+   *
+   * @static
+   * @param {string} componentName - Name of the component for error tracking
+   * @param {Function} fn - The function to wrap
+   * @returns {Function} Wrapped function that catches and handles errors
+   */
   static wrapComponentFunction(componentName, fn) {
     return async (...args) => {
       try {
@@ -57,20 +98,55 @@ class FastBulmaErrorBoundary {
   }
 }
 
+/**
+ * Main FastBulma class for initializing and managing FAST components.
+ *
+ * Provides component registration, theme management, and utility functions
+ * for integrating FAST web components with Bulma CSS classes.
+ */
 class FastBulma {
+  /** @type {boolean} Whether FAST components have been initialized */
+  #initialized = false;
+
+  /** @type {Object|null} Cached FAST components module */
+  #fastComponents = null;
+
+  /**
+   * Create a new FastBulma instance and initialize components.
+   *
+   * @constructor
+   */
   constructor() {
     this.init();
   }
 
+  /**
+   * Initialize FAST components and design system.
+   *
+   * This method:
+   * - Checks for duplicate initialization
+   * - Imports FAST components from CDN (cached)
+   * - Registers all components with error boundaries
+   * - Logs registration summary
+   *
+   * @async
+   * @returns {Promise<void>}
+   */
   async init() {
+    if (this.#initialized) {
+      console.warn('FastBulma already initialized');
+      return;
+    }
+
     // Import and register FAST components with error boundaries
     try {
-      const { provideFASTDesignSystem, fastCard, fastButton, fastTextField, fastTextArea, fastSelect, fastCheckbox, fastRadio, fastSwitch, fastDialog, fastTabs, fastTabPanel, fastAnchor, fastProgress, fastDataGrid, fastMenuButton } = await import('https://cdn.skypack.dev/@microsoft/fast-components');
+      // Import FAST components (cached to prevent redundant imports)
+      const components = await this.#getFASTComponents();
 
-      const designSystem = provideFASTDesignSystem();
+      const designSystem = components.provideFASTDesignSystem();
 
       // Register components with error boundaries
-      const components = [
+      const fastComponentList = [
         { name: 'card', fn: () => fastCard() },
         { name: 'button', fn: () => fastButton() },
         { name: 'text-field', fn: () => fastTextField() },
@@ -94,7 +170,7 @@ class FastBulma {
         errors: []
       };
 
-      for (const { name, fn } of components) {
+      for (const { name, fn } of fastComponentList) {
         const success = await FastBulmaErrorBoundary.safeRegister(name, fn);
         if (success) {
           designSystem.register(fn());
@@ -120,12 +196,42 @@ class FastBulma {
     }
   }
 
-  // Utility function to update CSS variables dynamically
+  /**
+   * Get FAST components module with caching to prevent redundant imports.
+   *
+   * @private
+   * @async
+   * @returns {Promise<Object>} FAST components module with provideFASTDesignSystem
+   */
+  async #getFASTComponents() {
+    if (this.#fastComponents) {
+      console.debug('Using cached FAST components');
+      return this.#fastComponents;
+    }
+
+    console.debug('Importing FAST components from CDN...');
+    // Import FAST components from CDN
+    this.#fastComponents = await import('https://cdn.skypack.dev/@microsoft/fast-components');
+    return this.#fastComponents;
+  }
+
+  /**
+   * Update a CSS variable dynamically on the document root.
+   *
+   * @param {string} name - CSS variable name (e.g., '--fast-primary')
+   * @param {string} value - CSS value to set
+   * @returns {void}
+   */
   setCSSVariable(name, value) {
     document.documentElement.style.setProperty(name, value);
   }
 
-  // Theme management utility
+  /**
+   * Apply a theme by setting multiple CSS variables at once.
+   *
+   * @param {string} theme - Theme name ('light' or 'dark')
+   * @returns {void}
+   */
   setTheme(theme) {
     const themeVars = this.getThemeVariables(theme);
     Object.entries(themeVars).forEach(([name, value]) => {
@@ -133,6 +239,12 @@ class FastBulma {
     });
   }
 
+  /**
+   * Get CSS variables for a specific theme.
+   *
+   * @param {string} theme - Theme name ('light' or 'dark')
+   * @returns {Object} Object mapping CSS variable names to values
+   */
   getThemeVariables(theme) {
     switch(theme) {
       case 'dark':
@@ -157,7 +269,13 @@ class FastBulma {
     }
   }
 
-  // Utility to apply Bulma classes to FAST components dynamically
+  /**
+   * Apply a Bulma CSS class to a FAST component element.
+   *
+   * @param {Element} element - DOM element to apply class to
+   * @param {string} bulmaClass - Bulma class name to add
+   * @returns {void}
+   */
   applyBulmaClass(element, bulmaClass) {
     element.classList.add(bulmaClass);
 
@@ -166,7 +284,19 @@ class FastBulma {
     element.style.setProperty('--dummy', computedStyle.getPropertyValue('--dummy'));
   }
 
-  // Utility to register components when they appear in the DOM (eager registration)
+  /**
+   * Register FAST components found in the DOM and watch for new elements.
+   *
+   * This method implements eager registration:
+   * - Scans the DOM for unregistered FAST custom elements
+   * - Registers components that are present
+   * - Sets up MutationObserver to register dynamically added elements
+   * - Returns a cleanup function to disconnect the observer
+   *
+   * @async
+   * @param {Element|Document} root - Root element to scan (defaults to document)
+   * @returns {Promise<Function>} Cleanup function to disconnect observer
+   */
   async registerComponentsInDOM(root = document) {
     try {
       const { fastCard, fastButton, fastTextField, fastTextArea, fastSelect, fastCheckbox, fastRadio, fastSwitch, fastDialog, fastTabs, fastTabPanel, fastAnchor, fastProgress, fastDataGrid, fastMenuButton } = await import('https://cdn.skypack.dev/@microsoft/fast-components');
