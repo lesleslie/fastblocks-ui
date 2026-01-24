@@ -33,6 +33,16 @@ Thumbs.db
 coverage.xml
 *.log
 
+# JavaScript Testing
+node_modules/
+.vitest/
+coverage/
+playwright-report/
+playwright-results/
+playwright-junit.xml
+test-results/
+dist-ssr/
+
 # Type checking
 .pytype/
 .pyright/

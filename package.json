@@ -1,0 +1,38 @@
+{
+  "name": "fastbulma",
+  "version": "0.2.0",
+  "description": "FastBulma framework: Combining Bulma CSS utilities with FAST web components",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:run": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:a11y": "playwright test --project=chromium accessibility/",
+    "test:visual": "chromatic --build-script-name=build",
+    "lint": "eslint src/fastbulma/static/js/**/*.js",
+    "format": "prettier --write src/fastbulma/static/js/**/*.js",
+    "validate": "npm run lint && npm run test:run"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "@playwright/test": "^1.48.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "@vitest/ui": "^1.6.0",
+    "axe-core": "^4.10.0",
+    "chromatic": "^11.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "jsdom": "^25.0.0",
+    "prettier": "^3.2.0",
+    "serve": "^14.2.0",
+    "vitest": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
