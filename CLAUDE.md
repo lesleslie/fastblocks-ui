@@ -303,6 +303,6 @@ Access 12 specialized AI agents via crackerjack's skill system:
 - **DocumentationAgent**: Documentation generation
 - And 7 more specialized agents
 
-See [crackerjack documentation](https://github.com/crackerjack/crackerjack) for complete skill system reference.
+See [crackerjack documentation](https://github.com/lesleslie/crackerjack) for complete skill system reference.
 
 <!-- CRACKERJACK_END -->
