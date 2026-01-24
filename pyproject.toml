@@ -4,15 +4,14 @@ version = "0.1.0"
 description = "FastBulma framework: Combining Bulma CSS utilities with FAST web components"
 authors = [{name = "FastBulma Team", email = "team@fastbulma.dev"}]
 readme = "README.md"
-license = {text = "MIT"}
+license = {text = "BSD-3-Clause"}
 requires-python = ">=3.13"
 keywords = ["css", "framework", "components", "web", "frontend", "bulma", "fast", "microsoft", "web-components"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Web Environment",
-    "Framework :: Web Components",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.13",
