@@ -1,7 +1,7 @@
 /**
  * Vitest Setup File
  *
- * Configures the test environment for FastBulma JavaScript testing.
+ * Configures the test environment for FastBlocks UI JavaScript testing.
  */
 
 // Import testing utilities
@@ -18,8 +18,11 @@ global.console = {
   // error: vi.fn(),
 };
 
+// Disable browser auto-init for the enhancement module so tests can control it explicitly.
+window.__FASTBLOCKS_UI_NO_AUTO_INIT__ = true;
+
 // Mock DOM environment helpers
-global.createFastBulmaElement = (tagName, attributes = {}) => {
+global.createFastBlocksUIElement = (tagName, attributes = {}) => {
   const element = document.createElement(tagName);
   Object.entries(attributes).forEach(([key, value]) => {
     if (key === 'className') {
@@ -42,16 +45,16 @@ global.setCSSVariable = (variableName, value, element = document.documentElement
   element.style.setProperty(variableName, value);
 };
 
-// FastBulma-specific test helpers
-global.waitForFastBulmaInit = async (timeout = 5000) => {
+// FastBlocks UI-specific test helpers
+global.waitForFastBlocksUIInit = async (timeout = 5000) => {
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
 
     const checkInit = () => {
-      if (window.fastBulma && window.fastBulma.#initialized) {
-        resolve(window.fastBulma);
+      if (window.fastBlocksUI) {
+        resolve(window.fastBlocksUI);
       } else if (Date.now() - startTime > timeout) {
-        reject(new Error('FastBulma initialization timeout'));
+        reject(new Error('FastBlocks UI initialization timeout'));
       } else {
         setTimeout(checkInit, 50);
       }
@@ -60,30 +63,6 @@ global.waitForFastBulmaInit = async (timeout = 5000) => {
     checkInit();
   });
 };
-
-// Mock FAST components for testing (until we can properly import them)
-global.mockFASTComponents = {
-  fastCard: class extends HTMLElement {},
-  fastButton: class extends HTMLElement {},
-  fastTextField: class extends HTMLElement {},
-  fastTextArea: class extends HTMLElement {},
-  fastSelect: class extends HTMLElement {},
-  fastCheckbox: class extends HTMLElement {},
-  fastRadio: class extends HTMLElement {},
-  fastSwitch: class extends HTMLElement {},
-  fastDialog: class extends HTMLElement {},
-  fastTabs: class extends HTMLElement {},
-  fastTabPanel: class extends HTMLElement {},
-  fastAnchor: class extends HTMLElement {},
-  fastProgress: class extends HTMLElement {},
-  fastDataGrid: class extends HTMLElement {},
-  fastMenuButton: class extends HTMLElement {},
-};
-
-// Register mock FAST components
-Object.entries(global.mockFASTComponents).forEach(([name, componentClass]) => {
-  customElements.define(name.toLowerCase(), componentClass);
-});
 
 // Clean up after each test
 afterEach(() => {
@@ -98,7 +77,7 @@ afterEach(() => {
   // Reset CSS variables on document element
   const computedStyle = getComputedStyle(document.documentElement);
   const variables = Array.from(computedStyle).filter((prop) =>
-    prop.startsWith('--fast-')
+    prop.startsWith('--fast-') || prop.startsWith('--ui-')
   );
 
   variables.forEach((variable) => {

@@ -9,9 +9,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
-      include: ['src/fastbulma/static/js/**/*.js'],
+      include: ['src/fastblocks_ui/static/js/**/*.js'],
       exclude: [
-        'src/fastbulma/static/js/**/vendor/*.js',
+        'src/fastblocks_ui/static/js/**/vendor/*.js',
         'tests/**',
         '**/*.test.js',
         '**/*.spec.js',
@@ -36,8 +36,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@fastbulma/js': resolve(__dirname, './src/fastbulma/static/js'),
-      '@fastbulma/css': resolve(__dirname, './src/fastbulma/static/css'),
+      '@fastblocks-ui/js': resolve(__dirname, './src/fastblocks_ui/static/js'),
+      '@fastblocks-ui/css': resolve(__dirname, './src/fastblocks_ui/static/css'),
     },
   },
 });

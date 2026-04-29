@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FastBlocks UI demo: semantic HTML, tokenized CSS, and optional enhancement JavaScript">
+    <title>FastBlocks UI Demo</title>
+    <link rel="stylesheet" href="./css/fastblocks-ui.css">
+    <style>
+        body {
+            padding: 2rem;
+        }
+
+        .demo-shell {
+            max-width: 72rem;
+            margin: 0 auto;
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .demo-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+        }
+
+        .demo-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .demo-panel {
+            display: grid;
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <main class="demo-shell">
+        <header class="ui-stack">
+            <span class="ui-badge">FastBlocks UI</span>
+            <h1>FastBlocks UI</h1>
+            <p class="ui-lead">
+                HTML/CSS-first components, semantic tokens, htmx-safe fragments, and optional enhancement JavaScript.
+            </p>
+        </header>
+
+        <section class="ui-card">
+            <div class="ui-card__header">Theme</div>
+            <div class="ui-card__body demo-toolbar">
+                <button class="ui-button is-primary" type="button" onclick="window.fastBlocksUI?.setTheme('light')">Light</button>
+                <button class="ui-button is-dark" type="button" onclick="window.fastBlocksUI?.setTheme('dark')">Dark</button>
+            </div>
+        </section>
+
+        <section class="demo-grid">
+            <article class="ui-card">
+                <div class="ui-card__header">Core</div>
+                <div class="ui-card__body demo-panel">
+                    <button class="ui-button is-primary" type="button">Primary action</button>
+                    <div class="ui-alert is-info">This is a clean token-based alert.</div>
+                </div>
+            </article>
+
+            <article class="ui-card">
+                <div class="ui-card__header">Forms</div>
+                <div class="ui-card__body demo-panel">
+                    <div class="ui-field">
+                        <label class="ui-field__label" for="demo-email">Email</label>
+                        <div class="ui-field__control">
+                            <input class="ui-input" id="demo-email" type="email" placeholder="you@example.com">
+                        </div>
+                    </div>
+                    <div class="ui-field">
+                        <label class="ui-field__label" for="demo-plan">Plan</label>
+                        <div class="ui-field__control">
+                            <select class="ui-select" id="demo-plan">
+                                <option>Starter</option>
+                                <option>Team</option>
+                                <option>Enterprise</option>
+                            </select>
+                        </div>
+                    </div>
+                    <label class="ui-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Remember me</span>
+                    </label>
+                    <label class="ui-switch">
+                        <input type="checkbox" checked>
+                        <span class="ui-switch__track" aria-hidden="true">
+                            <span class="ui-switch__thumb"></span>
+                        </span>
+                        <span>Auto save</span>
+                    </label>
+                </div>
+            </article>
+        </section>
+
+        <section class="ui-card" data-ui-tabs>
+            <div class="ui-card__header">Tabs</div>
+            <div class="ui-card__body ui-stack">
+                <div class="ui-tabs__list" role="tablist" aria-label="Demo tabs">
+                    <button class="ui-tabs__tab" type="button" data-ui-tab-target="#demo-overview" aria-selected="true">Overview</button>
+                    <button class="ui-tabs__tab" type="button" data-ui-tab-target="#demo-details" aria-selected="false">Details</button>
+                </div>
+                <section id="demo-overview" class="ui-tabs__panel" data-ui-panel>
+                    Overview content lives in a normal server-rendered fragment.
+                </section>
+                <section id="demo-details" class="ui-tabs__panel" data-ui-panel hidden>
+                    Details content stays htmx-friendly and progressively enhanced.
+                </section>
+            </div>
+        </section>
+
+        <section class="demo-grid">
+            <article class="ui-card">
+                <div class="ui-card__header">Dialog</div>
+                <div class="ui-card__body demo-panel">
+                    <button class="ui-button is-info" type="button" data-ui-dialog-trigger aria-controls="demo-dialog" aria-expanded="false">
+                        Open dialog
+                    </button>
+                    <dialog id="demo-dialog" class="ui-dialog" data-ui-dialog aria-hidden="true" aria-labelledby="demo-dialog-title">
+                        <div class="ui-dialog__surface">
+                            <h2 id="demo-dialog-title">Dialog title</h2>
+                            <p>This dialog stays native and enhancement-only.</p>
+                            <button class="ui-button" type="button" data-ui-dialog-close>Close</button>
+                        </div>
+                    </dialog>
+                </div>
+            </article>
+
+            <article class="ui-card">
+                <div class="ui-card__header">Menu</div>
+                <div class="ui-card__body demo-panel">
+                    <button class="ui-button" type="button" data-ui-menu-trigger aria-controls="demo-menu" aria-expanded="false">
+                        Toggle menu
+                    </button>
+                    <nav id="demo-menu" class="ui-menu" data-ui-menu hidden aria-label="Demo menu">
+                        <a class="ui-menu__item" href="#">Profile</a>
+                        <a class="ui-menu__item" href="#">Settings</a>
+                        <a class="ui-menu__item" href="#">Sign out</a>
+                    </nav>
+                </div>
+            </article>
+        </section>
+    </main>
+    <script type="module" src="./js/fastblocks-ui.js"></script>
+</body>
+</html>

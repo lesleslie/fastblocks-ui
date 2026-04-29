@@ -1,0 +1,110 @@
+@layer tokens {
+  :root {
+    /* Core palette based on Tailwind defaults, exposed through semantic tokens. */
+    --ui-color-primary: #4f46e5;
+    --ui-color-primary-contrast: #ffffff;
+    --ui-color-primary-subtle: #e0e7ff;
+    --ui-color-primary-strong: #4338ca;
+
+    --ui-color-info: #06b6d4;
+    --ui-color-info-contrast: #ffffff;
+    --ui-color-info-subtle: #cffafe;
+    --ui-color-info-strong: #0891b2;
+
+    --ui-color-success: #22c55e;
+    --ui-color-success-contrast: #ffffff;
+    --ui-color-success-subtle: #dcfce7;
+    --ui-color-success-strong: #16a34a;
+
+    --ui-color-warning: #eab308;
+    --ui-color-warning-contrast: #000000;
+    --ui-color-warning-subtle: #fef9c3;
+    --ui-color-warning-strong: #ca8a04;
+
+    --ui-color-danger: #ef4444;
+    --ui-color-danger-contrast: #ffffff;
+    --ui-color-danger-subtle: #fee2e2;
+    --ui-color-danger-strong: #dc2626;
+
+    --ui-color-surface: #ffffff;
+    --ui-color-surface-raised: #f9fafb;
+    --ui-color-surface-muted: #f3f4f6;
+    --ui-color-surface-subtle: #eef2ff;
+    --ui-color-text: #374151;
+    --ui-color-text-strong: #111827;
+    --ui-color-text-muted: #6b7280;
+    --ui-color-border: #d1d5db;
+    --ui-color-border-strong: #9ca3af;
+    --ui-color-focus: #4f46e5;
+
+    --ui-space-0: 0;
+    --ui-space-1: 0.25rem;
+    --ui-space-2: 0.5rem;
+    --ui-space-3: 0.75rem;
+    --ui-space-4: 1rem;
+    --ui-space-5: 1.5rem;
+    --ui-space-6: 2rem;
+    --ui-space-8: 3rem;
+
+    --ui-radius-sm: 4px;
+    --ui-radius-md: 6px;
+    --ui-radius-lg: 8px;
+    --ui-radius-pill: 9999px;
+
+    --ui-border-width: 1px;
+    --ui-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --ui-shadow-2: 0 10px 24px rgba(15, 23, 42, 0.12);
+
+    --ui-font-sans: Aptos, "IBM Plex Sans", "Geist", "Atkinson Hyperlegible", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --ui-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+    --ui-line-height-tight: 1.2;
+    --ui-line-height-base: 1.5;
+
+    --ui-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ui-color-focus) 24%, transparent);
+
+    /* Legacy bridge tokens. */
+    --fast-primary: var(--ui-color-primary);
+    --fast-primary-invert: var(--ui-color-primary-contrast);
+    --fast-primary-light: var(--ui-color-primary-subtle);
+    --fast-primary-dark: var(--ui-color-primary-strong);
+    --fast-info: var(--ui-color-info);
+    --fast-info-invert: var(--ui-color-info-contrast);
+    --fast-info-light: var(--ui-color-info-subtle);
+    --fast-info-dark: var(--ui-color-info-strong);
+    --fast-success: var(--ui-color-success);
+    --fast-success-invert: var(--ui-color-success-contrast);
+    --fast-success-light: var(--ui-color-success-subtle);
+    --fast-success-dark: var(--ui-color-success-strong);
+    --fast-warning: var(--ui-color-warning);
+    --fast-warning-invert: var(--ui-color-warning-contrast);
+    --fast-warning-light: var(--ui-color-warning-subtle);
+    --fast-warning-dark: var(--ui-color-warning-strong);
+    --fast-danger: var(--ui-color-danger);
+    --fast-danger-invert: var(--ui-color-danger-contrast);
+    --fast-danger-light: var(--ui-color-danger-subtle);
+    --fast-danger-dark: var(--ui-color-danger-strong);
+    --fast-grey: var(--ui-color-text-muted);
+    --fast-grey-light: var(--ui-color-surface-muted);
+    --fast-grey-lighter: var(--ui-color-surface-raised);
+    --fast-grey-dark: var(--ui-color-text);
+    --fast-grey-darker: var(--ui-color-text-strong);
+    --fast-white: var(--ui-color-surface);
+    --fast-black: #000000;
+    --fast-background: var(--ui-color-surface);
+    --fast-text: var(--ui-color-text);
+    --fast-radius-small: var(--ui-radius-sm);
+    --fast-radius: var(--ui-radius-md);
+    --fast-radius-large: var(--ui-radius-lg);
+    --fast-radius-rounded: var(--ui-radius-pill);
+    --fast-size-small: 0.875rem;
+    --fast-size-normal: 1rem;
+    --fast-size-medium: 1.125rem;
+    --fast-size-large: 1.25rem;
+    --fast-family-primary: var(--ui-font-sans);
+    --fast-family-secondary: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --fast-family-monospace: var(--ui-font-mono);
+    --fast-focus-color: var(--ui-color-focus);
+    --fast-focus-width: 2px;
+  }
+}

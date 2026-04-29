@@ -1,0 +1,9 @@
+@layer theme {
+  :root {
+    color-scheme: light;
+  }
+
+  [data-theme="light"] {
+    color-scheme: light;
+  }
+}

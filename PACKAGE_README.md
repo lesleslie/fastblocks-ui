@@ -1,64 +1,62 @@
-# FastBulma Package Documentation
+# FastBlocks UI Package Documentation
 
-FastBulma is a framework that combines Bulma's battle-tested CSS utilities for layout and typography with Microsoft's FAST (Fancy App Styling and Tech) web components. The framework connects these two systems through CSS variables, allowing for seamless theming without requiring any build tools or Sass compilation.
+FastBlocks UI is a modern HTML/CSS-first UI layer with a stable `ui-*` namespace, Jinja/FastBlocks helpers, and optional enhancement JavaScript. It is built as a clean-slate system with no compatibility bridge and no Sass/build-tool requirement.
 
 ## Framework Overview
 
-The FastBulma framework uses a layered architecture that separates concerns between layout utilities (Bulma) and interactive components (FAST), connected through CSS variables and JavaScript adapters.
+FastBlocks UI now uses a layered architecture that separates concerns between semantic HTML/CSS primitives, template helpers, and optional enhancement JavaScript.
 
 ### Core Features
 
-- Bulma utilities for page layout and typography (columns, hero, helpers)
-- FAST Web Components with Bulma‑aligned tokens (colors, spacing, radius)
-- Pure CSS customization via CSS vars
-- Shadow DOM encapsulation for components
-- MIT licensed, no build tools required
+- Semantic HTML and CSS variables
+- Python helpers for Jinja and FastBlocks rendering
+- Optional progressive-enhancement JavaScript
+- Tailwind-inspired semantic token baseline with custom visuals
+- BSD-3-Clause licensed, no build tools required
 
 ### Architecture
 
-FastBulma uses a **CSS Variable Bridge Pattern** to connect Bulma classes with FAST components:
+FastBlocks UI uses a tokenized CSS architecture with semantic classes and optional enhancement JavaScript:
 
 ```css
-/* 1. Define Bulma variables at document root */
+/* 1. Define semantic variables at document root */
 :root {
-  --bulma-primary: #7957d5;
-  --bulma-radius: 4px;
-  --bulma-size-normal: 1rem;
+  --ui-color-primary: #7957d5;
+  --ui-radius-md: 4px;
+  --ui-font-size-base: 1rem;
 }
 
-/* 2. Bulma classes update CSS variables */
-.is-primary {
-  --accent-fill-rest: var(--bulma-primary);
-  --accent-fill-hover: color-mix(in srgb, var(--bulma-primary) 90%, black);
+/* 2. Component classes consume those tokens */
+.ui-button.is-primary {
+  --ui-color-primary: #7957d5;
 }
 
-/* 3. FAST components inherit these variables across Shadow DOM */
-<fast-button class="is-primary">
-  <!-- Internally uses: --accent-fill-rest, etc. -->
-</fast-button>
+/* 3. Template helpers emit standard HTML */
+<button class="ui-button is-primary">Save</button>
 ```
 
 ## Python Package
 
-The FastBulma Python package provides utilities for managing the framework assets and integrating with Python-based web frameworks.
+The FastBlocks UI Python package provides utilities for managing the framework assets and integrating with Python-based web frameworks.
 
 ### Installation
 
 ```bash
-pip install fastbulma
+pip install fastblocks-ui
 ```
 
 ### Usage
 
 ```python
-import fastbulma
+from fastblocks_ui import get_css_path, get_js_path
+from fastblocks_ui.cli import copy_assets
 
 # Get paths to static assets
-css_path = fastbulma.get_css_path()
-js_path = fastbulma.get_js_path()
+css_path = get_css_path()
+js_path = get_js_path()
 
 # Copy assets to a destination directory
-fastbulma.cli.copy_assets("./static")
+copy_assets("./static")
 ```
 
 ### CLI
@@ -67,24 +65,21 @@ The package includes a command-line interface for asset management:
 
 ```bash
 # Copy assets to a destination directory
-fastbulma copy-assets --dest ./my-project/static
+fastblocks-ui copy-assets --dest ./my-project/static
 ```
 
 ## JavaScript Integration
 
-The JavaScript module initializes FAST components and provides utility functions:
+The JavaScript module adds optional behavior while preserving the HTML-first API:
 
 ```javascript
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  window.fastBulma = new FastBulma();
+  window.fastBlocksUI = initFastBlocksUI();
 });
 
-// Change theme dynamically
-window.fastBulma.setTheme('dark');
-
-// Update CSS variables programmatically
-window.fastBulma.setCSSVariable('--bulma-primary', '#ff0000');
+// Enhance a subtree on demand
+initFastBlocksUI(document.querySelector('[data-ui-tabs]'));
 ```
 
 ## Theming
@@ -93,30 +88,26 @@ Customize the theme by overriding CSS variables:
 
 ```css
 :root {
-  --bulma-primary: #e040fb;
-  --bulma-radius: 8px;
-  --bulma-success: #00c853;
+  --ui-color-primary: #e040fb;
+  --ui-radius-md: 8px;
+  --ui-color-success: #00c853;
 }
 ```
 
 ## Components
 
-All FAST components work with Bulma classes:
+The main `ui-*` component classes are used by the template helpers and optional enhancement layer:
 
-- `fast-button` - Buttons with Bulma-style appearances
-- `fast-card` - Cards with Bulma-style layouts
-- `fast-text-field` - Form inputs with Bulma styling
-- `fast-text-area` - Text areas with Bulma styling
-- `fast-select` - Select dropdowns with Bulma styling
-- `fast-checkbox` - Checkboxes with Bulma styling
-- `fast-radio` - Radio buttons with Bulma styling
-- `fast-switch` - Toggle switches
-- `fast-dialog` - Modal dialogs
-- `fast-tabs` - Tabbed interfaces
-- `fast-anchor` - Hyperlinks
-- `fast-progress` - Progress bars
-- `fast-data-grid` - Data tables
-- `fast-menu-button` - Dropdown menus
+- `ui-button` - Buttons
+- `ui-card` - Cards
+- `ui-field` - Form groups
+- `ui-input` - Form inputs
+- `ui-select` - Select dropdowns
+- `ui-checkbox` - Checkboxes
+- `ui-switch` - Toggle switches
+- `ui-dialog` - Modal dialogs
+- `ui-tabs` - Tabbed interfaces
+- `ui-menu` - Menus
 
 ## Browser Support
 
@@ -127,4 +118,4 @@ All FAST components work with Bulma classes:
 
 ## License
 
-MIT
+BSD-3-Clause

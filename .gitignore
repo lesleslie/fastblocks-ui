@@ -10,6 +10,11 @@ wheels/
 htmlcov/
 *.cover
 .hypothesis/
+coverage.json
+
+# Local agent/runtime state
+.oneiric_cache/
+.claude/
 
 # Virtual environments
 .venv

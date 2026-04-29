@@ -1,97 +1,80 @@
-# FastBulma
+# FastBlocks UI
 
-FastBulma is a framework that combines Bulma's battle-tested CSS utilities for layout and typography with Microsoft's FAST (Fancy App Styling and Tech) web components. The framework connects these two systems through CSS variables, allowing for seamless theming without requiring any build tools or Sass compilation.
+[![Code style: crackerjack](https://img.shields.io/badge/code%20style-crackerjack-000042)](https://github.com/lesleslie/crackerjack)
+[![Runtime: oneiric](https://img.shields.io/badge/runtime-oneiric-6e5494)](https://github.com/lesleslie/oneiric)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![Python: 3.13+](https://img.shields.io/badge/python-3.13%2B-green)](https://www.python.org/downloads/)
+
+FastBlocks UI is a modern HTML/CSS-first UI layer with a stable `ui-*` namespace, Jinja/FastBlocks helpers, and optional enhancement JavaScript. It is built as a clean-slate system with no compatibility bridge and no Sass/build-tool requirement.
 
 ## Features
 
-- **Bulma Layout Utilities**: Leverages Bulma's robust grid system, helpers, and responsive utilities
-- **FAST Web Components**: Access to a rich library of accessible, customizable components
-- **CSS Variable Theming**: Unified theming through CSS variables with no build tools
-- **Shadow DOM Encapsulation**: Components are properly isolated and styled
-- **Zero Configuration**: Works out-of-the-box with simple CDN inclusion
-- **MIT Licensed**: Free to use in commercial and open-source projects
+- **HTML/CSS First**: Uses semantic markup, CSS variables, and cascade layers as the foundation
+- **Template Helpers**: Ships Python helpers for Jinja, async Jinja, and FastBlocks rendering
+- **Optional Enhancement JS**: Keeps behavior light and progressive-enhancement friendly
+- **Modern Styling**: Uses a Tailwind-inspired semantic token baseline with custom visuals
+- **Permissive License**: BSD-3-Clause for commercial and open-source use
 
 ## Installation
-
-### CDN
-
-Include the following in your HTML:
-
-```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fastbulma@latest/css/fastbulma.css">
-
-<script type="module" src="https://cdn.skypack.dev/@microsoft/fast-components"></script>
-<script type="module" src="https://cdn.jsdelivr.net/npm/fastbulma@latest/js/fastbulma.js"></script>
-```
-
-### Python Package
 
 Install using pip:
 
 ```bash
-pip install fastbulma
+pip install fastblocks-ui
 ```
 
 Then copy the assets to your project:
 
 ```bash
-fastbulma copy-assets --dest ./static
+fastblocks-ui copy-assets --dest ./static
 ```
 
 ## Usage
 
-Once installed, you can use FAST components with Bulma classes:
+Once installed, you can use the `ui-*` classes and Python helpers with server-rendered HTML:
 
 ```html
-<fast-card class="card is-primary">
-  <h3 slot="heading" class="title is-4">Card Title</h3>
-  <p>This is a FAST card component styled with Bulma classes.</p>
-  <fast-button appearance="accent" slot="actions" class="button is-primary">Action</fast-button>
-</fast-card>
+<div class="ui-card">
+  <div class="ui-card__header">Card Title</div>
+  <div class="ui-card__body">
+    This is a FastBlocks UI card styled with semantic tokens.
+  </div>
+  <footer class="ui-card__footer">
+    <button class="ui-button is-primary" type="button">Action</button>
+  </footer>
+</div>
 ```
 
 ## Theming
 
-FastBulma enables flexible theming through CSS variables:
+FastBlocks UI enables flexible theming through CSS variables:
 
 ```css
 :root {
-  --bulma-primary: #e040fb;  /* Purple primary color */
-  --bulma-radius: 8px;       /* Larger border radius */
-  --bulma-success: #00c853;  /* Darker green */
+  --ui-color-primary: #e040fb;
+  --ui-radius-md: 8px;
+  --ui-color-success: #00c853;
 }
 ```
 
-FAST components automatically inherit these changes through variable mapping.
+FastBlocks UI components automatically inherit these changes through semantic token mapping.
 
 ## Components
 
-FastBulma supports all major FAST components:
+FastBlocks UI centers its public surface on `ui-*` classes and helper APIs:
 
-- `fast-button`
-- `fast-card`
-- `fast-text-field`
-- `fast-text-area`
-- `fast-select`
-- `fast-checkbox`
-- `fast-radio`
-- `fast-switch`
-- `fast-dialog`
-- `fast-tabs`
-- `fast-anchor`
-- `fast-progress`
-- `fast-data-grid`
-- `fast-menu-button`
-
-## Known Issues
-
-### Security Vulnerabilities
-
-As of January 2026, there is a known vulnerability in the `protobuf` dependency (CVE-2026-0994) that affects the development environment. This vulnerability exists in the latest version of protobuf (6.33.4) and cannot be resolved by upgrading. This does not affect the runtime functionality of FastBulma itself, as the vulnerability is in a development dependency.
-
-We are monitoring the situation and will update when a patched version becomes available.
+- `ui-button`
+- `ui-card`
+- `ui-field`
+- `ui-input`
+- `ui-select`
+- `ui-checkbox`
+- `ui-switch`
+- `ui-dialog`
+- `ui-tabs`
+- `ui-menu`
+- `ui-alert`
 
 ## License
 
-MIT
+BSD-3-Clause
