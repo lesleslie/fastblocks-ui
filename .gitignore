@@ -14,6 +14,7 @@ coverage.json
 
 # Local agent/runtime state
 .oneiric_cache/
+.crackerjack/
 .claude/
 
 # Virtual environments

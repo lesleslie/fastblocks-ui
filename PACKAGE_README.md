@@ -1,6 +1,6 @@
 # FastBlocks UI Package Documentation
 
-FastBlocks UI is a modern HTML/CSS-first UI layer with a stable `ui-*` namespace, Jinja/FastBlocks helpers, and optional enhancement JavaScript. It is built as a clean-slate system with no compatibility bridge and no Sass/build-tool requirement.
+FastBlocks UI is a modern HTML/CSS-first UI layer with a stable `ui-*` namespace, Jinja/FastBlocks helpers, and optional enhancement JavaScript. It is the successor to the archived `fastbulma` project and is built as a clean-slate system with no compatibility bridge and no Sass/build-tool requirement.
 
 ## Framework Overview
 
