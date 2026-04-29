@@ -98,6 +98,8 @@ fastblocks-ui copy-assets --dest ./my-project/static
 The JavaScript module adds optional behavior while preserving the HTML-first API:
 
 ```javascript
+import { initFastBlocksUI } from './static/js/fastblocks-ui.js';
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   window.fastBlocksUI = initFastBlocksUI();
@@ -133,6 +135,7 @@ The main `ui-*` component classes are used by the template helpers and optional 
 - `ui-dialog` - Modal dialogs
 - `ui-tabs` - Tabbed interfaces
 - `ui-menu` - Menus
+- `ui-alert` - Alerts
 
 ## Browser Support
 
