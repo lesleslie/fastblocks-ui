@@ -75,12 +75,12 @@ Status values:
 ### Work Items
 
 1. Define semantic design tokens.
-2. Create default and dark theme token files.
-3. Build base CSS, reset, and cascade layers.
-4. Add utility classes for layout and spacing.
-5. Establish accessible focus and motion tokens.
-6. Define the fallback baseline for modern CSS features before using them in components.
-7. Implement the default visual language: crisp geometry, restrained shadows, fine-line detail, and subtle art-deco/futurist accents.
+1. Create default and dark theme token files.
+1. Build base CSS, reset, and cascade layers.
+1. Add utility classes for layout and spacing.
+1. Establish accessible focus and motion tokens.
+1. Define the fallback baseline for modern CSS features before using them in components.
+1. Implement the default visual language: crisp geometry, restrained shadows, fine-line detail, and subtle art-deco/futurist accents.
 
 ### Acceptance Criteria
 
@@ -105,12 +105,12 @@ Status values:
 ### Work Items
 
 1. Implement button, card, field, and form control patterns.
-2. Implement select, checkbox, switch, dialog, tabs, and menu patterns.
-3. Keep default output as native HTML where possible.
-4. Use classes and semantic attributes for state.
-5. Ensure output is htmx-safe.
-6. Define keyboard, focus, and labeling rules for `dialog`, `tabs`, `menu`, `select`, `checkbox`, and `switch`.
-7. Define the stable-ID and server-authoritative-state contract for htmx-swapped components.
+1. Implement select, checkbox, switch, dialog, tabs, and menu patterns.
+1. Keep default output as native HTML where possible.
+1. Use classes and semantic attributes for state.
+1. Ensure output is htmx-safe.
+1. Define keyboard, focus, and labeling rules for `dialog`, `tabs`, `menu`, `select`, `checkbox`, and `switch`.
+1. Define the stable-ID and server-authoritative-state contract for htmx-swapped components.
 
 ### Acceptance Criteria
 
@@ -131,11 +131,11 @@ Status values:
 ### Work Items
 
 1. Create helper functions that emit HTML-safe markup.
-2. Support sync Jinja2 and async-capable Jinja integrations.
-3. Support macro-based and block-based composition.
-4. Allow arbitrary HTML attributes and class merging.
-5. Add helper docs and examples.
-6. Define the canonical helper signatures for shared components and fragments.
+1. Support sync Jinja2 and async-capable Jinja integrations.
+1. Support macro-based and block-based composition.
+1. Allow arbitrary HTML attributes and class merging.
+1. Add helper docs and examples.
+1. Define the canonical helper signatures for shared components and fragments.
 
 ### Acceptance Criteria
 
@@ -156,10 +156,10 @@ Status values:
 ### Work Items
 
 1. Define block/fragment helper APIs for FastBlocks.
-2. Align component output with FastBlocks composition patterns.
-3. Add integration examples for partial rendering.
-4. Validate fragment swaps and nested components.
-5. Verify that FastBlocks fragments use the same renderer as full components.
+1. Align component output with FastBlocks composition patterns.
+1. Add integration examples for partial rendering.
+1. Validate fragment swaps and nested components.
+1. Verify that FastBlocks fragments use the same renderer as full components.
 
 ### Acceptance Criteria
 
@@ -179,10 +179,10 @@ Status values:
 ### Work Items
 
 1. Codify htmx swap, focus, and state-restoration rules for interactive components.
-2. Implement minimal behavior for dialogs, tabs, and menus.
-3. Ensure all behaviors degrade gracefully without JS.
-4. Keep interaction state in markup and attributes where possible.
-5. Validate that htmx swaps do not break component state.
+1. Implement minimal behavior for dialogs, tabs, and menus.
+1. Ensure all behaviors degrade gracefully without JS.
+1. Keep interaction state in markup and attributes where possible.
+1. Validate that htmx swaps do not break component state.
 
 ### Acceptance Criteria
 
@@ -201,11 +201,11 @@ Status values:
 ### Work Items
 
 1. Package CSS and JS assets predictably.
-2. Add smoke tests for installed package behavior.
-3. Add template rendering smoke tests.
-4. Document installation, theming, and usage.
-5. Validate the final rename path.
-6. Add a built-artifact smoke test that exercises installed assets, not just source-tree modules.
+1. Add smoke tests for installed package behavior.
+1. Add template rendering smoke tests.
+1. Document installation, theming, and usage.
+1. Validate the final rename path.
+1. Add a built-artifact smoke test that exercises installed assets, not just source-tree modules.
 
 ### Acceptance Criteria
 
@@ -224,9 +224,9 @@ Status values:
 ### Work Items
 
 1. Pick the final package name.
-2. Update package metadata, docs, and distribution references.
-3. Remove the working-title wording from public-facing content.
-4. Publish release candidate documentation.
+1. Update package metadata, docs, and distribution references.
+1. Remove the working-title wording from public-facing content.
+1. Publish release candidate documentation.
 
 ### Acceptance Criteria
 
@@ -237,12 +237,12 @@ Status values:
 ## Recommended Execution Order
 
 1. Milestone 1
-2. Milestone 2
-3. Milestone 3
-4. Milestone 4
-5. Milestone 5
-6. Milestone 6
-7. Milestone 7
+1. Milestone 2
+1. Milestone 3
+1. Milestone 4
+1. Milestone 5
+1. Milestone 6
+1. Milestone 7
 
 ## V1 Scope Matrix
 
@@ -250,28 +250,28 @@ This matrix defines the initial package boundary. Items in `defer` are valid fut
 
 | Component / Capability | v1 | Defer | Maybe Never |
 |------------------------|----|-------|-------------|
-| `button` | yes |  |  |
-| `card` | yes |  |  |
-| `field` / form group | yes |  |  |
-| `input` | yes |  |  |
-| `select` | yes |  |  |
-| `checkbox` | yes |  |  |
-| `switch` | yes |  |  |
-| `dialog` | yes |  |  |
-| `tabs` | yes |  |  |
-| `menu` | yes |  |  |
-| `alert` | yes |  |  |
-| `badge` |  | yes |  |
-| `dropdown` |  | yes |  |
-| `toast` |  | yes |  |
-| `progress` |  | yes |  |
-| `table` |  | yes |  |
-| semantic table styling |  | yes |  |
-| `grid` / layout primitives beyond utilities |  | yes |  |
-| complex date/time inputs |  | yes |  |
-| deep data-grid behavior |  |  | yes |
-| framework-specific wrappers |  |  | yes |
-| shadow-DOM-based public components |  |  | yes |
+| `button` | yes | | |
+| `card` | yes | | |
+| `field` / form group | yes | | |
+| `input` | yes | | |
+| `select` | yes | | |
+| `checkbox` | yes | | |
+| `switch` | yes | | |
+| `dialog` | yes | | |
+| `tabs` | yes | | |
+| `menu` | yes | | |
+| `alert` | yes | | |
+| `badge` | | yes | |
+| `dropdown` | | yes | |
+| `toast` | | yes | |
+| `progress` | | yes | |
+| `table` | | yes | |
+| semantic table styling | | yes | |
+| `grid` / layout primitives beyond utilities | | yes | |
+| complex date/time inputs | | yes | |
+| deep data-grid behavior | | | yes |
+| framework-specific wrappers | | | yes |
+| shadow-DOM-based public components | | | yes |
 
 ### V1 Notes
 
@@ -348,7 +348,7 @@ Use these features progressively:
 ## Decision Notes
 
 1. Exact v1 component list should stay deliberately small.
-2. Helper output should be markup-first, not object-first.
-3. Tokens should be semantic rather than package-branded.
-4. Dialog and tab behavior should be native-first with tiny enhancement JS.
-5. The package name should be finalized after the public API is stable.
+1. Helper output should be markup-first, not object-first.
+1. Tokens should be semantic rather than package-branded.
+1. Dialog and tab behavior should be native-first with tiny enhancement JS.
+1. The package name should be finalized after the public API is stable.

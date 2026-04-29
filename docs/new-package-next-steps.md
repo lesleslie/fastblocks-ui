@@ -123,11 +123,11 @@ Namespace contract:
 Theme files should be layered in this order:
 
 1. reset/base
-2. tokens
-3. components
-4. utilities
-5. theme overrides
-6. app overrides
+1. tokens
+1. components
+1. utilities
+1. theme overrides
+1. app overrides
 
 Tokens should be semantic, not framework-specific.
 The default palette should use Tailwind's default color scale as its baseline, exposed through semantic tokens instead of Tailwind utility classes.
@@ -155,13 +155,13 @@ Visual defaults:
 ## Implementation Order
 
 1. Tokens and base CSS
-2. htmx-safe contract and accessibility rules
-3. Button, card, field, and form controls
-4. Jinja helpers
-5. FastBlocks integration
-6. htmx-safe interactive components
-7. Optional enhancement JS
-8. Documentation and smoke tests
+1. htmx-safe contract and accessibility rules
+1. Button, card, field, and form controls
+1. Jinja helpers
+1. FastBlocks integration
+1. htmx-safe interactive components
+1. Optional enhancement JS
+1. Documentation and smoke tests
 
 ## Naming Path
 

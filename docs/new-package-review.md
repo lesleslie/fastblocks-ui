@@ -17,19 +17,19 @@ It is a weaker fit if the intent is to recreate a full component framework with 
 ## Strengths
 
 1. The design stays close to native HTML.
-2. CSS variables and cascade layers are a good fit for theming.
-3. The template API can be made friendly to sync and async contexts.
-4. htmx support is natural when components render as normal DOM.
-5. FastBlocks integration should be straightforward if the helpers emit plain markup.
-6. The package can preserve the good parts of Bulma without inheriting its branding constraints.
+1. CSS variables and cascade layers are a good fit for theming.
+1. The template API can be made friendly to sync and async contexts.
+1. htmx support is natural when components render as normal DOM.
+1. FastBlocks integration should be straightforward if the helpers emit plain markup.
+1. The package can preserve the good parts of Bulma without inheriting its branding constraints.
 
 ## Risks
 
 1. If the component API grows too wide, the package will drift back toward a heavy UI framework.
-2. If JavaScript becomes responsible for basic rendering, htmx compatibility will suffer.
-3. If the template API depends on macros alone, async template users will have a harder time.
-4. If the package keeps Bulma naming too long, the new identity may be harder to establish.
-5. If the token system is not explicit, theme portability will degrade quickly.
+1. If JavaScript becomes responsible for basic rendering, htmx compatibility will suffer.
+1. If the template API depends on macros alone, async template users will have a harder time.
+1. If the package keeps Bulma naming too long, the new identity may be harder to establish.
+1. If the token system is not explicit, theme portability will degrade quickly.
 
 ## Recommended Decisions
 
@@ -95,7 +95,7 @@ Proceed with the architecture, provided the following are true:
 ## Open Questions Before Execution
 
 1. What exact component set should ship in v1?
-2. What should the first public package name be?
-3. Should the helper API return raw HTML strings or structured component objects?
-4. Which FastBlocks primitives need first-class support?
-5. Should the dark theme be automatic or opt-in only?
+1. What should the first public package name be?
+1. Should the helper API return raw HTML strings or structured component objects?
+1. Which FastBlocks primitives need first-class support?
+1. Should the dark theme be automatic or opt-in only?

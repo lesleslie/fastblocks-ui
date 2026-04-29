@@ -21,12 +21,12 @@ It is a new package that may reuse architectural lessons from Bulma, Kelp, and W
 ## Design Principles
 
 1. Prefer native HTML elements before custom abstractions.
-2. Use CSS variables and cascade layers as the primary theming mechanism.
-3. Keep JavaScript behavior optional and narrowly scoped.
-4. Ensure every component works as server-rendered HTML first.
-5. Make htmx integration a first-class requirement, not an adapter layer.
-6. Make the template API feel natural in Jinja and FastBlocks.
-7. Favor progressive enhancement over client-side hydration.
+1. Use CSS variables and cascade layers as the primary theming mechanism.
+1. Keep JavaScript behavior optional and narrowly scoped.
+1. Ensure every component works as server-rendered HTML first.
+1. Make htmx integration a first-class requirement, not an adapter layer.
+1. Make the template API feel natural in Jinja and FastBlocks.
+1. Favor progressive enhancement over client-side hydration.
 
 ## Package Layout
 
@@ -284,10 +284,10 @@ Decision criteria:
 ## Recommended Initial Roadmap
 
 1. Define the token system.
-2. Define the component naming, accessibility, and htmx contracts.
-3. Build the core component CSS and helper renderers.
-4. Build the Jinja helper layer.
-5. Build FastBlocks integration.
-6. Add htmx-safe component behaviors.
-7. Add browser and template smoke tests.
-8. Rename the project once the public API is stable.
+1. Define the component naming, accessibility, and htmx contracts.
+1. Build the core component CSS and helper renderers.
+1. Build the Jinja helper layer.
+1. Build FastBlocks integration.
+1. Add htmx-safe component behaviors.
+1. Add browser and template smoke tests.
+1. Rename the project once the public API is stable.

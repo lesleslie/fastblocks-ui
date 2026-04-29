@@ -1,10 +1,13 @@
 {
-  "projectId": "fastbulma",
   "buildScriptName": "build:chromatic",
-  "storybookConfigDir": ".chromatic",
-  "exitZeroOnChanges": true,
   "exitOnceUploaded": true,
+  "exitZeroOnChanges": true,
   "onlyStoryFiles": true,
-  "untraced": ["**/node_modules/**", "**/dist/**"],
+  "projectId": "fastbulma",
+  "storybookConfigDir": ".chromatic",
+  "untraced": [
+    "**/node_modules/**",
+    "**/dist/**"
+  ],
   "verbosity": 1
 }

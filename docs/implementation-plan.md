@@ -48,11 +48,11 @@ Use these status values while working the plan:
 ### Work Items
 
 1. Verify the exact current Fluent tag names for all supported controls.
-2. Convert the alias table into the canonical runtime contract for supported `fast-*` tags.
-3. Add a `ready` or equivalent promise to the public UI boot path.
-4. Set the initialized state once startup has succeeded.
-5. Remove the no-op observer, or implement real late-node upgrade logic.
-6. Fix the CSS transition cascade so theme switching animates again.
+1. Convert the alias table into the canonical runtime contract for supported `fast-*` tags.
+1. Add a `ready` or equivalent promise to the public UI boot path.
+1. Set the initialized state once startup has succeeded.
+1. Remove the no-op observer, or implement real late-node upgrade logic.
+1. Fix the CSS transition cascade so theme switching animates again.
 
 ### Acceptance Criteria
 
@@ -71,10 +71,10 @@ Use these status values while working the plan:
 ### Work Items
 
 1. Decide the canonical import path for local development and installed usage.
-2. Fix the asset-copy destination contract and update the docs accordingly.
-3. Make versioning derive from one source of truth.
-4. Align `pyproject.toml`, `LICENSE`, `README.md`, and runtime constants.
-5. Align Ruff and related tooling with the supported Python baseline.
+1. Fix the asset-copy destination contract and update the docs accordingly.
+1. Make versioning derive from one source of truth.
+1. Align `pyproject.toml`, `LICENSE`, `README.md`, and runtime constants.
+1. Align Ruff and related tooling with the supported Python baseline.
 
 ### Acceptance Criteria
 
@@ -93,9 +93,9 @@ Use these status values while working the plan:
 ### Work Items
 
 1. Create a machine-readable list of supported `fast-*` tags and their Fluent equivalents.
-2. Validate the demo and docs against that manifest.
-3. Mark unsupported or archived components explicitly.
-4. Remove stale examples that imply unsupported components are active.
+1. Validate the demo and docs against that manifest.
+1. Mark unsupported or archived components explicitly.
+1. Remove stale examples that imply unsupported components are active.
 
 ### Acceptance Criteria
 
@@ -112,9 +112,9 @@ Use these status values while working the plan:
 ### Work Items
 
 1. Add a clean-environment build/install smoke test.
-2. Add an import test that targets the installed package, not just source files.
-3. Add a CLI invocation check for the asset-copy workflow.
-4. Add one browser smoke test that loads the real runtime bundle.
+1. Add an import test that targets the installed package, not just source files.
+1. Add a CLI invocation check for the asset-copy workflow.
+1. Add one browser smoke test that loads the real runtime bundle.
 
 ### Acceptance Criteria
 
@@ -137,18 +137,18 @@ Before a release candidate is cut:
 Before implementing, answer these design questions:
 
 1. Should the runtime expose an explicit `ready` promise, or should `init()` become the primary public contract?
-2. Should `registerComponentsInDOM()` be removed entirely, or should it perform real late-node upgrades?
-3. Should the component catalog be generated from a manifest, or should docs be manually maintained with validation only?
-4. What is the canonical text-field contract for the current Fluent-backed runtime?
-5. Should the asset-copy CLI target the repo root, `static/`, or a user-specified prefix by default?
-6. Should package metadata, runtime constants, and docs be derived from a single version/license source?
+1. Should `registerComponentsInDOM()` be removed entirely, or should it perform real late-node upgrades?
+1. Should the component catalog be generated from a manifest, or should docs be manually maintained with validation only?
+1. What is the canonical text-field contract for the current Fluent-backed runtime?
+1. Should the asset-copy CLI target the repo root, `static/`, or a user-specified prefix by default?
+1. Should package metadata, runtime constants, and docs be derived from a single version/license source?
 
 ## Recommended Execution Order
 
 1. Phase 1
-2. Phase 2
-3. Phase 3
-4. Phase 4
+1. Phase 2
+1. Phase 3
+1. Phase 4
 
 ## Notes
 

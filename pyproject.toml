@@ -1,6 +1,6 @@
 [project]
 name = "fastblocks-ui"
-version = "0.4.0"
+version = "0.4.1"
 description = "FastBlocks UI: HTML/CSS-first styling and component helpers for FastBlocks, successor to archived fastbulma"
 authors = [{name = "FastBlocks UI Team", email = "team@fastblocks-ui.dev"}]
 readme = "README.md"

@@ -1,74 +1,74 @@
 {
-  "public_name": "FastBlocks UI",
-  "namespace": "ui-*",
   "components": [
     {
-      "name": "button",
       "class_name": "ui-button",
+      "description": "Primary and secondary action buttons.",
       "helper": "button",
-      "description": "Primary and secondary action buttons."
+      "name": "button"
     },
     {
-      "name": "card",
       "class_name": "ui-card",
+      "description": "Content containers and panels.",
       "helper": "card",
-      "description": "Content containers and panels."
+      "name": "card"
     },
     {
-      "name": "field",
       "class_name": "ui-field",
+      "description": "Label, help, and error grouping for form controls.",
       "helper": "field",
-      "description": "Label, help, and error grouping for form controls."
+      "name": "field"
     },
     {
-      "name": "input",
       "class_name": "ui-input",
+      "description": "Native text-like input styling.",
       "helper": "input",
-      "description": "Native text-like input styling."
+      "name": "input"
     },
     {
-      "name": "select",
       "class_name": "ui-select",
+      "description": "Native select styling.",
       "helper": "select",
-      "description": "Native select styling."
+      "name": "select"
     },
     {
-      "name": "checkbox",
       "class_name": "ui-checkbox",
+      "description": "Checkbox label and control grouping.",
       "helper": "checkbox",
-      "description": "Checkbox label and control grouping."
+      "name": "checkbox"
     },
     {
-      "name": "switch",
       "class_name": "ui-switch",
+      "description": "Accessible toggle switch presentation.",
       "helper": "switch",
-      "description": "Accessible toggle switch presentation."
+      "name": "switch"
     },
     {
-      "name": "dialog",
       "class_name": "ui-dialog",
+      "description": "Native dialog styling and enhancement hooks.",
       "helper": "dialog",
-      "description": "Native dialog styling and enhancement hooks."
+      "name": "dialog"
     },
     {
-      "name": "tabs",
       "class_name": "ui-tabs",
+      "description": "Accessible tablist, tab, and panel patterns.",
       "helper": "tabs",
-      "description": "Accessible tablist, tab, and panel patterns."
+      "name": "tabs"
     },
     {
-      "name": "menu",
       "class_name": "ui-menu",
+      "description": "Disclosure and navigation menu styling.",
       "helper": "menu",
-      "description": "Disclosure and navigation menu styling."
+      "name": "menu"
     },
     {
-      "name": "alert",
       "class_name": "ui-alert",
+      "description": "Inline notices and status messaging.",
       "helper": "alert",
-      "description": "Inline notices and status messaging."
+      "name": "alert"
     }
   ],
+  "namespace": "ui-*",
+  "public_name": "FastBlocks UI",
   "state_modifiers": [
     "is-primary",
     "is-success",

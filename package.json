@@ -1,22 +1,5 @@
 {
-  "name": "fastblocks-ui",
-  "version": "0.3.0",
   "description": "FastBlocks UI: HTML/CSS-first styling and component helpers for FastBlocks",
-  "type": "module",
-  "scripts": {
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
-    "test:run": "vitest run",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
-    "test:a11y": "playwright test tests/e2e/accessibility.spec.js --project=accessibility",
-    "test:visual": "chromatic --build-script-name=build",
-    "lint": "eslint src/fastblocks_ui/static/js/**/*.js",
-    "format": "prettier --write src/fastblocks_ui/static/js/**/*.js",
-    "validate": "npm run lint && npm run test:run"
-  },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
     "@playwright/test": "^1.48.0",
@@ -34,5 +17,22 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
-  }
+  },
+  "name": "fastblocks-ui",
+  "scripts": {
+    "format": "prettier --write src/fastblocks_ui/static/js/**/*.js",
+    "lint": "eslint src/fastblocks_ui/static/js/**/*.js",
+    "test": "vitest",
+    "test:a11y": "playwright test tests/e2e/accessibility.spec.js --project=accessibility",
+    "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:ui": "playwright test --ui",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:visual": "chromatic --build-script-name=build",
+    "validate": "npm run lint && npm run test:run"
+  },
+  "type": "module",
+  "version": "0.3.0"
 }

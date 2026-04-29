@@ -99,9 +99,9 @@ The active implementation plan lives in `docs/fastblocks-ui-implementation-plan.
 ## Development Workflow
 
 1. Read `docs/fastblocks-ui-implementation-plan.md` before changing architecture.
-2. Keep public docs aligned with the current component scope.
-3. Update tests alongside behavior changes.
-4. Verify Python packaging with `uv build` and `uv run pytest tests/test_fastblocks_ui.py -q`.
+1. Keep public docs aligned with the current component scope.
+1. Update tests alongside behavior changes.
+1. Verify Python packaging with `uv build` and `uv run pytest tests/test_fastblocks_ui.py -q`.
 
 <!-- CRACKERJACK_START -->
 
