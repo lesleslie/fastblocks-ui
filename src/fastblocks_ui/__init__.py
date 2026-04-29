@@ -18,10 +18,18 @@ from .helpers import (
     select,
     switch,
     tabs,
+    validation_summary,
+)
+from .manifest import (
+    COMPONENT_MANIFEST,
+    component_classes,
+    component_manifest,
+    component_names,
 )
 
 __all__ = [
     "SafeHTML",
+    "COMPONENT_MANIFEST",
     "__author__",
     "__license__",
     "__version__",
@@ -33,14 +41,19 @@ __all__ = [
     "field",
     "get_css_path",
     "get_js_path",
+    "get_manifest_path",
     "get_static_path",
     "block",
     "compose",
     "fragment",
+    "component_classes",
+    "component_manifest",
+    "component_names",
     "input",
     "menu",
     "select",
     "stable_id",
+    "validation_summary",
     "switch",
     "tabs",
 ]
@@ -65,3 +78,10 @@ def get_js_path():
     import os
 
     return os.path.join(get_static_path(), "js", "fastblocks-ui.js")
+
+
+def get_manifest_path():
+    """Return the path to the bundled component manifest."""
+    import os
+
+    return os.path.join(os.path.dirname(__file__), "manifest.json")

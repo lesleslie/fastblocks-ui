@@ -59,6 +59,31 @@ js_path = get_js_path()
 copy_assets("./static")
 ```
 
+For template and htmx examples, see [docs/usage.md](docs/usage.md).
+The component manifest is documented in [docs/components.md](docs/components.md).
+PWA-friendly app integration notes live in [docs/usage.md](docs/usage.md).
+
+### Sync Jinja
+
+```jinja
+{{ button("Save changes", variant="primary", type="submit") }}
+```
+
+### Async Jinja
+
+```python
+html = await template.render_async(user=user, button=button, field=field)
+```
+
+### htmx
+
+```jinja
+<form id="profile-form" hx-post="/profile" hx-target="#profile-form" hx-swap="outerHTML">
+  {{ field(label="Email address", control_html=ui_input(id="profile-email", name="email")) }}
+  {{ button("Save", variant="primary", type="submit") }}
+</form>
+```
+
 ### CLI
 
 The package includes a command-line interface for asset management:

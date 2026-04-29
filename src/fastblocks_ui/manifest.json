@@ -1,0 +1,81 @@
+{
+  "public_name": "FastBlocks UI",
+  "namespace": "ui-*",
+  "components": [
+    {
+      "name": "button",
+      "class_name": "ui-button",
+      "helper": "button",
+      "description": "Primary and secondary action buttons."
+    },
+    {
+      "name": "card",
+      "class_name": "ui-card",
+      "helper": "card",
+      "description": "Content containers and panels."
+    },
+    {
+      "name": "field",
+      "class_name": "ui-field",
+      "helper": "field",
+      "description": "Label, help, and error grouping for form controls."
+    },
+    {
+      "name": "input",
+      "class_name": "ui-input",
+      "helper": "input",
+      "description": "Native text-like input styling."
+    },
+    {
+      "name": "select",
+      "class_name": "ui-select",
+      "helper": "select",
+      "description": "Native select styling."
+    },
+    {
+      "name": "checkbox",
+      "class_name": "ui-checkbox",
+      "helper": "checkbox",
+      "description": "Checkbox label and control grouping."
+    },
+    {
+      "name": "switch",
+      "class_name": "ui-switch",
+      "helper": "switch",
+      "description": "Accessible toggle switch presentation."
+    },
+    {
+      "name": "dialog",
+      "class_name": "ui-dialog",
+      "helper": "dialog",
+      "description": "Native dialog styling and enhancement hooks."
+    },
+    {
+      "name": "tabs",
+      "class_name": "ui-tabs",
+      "helper": "tabs",
+      "description": "Accessible tablist, tab, and panel patterns."
+    },
+    {
+      "name": "menu",
+      "class_name": "ui-menu",
+      "helper": "menu",
+      "description": "Disclosure and navigation menu styling."
+    },
+    {
+      "name": "alert",
+      "class_name": "ui-alert",
+      "helper": "alert",
+      "description": "Inline notices and status messaging."
+    }
+  ],
+  "state_modifiers": [
+    "is-primary",
+    "is-success",
+    "is-warning",
+    "is-danger",
+    "is-small",
+    "is-medium",
+    "is-large"
+  ]
+}

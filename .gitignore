@@ -43,6 +43,7 @@ node_modules/
 .vitest/
 coverage/
 playwright-report/
+playwright-results.json
 playwright-results/
 playwright-junit.xml
 test-results/

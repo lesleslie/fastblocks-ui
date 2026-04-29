@@ -17,6 +17,7 @@ __all__ = [
     "input",
     "menu",
     "select",
+    "validation_summary",
     "switch",
     "tabs",
 ]
@@ -315,6 +316,41 @@ def alert(
     classes = _flatten_classes("ui-alert", variant and f"is-{variant}", class_)
     attr_html = _render_attrs(class_=classes, **attrs)
     return _safe(f"<div{attr_html}>{_render_fragment(content)}</div>")
+
+
+def validation_summary(
+    errors: dict[str, object] | list[object] | tuple[object, ...],
+    *,
+    title: object = "Please correct the errors below.",
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    classes = _flatten_classes("ui-alert", "is-danger", "ui-validation-summary", class_)
+    attr_html = _render_attrs(class_=classes, role="alert", **attrs)
+
+    items: list[str] = []
+    if isinstance(errors, dict):
+        for field_name, error_value in errors.items():
+            if error_value is None or error_value is False:
+                continue
+            items.append(
+                f'<li><a href="#{escape(str(field_name), quote=True)}">{_render_fragment(error_value)}</a></li>'
+            )
+    else:
+        for _index, error_value in enumerate(errors):
+            if error_value is None or error_value is False:
+                continue
+            items.append(f"<li>{_render_fragment(error_value)}</li>")
+
+    if not items:
+        return _safe(f"<div{attr_html}>{_render_fragment(title)}</div>")
+
+    return _safe(
+        f"<div{attr_html}>"
+        f'<strong class="ui-validation-summary__title">{_render_fragment(title)}</strong>'
+        f'<ul class="ui-validation-summary__list">{"".join(items)}</ul>'
+        f"</div>"
+    )
 
 
 def dialog(

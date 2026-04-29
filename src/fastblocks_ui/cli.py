@@ -12,8 +12,7 @@ def copy_assets(dest_dir):
     static_src = fastblocks_ui.get_static_path()
     static_dest = os.path.join(dest_dir, "fastblocks-ui")
 
-    if not os.path.exists(static_dest):
-        os.makedirs(static_dest, exist_ok=True)
+    os.makedirs(static_dest, exist_ok=True)
 
     # Copy CSS
     css_src = os.path.join(static_src, "css")
@@ -26,6 +25,12 @@ def copy_assets(dest_dir):
     js_dest = os.path.join(static_dest, "js")
     if os.path.exists(js_src):
         shutil.copytree(js_src, js_dest, dirs_exist_ok=True)
+
+    # Copy manifest
+    manifest_src = fastblocks_ui.get_manifest_path()
+    manifest_dest = os.path.join(static_dest, "manifest.json")
+    if os.path.exists(manifest_src):
+        shutil.copy2(manifest_src, manifest_dest)
 
     print(f"FastBlocks UI assets copied to {static_dest}")
 

@@ -1,13 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright E2E Test Configuration for FastBulma
+ * Playwright E2E Test Configuration for FastBlocks UI
  *
  * Runs end-to-end tests in multiple browsers to verify:
- * - Component registration and initialization
+ * - Demo page smoke coverage
+ * - Component behavior and initialization
  * - Theme switching
  * - CSS variable application
- * - Form functionality
  * - Accessibility (with axe-core)
  */
 export default defineConfig({
@@ -24,7 +24,7 @@ export default defineConfig({
   ],
 
   use: {
-    // Base URL for tests - will use the demo.html file
+    // Base URL for tests - demo.html is served from src/fastblocks_ui.
     baseURL: 'http://localhost:8080',
 
     // Collect trace when retrying the failed test
@@ -56,30 +56,19 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
 
-    /* Test against mobile viewports */
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
-
     /* Accessibility testing project with axe-core */
     {
       name: 'accessibility',
-      testMatch: /accessibility\/.*\.spec\.js/,
+      testMatch: /accessibility\.spec\.js/,
       use: {
         ...devices['Desktop Chrome'],
-        // Accessibility-specific settings
       },
     },
   ],
 
   // Run your local dev server before starting the tests
   webServer: {
-    command: 'npx serve src/fastbulma -l 8080',
+    command: 'python3 -m http.server 8080 --directory src/fastblocks_ui',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

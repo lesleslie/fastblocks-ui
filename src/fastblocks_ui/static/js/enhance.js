@@ -9,11 +9,28 @@ function getTargetElement(root, selector) {
     return null;
   }
 
+  const trimmed = selector.trim();
+  if (trimmed && !/^[#[.:]/.test(trimmed)) {
+    return root.getElementById?.(trimmed) || root.ownerDocument?.getElementById(trimmed) || document.getElementById(trimmed);
+  }
+
   try {
-    return root.querySelector(selector);
+    return root.querySelector(trimmed);
   } catch {
     return null;
   }
+}
+
+function isWithinRoot(root, element) {
+  if (!root || !element) {
+    return false;
+  }
+
+  if (typeof root.contains === 'function' && root !== document) {
+    return root.contains(element);
+  }
+
+  return document.documentElement?.contains(element) ?? document.contains(element);
 }
 
 function setSelectedTabState(tabRoot, activeTab) {
@@ -57,7 +74,7 @@ export function enhanceTabs(root = document) {
 
   const onClick = (event) => {
     const tab = event.target.closest(TAB_SELECTOR);
-    if (!tab || !root.contains(tab)) {
+    if (!tab || !isWithinRoot(root, tab)) {
       return;
     }
 
@@ -72,7 +89,7 @@ export function enhanceTabs(root = document) {
 
   const onKeyDown = (event) => {
     const tab = event.target.closest(TAB_SELECTOR);
-    if (!tab || !root.contains(tab)) {
+    if (!tab || !isWithinRoot(root, tab)) {
       return;
     }
 
@@ -128,7 +145,9 @@ function showDialog(dialog, trigger) {
     dialog.setAttribute('open', '');
   }
 
+  dialog.setAttribute('open', '');
   dialog.setAttribute('aria-hidden', 'false');
+  trigger?.setAttribute('aria-expanded', 'true');
   dialog.__uiTrigger = trigger || null;
 
   const focusTarget = dialog.querySelector('[autofocus], [data-ui-dialog-close], button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
@@ -150,6 +169,7 @@ function closeDialog(dialog) {
 
   const trigger = dialog.__uiTrigger;
   if (trigger && typeof trigger.focus === 'function') {
+    trigger.setAttribute('aria-expanded', 'false');
     trigger.focus({ preventScroll: true });
   }
 
@@ -159,7 +179,7 @@ function closeDialog(dialog) {
 export function enhanceDialogs(root = document) {
   const onClick = (event) => {
     const openTrigger = event.target.closest(DIALOG_TRIGGER_SELECTOR);
-    if (openTrigger && root.contains(openTrigger)) {
+    if (openTrigger && isWithinRoot(root, openTrigger)) {
       event.preventDefault();
       const selector = openTrigger.getAttribute('aria-controls') || openTrigger.getAttribute('data-ui-dialog-target');
       const dialog = getTargetElement(root, selector);
@@ -168,7 +188,7 @@ export function enhanceDialogs(root = document) {
     }
 
     const closeTrigger = event.target.closest(DIALOG_CLOSE_SELECTOR);
-    if (closeTrigger && root.contains(closeTrigger)) {
+    if (closeTrigger && isWithinRoot(root, closeTrigger)) {
       event.preventDefault();
       const dialog = closeTrigger.closest('dialog,[data-ui-dialog]');
       closeDialog(dialog);
@@ -201,7 +221,6 @@ function openMenu(trigger, menu) {
   }
 
   menu.hidden = false;
-  menu.setAttribute('aria-hidden', 'false');
   trigger.setAttribute('aria-expanded', 'true');
   trigger.dataset.uiMenuOpen = 'true';
 }
@@ -212,7 +231,6 @@ function closeMenu(trigger, menu) {
   }
 
   menu.hidden = true;
-  menu.setAttribute('aria-hidden', 'true');
   trigger.setAttribute('aria-expanded', 'false');
   trigger.dataset.uiMenuOpen = 'false';
 }
@@ -228,7 +246,6 @@ export function enhanceMenus(root = document) {
     }
 
     menu.hidden = menu.hidden ?? true;
-    menu.setAttribute('aria-hidden', menu.hidden ? 'true' : 'false');
     trigger.setAttribute('aria-expanded', menu.hidden ? 'false' : 'true');
     menus.set(trigger, menu);
   });
@@ -243,7 +260,7 @@ export function enhanceMenus(root = document) {
 
   const onClick = (event) => {
     const trigger = event.target.closest(MENU_TRIGGER_SELECTOR);
-    if (trigger && root.contains(trigger)) {
+    if (trigger && isWithinRoot(root, trigger)) {
       event.preventDefault();
       const menu = menus.get(trigger);
       if (!menu) {

@@ -45,6 +45,37 @@ Once installed, you can use the `ui-*` classes and Python helpers with server-re
 </div>
 ```
 
+For full examples covering sync Jinja, async Jinja, and htmx fragments, see [docs/usage.md](docs/usage.md).
+The component manifest is documented in [docs/components.md](docs/components.md).
+PWA-friendly app integration notes live in [docs/usage.md](docs/usage.md).
+
+## Template Examples
+
+### Sync Jinja
+
+```jinja
+{{ button("Save changes", variant="primary", type="submit") }}
+```
+
+### Async Jinja
+
+```python
+template = env.get_template("profile.html")
+html = await template.render_async(user=user, button=button)
+```
+
+### htmx Fragment
+
+```jinja
+<form id="profile-form" hx-post="/profile" hx-target="#profile-form" hx-swap="outerHTML">
+  {{ field(
+    label="Email address",
+    control_html=ui_input(id="profile-email", name="email", type="email", value=user.email)
+  ) }}
+  {{ button("Save", variant="primary", type="submit") }}
+</form>
+```
+
 ## Theming
 
 FastBlocks UI enables flexible theming through CSS variables:

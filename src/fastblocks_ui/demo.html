@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="FastBlocks UI demo: semantic HTML, tokenized CSS, and optional enhancement JavaScript">
     <title>FastBlocks UI Demo</title>
-    <link rel="stylesheet" href="./css/fastblocks-ui.css">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="./static/css/fastblocks-ui.css">
     <style>
         body {
             padding: 2rem;
@@ -47,7 +48,7 @@
         </header>
 
         <section class="ui-card">
-            <div class="ui-card__header">Theme</div>
+            <h2 class="ui-card__header">Theme</h2>
             <div class="ui-card__body demo-toolbar">
                 <button class="ui-button is-primary" type="button" onclick="window.fastBlocksUI?.setTheme('light')">Light</button>
                 <button class="ui-button is-dark" type="button" onclick="window.fastBlocksUI?.setTheme('dark')">Dark</button>
@@ -56,7 +57,7 @@
 
         <section class="demo-grid">
             <article class="ui-card">
-                <div class="ui-card__header">Core</div>
+                <h2 class="ui-card__header">Core</h2>
                 <div class="ui-card__body demo-panel">
                     <button class="ui-button is-primary" type="button">Primary action</button>
                     <div class="ui-alert is-info">This is a clean token-based alert.</div>
@@ -64,7 +65,7 @@
             </article>
 
             <article class="ui-card">
-                <div class="ui-card__header">Forms</div>
+                <h2 class="ui-card__header">Forms</h2>
                 <div class="ui-card__body demo-panel">
                     <div class="ui-field">
                         <label class="ui-field__label" for="demo-email">Email</label>
@@ -97,17 +98,44 @@
             </article>
         </section>
 
+        <section class="ui-card">
+            <h2 class="ui-card__header">Validation</h2>
+            <div class="ui-card__body ui-stack">
+                <p class="ui-muted">Server-rendered errors can swap back the same fragment with stable IDs and consistent messaging.</p>
+                <div class="ui-alert is-danger ui-validation-summary" role="alert">
+                    <strong class="ui-validation-summary__title">Please correct the errors below.</strong>
+                    <ul class="ui-validation-summary__list">
+                        <li><a href="#demo-display-name">Display name must be at least 3 characters.</a></li>
+                    </ul>
+                </div>
+                <form class="ui-stack" id="demo-profile-form" hx-post="/profile" hx-target="#demo-profile-form" hx-swap="outerHTML">
+                    <div class="ui-field">
+                        <label class="ui-field__label" for="demo-display-name">Display name</label>
+                        <div class="ui-field__control">
+                            <input class="ui-input" id="demo-display-name" type="text" value="Ada" aria-invalid="true" aria-describedby="demo-display-name-help demo-display-name-error">
+                        </div>
+                        <div class="ui-field__help" id="demo-display-name-help">Shown on your profile and in activity feeds.</div>
+                        <div class="ui-field__error" id="demo-display-name-error" role="alert">Display name must be at least 3 characters.</div>
+                    </div>
+                    <div class="ui-cluster">
+                        <button class="ui-button is-primary" type="submit">Save profile</button>
+                        <span class="ui-muted">This form is designed for htmx replacement without losing focus or IDs.</span>
+                    </div>
+                </form>
+            </div>
+        </section>
+
         <section class="ui-card" data-ui-tabs>
-            <div class="ui-card__header">Tabs</div>
+            <h2 class="ui-card__header">Tabs</h2>
             <div class="ui-card__body ui-stack">
                 <div class="ui-tabs__list" role="tablist" aria-label="Demo tabs">
-                    <button class="ui-tabs__tab" type="button" data-ui-tab-target="#demo-overview" aria-selected="true">Overview</button>
-                    <button class="ui-tabs__tab" type="button" data-ui-tab-target="#demo-details" aria-selected="false">Details</button>
+                    <button class="ui-tabs__tab" id="demo-overview-tab" type="button" role="tab" data-ui-tab-target="#demo-overview" aria-controls="demo-overview" aria-selected="true" tabindex="0">Overview</button>
+                    <button class="ui-tabs__tab" id="demo-details-tab" type="button" role="tab" data-ui-tab-target="#demo-details" aria-controls="demo-details" aria-selected="false" tabindex="-1">Details</button>
                 </div>
-                <section id="demo-overview" class="ui-tabs__panel" data-ui-panel>
+                <section id="demo-overview" class="ui-tabs__panel" data-ui-panel role="tabpanel" aria-labelledby="demo-overview-tab">
                     Overview content lives in a normal server-rendered fragment.
                 </section>
-                <section id="demo-details" class="ui-tabs__panel" data-ui-panel hidden>
+                <section id="demo-details" class="ui-tabs__panel" data-ui-panel role="tabpanel" aria-labelledby="demo-details-tab" hidden>
                     Details content stays htmx-friendly and progressively enhanced.
                 </section>
             </div>
@@ -115,7 +143,7 @@
 
         <section class="demo-grid">
             <article class="ui-card">
-                <div class="ui-card__header">Dialog</div>
+                <h2 class="ui-card__header">Dialog</h2>
                 <div class="ui-card__body demo-panel">
                     <button class="ui-button is-info" type="button" data-ui-dialog-trigger aria-controls="demo-dialog" aria-expanded="false">
                         Open dialog
@@ -131,7 +159,7 @@
             </article>
 
             <article class="ui-card">
-                <div class="ui-card__header">Menu</div>
+                <h2 class="ui-card__header">Menu</h2>
                 <div class="ui-card__body demo-panel">
                     <button class="ui-button" type="button" data-ui-menu-trigger aria-controls="demo-menu" aria-expanded="false">
                         Toggle menu
@@ -144,7 +172,16 @@
                 </div>
             </article>
         </section>
+
+        <section class="ui-card">
+            <h2 class="ui-card__header">Component Manifest</h2>
+            <div class="ui-card__body ui-stack">
+                <p class="ui-muted">This section is rendered from <code>manifest.json</code> so docs, tests, and demo output stay aligned.</p>
+                <div data-ui-component-list>Loading manifest...</div>
+            </div>
+        </section>
     </main>
-    <script type="module" src="./js/fastblocks-ui.js"></script>
+    <script type="module" src="./static/js/fastblocks-ui.js"></script>
+    <script type="module" src="./static/js/manifest.js"></script>
 </body>
 </html>

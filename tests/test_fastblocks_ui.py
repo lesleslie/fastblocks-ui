@@ -1,11 +1,14 @@
 import os
+import sys
 import tempfile
 import unittest
 from importlib.resources import files
+from pathlib import Path
 from unittest.mock import patch
 
 import fastblocks_ui
 from fastblocks_ui import (
+    COMPONENT_MANIFEST,
     alert,
     block,
     button,
@@ -19,6 +22,7 @@ from fastblocks_ui import (
     stable_id,
     switch,
     tabs,
+    validation_summary,
 )
 from fastblocks_ui import (
     input as ui_input,
@@ -40,11 +44,37 @@ class TestPackageMetadata(unittest.TestCase):
         self.assertTrue(fastblocks_ui.get_static_path().endswith("static"))
         self.assertTrue(fastblocks_ui.get_css_path().endswith("css/fastblocks-ui.css"))
         self.assertTrue(fastblocks_ui.get_js_path().endswith("js/fastblocks-ui.js"))
+        self.assertTrue(fastblocks_ui.get_manifest_path().endswith("manifest.json"))
 
     def test_package_resources_exist(self):
         self.assertTrue(files(fastblocks_ui).joinpath("static/css/fastblocks-ui.css").is_file())
         self.assertTrue(files(fastblocks_ui).joinpath("static/js/fastblocks-ui.js").is_file())
         self.assertTrue(files(fastblocks_ui).joinpath("static/js/enhance.js").is_file())
+        self.assertTrue(files(fastblocks_ui).joinpath("static/js/manifest.js").is_file())
+        self.assertTrue(files(fastblocks_ui).joinpath("manifest.json").is_file())
+
+    def test_manifest_exposes_component_surface(self):
+        names = [component["name"] for component in COMPONENT_MANIFEST["components"]]
+        classes = [component["class_name"] for component in COMPONENT_MANIFEST["components"]]
+
+        self.assertEqual(
+            names,
+            [
+                "button",
+                "card",
+                "field",
+                "input",
+                "select",
+                "checkbox",
+                "switch",
+                "dialog",
+                "tabs",
+                "menu",
+                "alert",
+            ],
+        )
+        self.assertIn("ui-button", classes)
+        self.assertIn("ui-alert", classes)
 
 
 class TestFoundationCSS(unittest.TestCase):
@@ -52,15 +82,34 @@ class TestFoundationCSS(unittest.TestCase):
         with open(fastblocks_ui.get_css_path(), encoding="utf-8") as handle:
             content = handle.read()
 
+        self.assertNotIn("@import", content)
         for statement in (
-            '@import "./tokens.css";',
-            '@import "./themes/default.css";',
-            '@import "./themes/dark.css";',
-            '@import "./base.css";',
-            '@import "./utilities.css";',
-            '@import "./components.css";',
+            "@layer tokens",
+            "@layer theme",
+            "@layer base",
+            "@layer utilities",
+            "@layer components",
         ):
             self.assertIn(statement, content)
+
+    def test_manifest_documentation_exists(self):
+        components_doc = Path(__file__).resolve().parents[1] / "docs" / "components.md"
+        self.assertTrue(components_doc.is_file())
+        content = components_doc.read_text(encoding="utf-8")
+        for name in (
+            "button",
+            "card",
+            "field",
+            "input",
+            "select",
+            "checkbox",
+            "switch",
+            "dialog",
+            "tabs",
+            "menu",
+            "alert",
+        ):
+            self.assertIn(f"| {name} |", content)
 
     def test_tokens_and_components_define_core_surface(self):
         tokens_path = os.path.join(os.path.dirname(fastblocks_ui.get_css_path()), "tokens.css")
@@ -123,6 +172,31 @@ class TestHelpers(unittest.TestCase):
         self.assertIn('for="email"', markup)
         self.assertIn('aria-describedby="email-help"', markup)
 
+    def test_field_renders_validation_state(self):
+        markup = field(
+            label="Display name",
+            help_text="Shown on your profile.",
+            error_text="Must be at least 3 characters.",
+            control_html=ui_input(id="display-name", name="display_name", value="Ada"),
+            control_id="display-name",
+        )
+        self.assertIn('aria-invalid="true"', markup)
+        self.assertIn('aria-describedby="display-name-help display-name-error"', markup)
+        self.assertIn('role="alert"', markup)
+
+    def test_validation_summary_renders_links(self):
+        markup = validation_summary(
+            {
+                "profile-email": "Enter a valid email address.",
+                "profile-display-name": "Display name must be at least 3 characters.",
+            }
+        )
+        self.assertIn('class="ui-alert is-danger ui-validation-summary"', markup)
+        self.assertIn('role="alert"', markup)
+        self.assertIn('<strong class="ui-validation-summary__title">Please correct the errors below.</strong>', markup)
+        self.assertIn('<a href="#profile-email">Enter a valid email address.</a>', markup)
+        self.assertIn('<a href="#profile-display-name">Display name must be at least 3 characters.</a>', markup)
+
     def test_select_checkbox_switch_alert_dialog_menu(self):
         select_markup = ui_select(options=[("1", "One"), ("2", "Two")], value="2")
         checkbox_markup = checkbox(label="Remember me", class_="is-inline")
@@ -178,24 +252,29 @@ class TestCLI(unittest.TestCase):
             css_path = os.path.join(temp_dir, "fastblocks-ui", "css", "fastblocks-ui.css")
             js_path = os.path.join(temp_dir, "fastblocks-ui", "js", "fastblocks-ui.js")
             enhance_path = os.path.join(temp_dir, "fastblocks-ui", "js", "enhance.js")
+            manifest_path = os.path.join(temp_dir, "fastblocks-ui", "manifest.json")
 
             self.assertTrue(os.path.exists(css_path))
             self.assertTrue(os.path.exists(js_path))
             self.assertTrue(os.path.exists(enhance_path))
+            self.assertTrue(os.path.exists(manifest_path))
 
-    @patch("sys.argv", ["fastblocks-ui", "copy-assets", "--dest", "/tmp/test_dest"])
-    @patch("fastblocks_ui.get_static_path")
-    @patch("shutil.copytree")
-    def test_cli_main_function(self, mock_copytree, mock_get_static_path):
-        mock_get_static_path.return_value = "/fake/static/path"
-
-        with patch("os.path.exists", return_value=True):
+    def test_cli_main_function(self):
+        with tempfile.TemporaryDirectory() as temp_dir, patch.object(
+            sys, "argv", ["fastblocks-ui", "copy-assets", "--dest", temp_dir]
+        ):
             try:
                 cli_main()
             except SystemExit:
                 pass
 
-        self.assertTrue(mock_copytree.called)
+            css_path = os.path.join(temp_dir, "fastblocks-ui", "css", "fastblocks-ui.css")
+            js_path = os.path.join(temp_dir, "fastblocks-ui", "js", "fastblocks-ui.js")
+            manifest_path = os.path.join(temp_dir, "fastblocks-ui", "manifest.json")
+
+            self.assertTrue(os.path.exists(css_path))
+            self.assertTrue(os.path.exists(js_path))
+            self.assertTrue(os.path.exists(manifest_path))
 
 
 if __name__ == "__main__":
