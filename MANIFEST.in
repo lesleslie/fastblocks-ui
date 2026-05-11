@@ -1,0 +1,8 @@
+include LICENSE
+include README.md
+include pyproject.toml
+recursive-include fastblocks_ui *.py *.json *.css *.js
+prune node_modules
+prune scripts
+prune src
+prune tests

@@ -1,3 +1,5 @@
+@import url('layout.css');
+
 @layer tokens {
   :root {
     /* Core palette based on Tailwind defaults, exposed through semantic tokens. */
@@ -45,6 +47,8 @@
     --ui-space-5: 1.5rem;
     --ui-space-6: 2rem;
     --ui-space-8: 3rem;
+    --ui-space-10: 4rem;
+    --ui-space-12: 6rem;
 
     --ui-radius-sm: 4px;
     --ui-radius-md: 6px;
@@ -64,39 +68,39 @@
     --ui-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ui-color-focus) 24%, transparent);
 
     /* Legacy bridge tokens. */
-    --fast-primary: var(--ui-color-primary);
-    --fast-primary-invert: var(--ui-color-primary-contrast);
-    --fast-primary-light: var(--ui-color-primary-subtle);
-    --fast-primary-dark: var(--ui-color-primary-strong);
-    --fast-info: var(--ui-color-info);
-    --fast-info-invert: var(--ui-color-info-contrast);
-    --fast-info-light: var(--ui-color-info-subtle);
-    --fast-info-dark: var(--ui-color-info-strong);
-    --fast-success: var(--ui-color-success);
-    --fast-success-invert: var(--ui-color-success-contrast);
-    --fast-success-light: var(--ui-color-success-subtle);
-    --fast-success-dark: var(--ui-color-success-strong);
-    --fast-warning: var(--ui-color-warning);
-    --fast-warning-invert: var(--ui-color-warning-contrast);
-    --fast-warning-light: var(--ui-color-warning-subtle);
-    --fast-warning-dark: var(--ui-color-warning-strong);
-    --fast-danger: var(--ui-color-danger);
-    --fast-danger-invert: var(--ui-color-danger-contrast);
-    --fast-danger-light: var(--ui-color-danger-subtle);
-    --fast-danger-dark: var(--ui-color-danger-strong);
-    --fast-grey: var(--ui-color-text-muted);
-    --fast-grey-light: var(--ui-color-surface-muted);
-    --fast-grey-lighter: var(--ui-color-surface-raised);
-    --fast-grey-dark: var(--ui-color-text);
-    --fast-grey-darker: var(--ui-color-text-strong);
-    --fast-white: var(--ui-color-surface);
+    --fast-primary: #4f46e5;
+    --fast-primary-invert: #ffffff;
+    --fast-primary-light: #e0e7ff;
+    --fast-primary-dark: #4338ca;
+    --fast-info: #06b6d4;
+    --fast-info-invert: #ffffff;
+    --fast-info-light: #cffafe;
+    --fast-info-dark: #0891b2;
+    --fast-success: #22c55e;
+    --fast-success-invert: #ffffff;
+    --fast-success-light: #dcfce7;
+    --fast-success-dark: #16a34a;
+    --fast-warning: #eab308;
+    --fast-warning-invert: #000000;
+    --fast-warning-light: #fef9c3;
+    --fast-warning-dark: #ca8a04;
+    --fast-danger: #ef4444;
+    --fast-danger-invert: #ffffff;
+    --fast-danger-light: #fee2e2;
+    --fast-danger-dark: #dc2626;
+    --fast-grey: #6b7280;
+    --fast-grey-light: #f3f4f6;
+    --fast-grey-lighter: #f9fafb;
+    --fast-grey-dark: #374151;
+    --fast-grey-darker: #111827;
+    --fast-white: #ffffff;
     --fast-black: #000000;
-    --fast-background: var(--ui-color-surface);
-    --fast-text: var(--ui-color-text);
-    --fast-radius-small: var(--ui-radius-sm);
-    --fast-radius: var(--ui-radius-md);
-    --fast-radius-large: var(--ui-radius-lg);
-    --fast-radius-rounded: var(--ui-radius-pill);
+    --fast-background: #ffffff;
+    --fast-text: #374151;
+    --fast-radius-small: 4px;
+    --fast-radius: 6px;
+    --fast-radius-large: 8px;
+    --fast-radius-rounded: 9999px;
     --fast-size-small: 0.875rem;
     --fast-size-normal: 1rem;
     --fast-size-medium: 1.125rem;
@@ -104,8 +108,11 @@
     --fast-family-primary: var(--ui-font-sans);
     --fast-family-secondary: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
     --fast-family-monospace: var(--ui-font-mono);
-    --fast-focus-color: var(--ui-color-focus);
+    --fast-focus-color: #4f46e5;
     --fast-focus-width: 2px;
+
+    --accent-fill-rest: var(--fast-primary);
+    --control-height: 2.5em;
   }
 }
 
@@ -155,6 +162,35 @@
     --ui-color-danger-contrast: #ffffff;
     --ui-color-danger-subtle: #7f1d1d;
     --ui-color-danger-strong: #fca5a5;
+
+    --fast-primary: #818cf8;
+    --fast-primary-invert: #ffffff;
+    --fast-primary-light: #312e81;
+    --fast-primary-dark: #a5b4fc;
+    --fast-info: #22d3ee;
+    --fast-info-invert: #000000;
+    --fast-info-light: #164e63;
+    --fast-info-dark: #67e8f9;
+    --fast-success: #4ade80;
+    --fast-success-invert: #000000;
+    --fast-success-light: #14532d;
+    --fast-success-dark: #86efac;
+    --fast-warning: #facc15;
+    --fast-warning-invert: #000000;
+    --fast-warning-light: #713f12;
+    --fast-warning-dark: #fde047;
+    --fast-danger: #f87171;
+    --fast-danger-invert: #ffffff;
+    --fast-danger-light: #7f1d1d;
+    --fast-danger-dark: #fca5a5;
+    --fast-grey: #94a3b8;
+    --fast-grey-light: #1e293b;
+    --fast-grey-lighter: #111827;
+    --fast-grey-dark: #cbd5e1;
+    --fast-grey-darker: #f8fafc;
+    --fast-background: #0f172a;
+    --fast-text: #cbd5e1;
+    --fast-focus-color: #818cf8;
   }
 }
 

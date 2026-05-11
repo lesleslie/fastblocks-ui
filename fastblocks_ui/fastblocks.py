@@ -16,7 +16,9 @@ def compose(*parts: object, separator: str = "") -> SafeHTML:
 
 def stable_id(*parts: object, prefix: str = "fb") -> str:
     """Build a deterministic DOM id for swapped fragments and nested blocks."""
-    normalized = "::".join(str(part).strip().lower() for part in parts if part is not None)
+    normalized = "::".join(
+        str(part).strip().lower() for part in parts if part is not None
+    )
     digest = sha1(normalized.encode("utf-8")).hexdigest()[:10]
     return f"{prefix}-{digest}" if prefix else digest
 

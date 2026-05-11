@@ -1,11 +1,11 @@
 /**
  * CSS Variable Mapping Tests
  *
- * Tests the CSS variable bridge layer that connects Bulma classes to FAST components.
+ * Tests the CSS variable bridge layer for FastBlocks UI semantic classes.
  * This includes:
  * - Root variable definitions
- * - FAST token mappings
- * - Bulma class modifier mappings
+ * - Compatibility token mappings
+ * - Class modifier mappings
  * - Color theme support
  * - Dark mode support
  */
@@ -189,10 +189,10 @@ describe('CSS Variable Bridge Layer', () => {
     });
   });
 
-  describe('FAST Token Mappings', () => {
+  describe('Compatibility Token Mappings', () => {
     it('should map --accent-fill-rest to --fast-primary', () => {
       // Add an element with is-primary class
-      const button = document.createElement('fast-button');
+      const button = document.createElement('button');
       button.className = 'is-primary';
       document.body.appendChild(button);
 

@@ -10,9 +10,21 @@ FastBlocks UI now uses a layered architecture that separates concerns between se
 
 - Semantic HTML and CSS variables
 - Python helpers for Jinja and FastBlocks rendering
+- htmx-safe light DOM fragments
 - Optional progressive-enhancement JavaScript
 - Tailwind-inspired semantic token baseline with custom visuals
 - BSD-3-Clause licensed, no build tools required
+
+### Component Model
+
+FastBlocks UI components are standard HTML patterns with `ui-*` classes and
+helper-backed server rendering. The v1 runtime does not register Custom Elements
+and does not use shadow DOM by default. Optional JavaScript enhances existing
+markup instead of becoming the rendering source of truth.
+
+Optional light-DOM Custom Elements such as `<ui-tabs>`, `<ui-dialog>`, and
+`<ui-menu>` are available as opt-in wrappers around the canonical helper output
+and are tracked in [docs/light-dom-custom-elements-spec.md](docs/light-dom-custom-elements-spec.md).
 
 ### Architecture
 
@@ -61,7 +73,8 @@ copy_assets("./static")
 
 For template and htmx examples, see [docs/usage.md](docs/usage.md).
 The component manifest is documented in [docs/components.md](docs/components.md).
-PWA-friendly app integration notes live in [docs/usage.md](docs/usage.md).
+PWA-friendly app integration notes live in [docs/pwa.md](docs/pwa.md).
+Theming recipes live in [docs/theming-recipes.md](docs/theming-recipes.md).
 
 ### Sync Jinja
 

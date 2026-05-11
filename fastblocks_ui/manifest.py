@@ -6,7 +6,12 @@ import json
 from importlib.resources import files
 from typing import Any
 
-__all__ = ["COMPONENT_MANIFEST", "component_classes", "component_manifest", "component_names"]
+__all__ = [
+    "COMPONENT_MANIFEST",
+    "component_classes",
+    "component_manifest",
+    "component_names",
+]
 
 
 def component_manifest() -> dict[str, Any]:
@@ -16,5 +21,9 @@ def component_manifest() -> dict[str, Any]:
 
 
 COMPONENT_MANIFEST = component_manifest()
-component_names = tuple(component["name"] for component in COMPONENT_MANIFEST["components"])
-component_classes = tuple(component["class_name"] for component in COMPONENT_MANIFEST["components"])
+component_names = tuple(
+    component["name"] for component in COMPONENT_MANIFEST["components"]
+)
+component_classes = tuple(
+    component["class_name"] for component in COMPONENT_MANIFEST["components"]
+)

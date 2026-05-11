@@ -1,11 +1,26 @@
 # FastBlocks UI Component Manifest
 
-This page is generated from `src/fastblocks_ui/manifest.json`. Keep the manifest and this document in sync.
+This page is generated from `fastblocks_ui/manifest.json`. Keep the manifest and this document in sync.
 
-## Core Components
+## Layout Components
 
 | Component | CSS Class | Helper | Purpose |
-| --- | --- | --- | --- |
+| --------- | -------- | ------ | ------- |
+| container | `ui-container` | `container()` | Centered max-width container |
+| columns | `ui-columns` | `columns()` | Flexible grid container |
+| column | `ui-column` | `column()` | Individual column in grid |
+| section | `ui-section` | `section()` | Vertical spacing container |
+| footer | `ui-footer` | `footer()` | Page footer |
+| level | `ui-level` | `level()` | Horizontal toolbar/nav |
+| hero | `ui-hero` | `hero()` | Full-width banner section |
+| title | `ui-title` | `title()` | Typography title element |
+| media | `ui-media` | `media()` | Image + text pair |
+| tile | `ui-tile` | `tile()` | Hierarchical tile layout |
+
+## UI Components
+
+| Component | CSS Class | Helper | Purpose |
+| --------- | -------- | ------ | ------- |
 | button | `ui-button` | `button()` | Primary and secondary action buttons. |
 | card | `ui-card` | `card()` | Content containers and panels. |
 | field | `ui-field` | `field()` | Label, help, and error grouping for form controls. |
@@ -20,10 +35,46 @@ This page is generated from `src/fastblocks_ui/manifest.json`. Keep the manifest
 
 ## State Modifiers
 
+### Color Modifiers
+
 - `is-primary`
+- `is-info`
 - `is-success`
 - `is-warning`
 - `is-danger`
+- `is-light`
+- `is-dark`
+
+### Size Modifiers
+
 - `is-small`
 - `is-medium`
 - `is-large`
+
+### Layout Modifiers
+
+- `is-narrow` — content-sized column
+- `is-full` — full-width column
+- `is-centered` — center alignment
+- `is-vcentered` — vertical center alignment
+- `is-gapless` — no spacing between columns
+- `is-multiline` — wrap to multiple lines
+- `is-fluid` — full-width container
+- `is-widescreen` — wider container
+- `is-fullhd` — full HD container
+
+### Responsive Modifiers
+
+- `is-X-tablet` — tablet breakpoint and up
+- `is-X-desktop` — desktop breakpoint and up
+- `is-X-widescreen` — widescreen breakpoint and up
+- `is-offset-X` — offset by X columns
+
+## Breakpoints
+
+| Name | Min Width | Description |
+| ---- | --------- | ----------- |
+| mobile | < 769px | Mobile devices (default) |
+| tablet | 769px+ | Tablets and up |
+| desktop | 1024px+ | Desktops and up |
+| widescreen | 1216px+ | Large screens |

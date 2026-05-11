@@ -5,6 +5,7 @@
  * same side-effectful module as the public browser entrypoint.
  */
 export {
+  defineFastBlocksCustomElements,
   enhanceDialogs,
   enhanceMenus,
   enhanceTabs,

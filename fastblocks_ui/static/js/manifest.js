@@ -19,7 +19,7 @@ async function renderComponentManifest(root = document) {
       .join('');
 
     container.innerHTML = `<div class="ui-stack">
-      <div class="ui-muted">Source of truth: <code>src/fastblocks_ui/manifest.json</code></div>
+      <div class="ui-muted">Source of truth: <code>fastblocks_ui/manifest.json</code></div>
       <ul class="ui-cluster" role="list">${items}</ul>
     </div>`;
   } catch (error) {

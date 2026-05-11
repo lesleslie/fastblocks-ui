@@ -1,6 +1,7 @@
 import os
 import sys
 import tempfile
+import tomllib
 import unittest
 from importlib.resources import files
 from pathlib import Path
@@ -11,6 +12,7 @@ from fastblocks_ui import (
     COMPONENT_MANIFEST,
     alert,
     block,
+    breadcrumb,
     button,
     card,
     checkbox,
@@ -19,8 +21,10 @@ from fastblocks_ui import (
     field,
     fragment,
     menu,
+    navbar,
     stable_id,
     switch,
+    table,
     tabs,
     validation_summary,
 )
@@ -36,7 +40,7 @@ from fastblocks_ui.cli import main as cli_main
 
 class TestPackageMetadata(unittest.TestCase):
     def test_version_and_license(self):
-        self.assertEqual(fastblocks_ui.__version__, "0.3.0")
+        self.assertEqual(fastblocks_ui.__version__, "0.4.2")
         self.assertEqual(fastblocks_ui.__license__, "BSD-3-Clause")
         self.assertEqual(fastblocks_ui.__author__, "FastBlocks UI Team")
 
@@ -47,34 +51,87 @@ class TestPackageMetadata(unittest.TestCase):
         self.assertTrue(fastblocks_ui.get_manifest_path().endswith("manifest.json"))
 
     def test_package_resources_exist(self):
-        self.assertTrue(files(fastblocks_ui).joinpath("static/css/fastblocks-ui.css").is_file())
-        self.assertTrue(files(fastblocks_ui).joinpath("static/js/fastblocks-ui.js").is_file())
+        self.assertTrue(
+            files(fastblocks_ui).joinpath("static/css/fastblocks-ui.css").is_file()
+        )
+        self.assertTrue(
+            files(fastblocks_ui).joinpath("static/js/fastblocks-ui.js").is_file()
+        )
         self.assertTrue(files(fastblocks_ui).joinpath("static/js/enhance.js").is_file())
-        self.assertTrue(files(fastblocks_ui).joinpath("static/js/manifest.js").is_file())
+        self.assertTrue(
+            files(fastblocks_ui).joinpath("static/js/manifest.js").is_file()
+        )
         self.assertTrue(files(fastblocks_ui).joinpath("manifest.json").is_file())
 
     def test_manifest_exposes_component_surface(self):
         names = [component["name"] for component in COMPONENT_MANIFEST["components"]]
-        classes = [component["class_name"] for component in COMPONENT_MANIFEST["components"]]
+        classes = [
+            component["class_name"] for component in COMPONENT_MANIFEST["components"]
+        ]
 
-        self.assertEqual(
-            names,
-            [
-                "button",
-                "card",
-                "field",
-                "input",
-                "select",
-                "checkbox",
-                "switch",
-                "dialog",
-                "tabs",
-                "menu",
-                "alert",
-            ],
-        )
+        # Layout components
+        layout_names = [
+            "container",
+            "columns",
+            "column",
+            "section",
+            "footer",
+            "level",
+            "hero",
+            "title",
+            "media",
+            "tile",
+            "navbar",
+            "breadcrumb",
+            "progress",
+            "table",
+            "pagination",
+        ]
+        # UI components
+        ui_names = [
+            "button",
+            "card",
+            "field",
+            "input",
+            "select",
+            "checkbox",
+            "switch",
+            "dialog",
+            "tabs",
+            "menu",
+            "alert",
+        ]
+
+        for name in layout_names + ui_names:
+            self.assertIn(name, names, f"Missing component: {name}")
+
         self.assertIn("ui-button", classes)
         self.assertIn("ui-alert", classes)
+        self.assertIn("ui-columns", classes)
+        self.assertIn("ui-hero", classes)
+        self.assertIn("ui-navbar", classes)
+        self.assertIn("ui-table", classes)
+        self.assertIn("ui-pagination", classes)
+
+    def test_packaging_config_declares_bundled_package_surface(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text())
+        package_find = pyproject["tool"]["setuptools"]["packages"]["find"]
+        package_data = pyproject["tool"]["setuptools"]["package-data"]["fastblocks_ui"]
+
+        self.assertEqual(package_find["include"], ["fastblocks_ui", "fastblocks_ui.*"])
+        self.assertIn("tests*", package_find["exclude"])
+        self.assertIn("scripts*", package_find["exclude"])
+        self.assertIn("node_modules*", package_find["exclude"])
+        self.assertIn("manifest.json", package_data)
+        self.assertIn("static/**/*", package_data)
+
+    def test_source_distribution_manifest_excludes_development_paths(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        manifest = (repo_root / "MANIFEST.in").read_text(encoding="utf-8")
+
+        for path in ("node_modules", "scripts", "src", "tests"):
+            self.assertIn(f"prune {path}", manifest)
 
 
 class TestFoundationCSS(unittest.TestCase):
@@ -82,7 +139,7 @@ class TestFoundationCSS(unittest.TestCase):
         with open(fastblocks_ui.get_css_path(), encoding="utf-8") as handle:
             content = handle.read()
 
-        self.assertNotIn("@import", content)
+        # @import is allowed for bundling layout.css
         for statement in (
             "@layer tokens",
             "@layer theme",
@@ -112,8 +169,12 @@ class TestFoundationCSS(unittest.TestCase):
             self.assertIn(f"| {name} |", content)
 
     def test_tokens_and_components_define_core_surface(self):
-        tokens_path = os.path.join(os.path.dirname(fastblocks_ui.get_css_path()), "tokens.css")
-        components_path = os.path.join(os.path.dirname(fastblocks_ui.get_css_path()), "components.css")
+        tokens_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_css_path()), "tokens.css"
+        )
+        components_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_css_path()), "components.css"
+        )
 
         with open(tokens_path, encoding="utf-8") as handle:
             tokens = handle.read()
@@ -129,6 +190,8 @@ class TestFoundationCSS(unittest.TestCase):
             "--ui-color-text",
             "--ui-radius-md",
             "--ui-shadow-1",
+            "--ui-space-10",
+            "--ui-space-12",
         ):
             self.assertIn(token, tokens)
 
@@ -146,6 +209,84 @@ class TestFoundationCSS(unittest.TestCase):
             ".ui-dialog",
         ):
             self.assertIn(selector, components)
+
+    def test_layout_css_defines_grid_system(self):
+        layout_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_css_path()), "layout.css"
+        )
+        self.assertTrue(
+            os.path.isfile(layout_path), f"layout.css not found at {layout_path}"
+        )
+
+        with open(layout_path, encoding="utf-8") as handle:
+            content = handle.read()
+
+        for selector in (
+            ".ui-container",
+            ".ui-columns",
+            ".ui-column",
+            ".ui-level",
+            ".ui-hero",
+            ".ui-tile",
+            ".ui-media",
+            ".ui-navbar",
+            ".ui-breadcrumb",
+            ".ui-pagination",
+            ".ui-table",
+            ".ui-progress",
+        ):
+            self.assertIn(selector, content, f"Missing layout selector: {selector}")
+
+
+class TestDocumentationConsistency(unittest.TestCase):
+    def test_active_guidance_does_not_describe_legacy_fast_runtime(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        active_paths = [
+            repo_root / "QWEN.md",
+            repo_root / "RULES.md",
+            repo_root / "scripts" / "generate-docs.py",
+            repo_root / "scripts" / "generate-tests.py",
+            repo_root / "scripts" / "generate-css-variables.py",
+        ]
+        forbidden_phrases = [
+            "Microsoft's " + "FAST",
+            "FAST " + "components",
+            "Fluent" + "-backed",
+            "provide" + "FASTDesignSystem",
+            "register" + "ComponentsInDOM",
+            "fast" + "-button",
+            "fast" + "-text-field",
+            "Shadow DOM " + "Encapsulation",
+        ]
+
+        for path in active_paths:
+            content = path.read_text(encoding="utf-8")
+            for phrase in forbidden_phrases:
+                self.assertNotIn(phrase, content, f"{phrase!r} found in {path}")
+
+    def test_package_metadata_does_not_claim_web_components_runtime(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text())
+
+        self.assertNotIn("web" + "-components", pyproject["project"]["keywords"])
+        self.assertIn("design-system", pyproject["project"]["keywords"])
+
+    def test_deferred_light_dom_custom_elements_spec_exists(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        spec = repo_root / "docs" / "light-dom-custom-elements-spec.md"
+        content = spec.read_text(encoding="utf-8")
+
+        for phrase in (
+            "fusion of Bulma, Kelp, and Web Awesome",
+            "<ui-tabs>",
+            "<ui-dialog>",
+            "<ui-menu>",
+            "Why light DOM is the default:",
+            "Existing children must not be moved into closed implementation details.",
+            "State must be reflected in attributes",
+            "Helpers emit the canonical markup",
+        ):
+            self.assertIn(phrase, content)
 
 
 class TestHelpers(unittest.TestCase):
@@ -168,7 +309,9 @@ class TestHelpers(unittest.TestCase):
         )
         self.assertIn('<header class="ui-card__header">Profile</header>', markup)
         self.assertIn("Email &lt;address&gt;", markup)
-        self.assertIn('class="ui-input" type="text" placeholder="Name &quot;tag&quot;"', markup)
+        self.assertIn(
+            'class="ui-input" type="text" placeholder="Name &quot;tag&quot;"', markup
+        )
         self.assertIn('for="email"', markup)
         self.assertIn('aria-describedby="email-help"', markup)
 
@@ -193,9 +336,17 @@ class TestHelpers(unittest.TestCase):
         )
         self.assertIn('class="ui-alert is-danger ui-validation-summary"', markup)
         self.assertIn('role="alert"', markup)
-        self.assertIn('<strong class="ui-validation-summary__title">Please correct the errors below.</strong>', markup)
-        self.assertIn('<a href="#profile-email">Enter a valid email address.</a>', markup)
-        self.assertIn('<a href="#profile-display-name">Display name must be at least 3 characters.</a>', markup)
+        self.assertIn(
+            '<strong class="ui-validation-summary__title">Please correct the errors below.</strong>',
+            markup,
+        )
+        self.assertIn(
+            '<a href="#profile-email">Enter a valid email address.</a>', markup
+        )
+        self.assertIn(
+            '<a href="#profile-display-name">Display name must be at least 3 characters.</a>',
+            markup,
+        )
 
     def test_select_checkbox_switch_alert_dialog_menu(self):
         select_markup = ui_select(options=[("1", "One"), ("2", "Two")], value="2")
@@ -215,9 +366,56 @@ class TestHelpers(unittest.TestCase):
         self.assertIn('<dialog class="ui-dialog" open', dialog_markup)
         self.assertIn('class="ui-menu"', menu_markup)
 
+    def test_custom_element_wrappers_remain_opt_in(self):
+        tabs_markup = tabs(
+            [("profile", "Profile", "<p>Profile</p>")],
+            custom_element=True,
+        )
+        dialog_markup = dialog("Content", title="Dialog title", custom_element=True)
+        menu_markup = menu([("Profile", "/profile")], custom_element=True)
+
+        self.assertIn("<ui-tabs", tabs_markup)
+        self.assertIn("<ui-dialog", dialog_markup)
+        self.assertIn("<ui-menu", menu_markup)
+        self.assertIn('<dialog class="ui-dialog"', dialog_markup)
+        self.assertIn('<nav class="ui-menu"', menu_markup)
+
+    def test_navbar_breadcrumb_and_table_layout_helpers(self):
+        navbar_markup = navbar(
+            brand="FastBlocks",
+            brand_url="/home",
+            start=[("Docs", "/docs"), ("API", "/api")],
+            end=button("Log in", href="/login"),
+            variant="primary",
+        )
+        breadcrumb_markup = breadcrumb(
+            [("Home", "/"), ("Products", "/products"), ("Details", None)]
+        )
+        overridden_breadcrumb_markup = breadcrumb(
+            [("Home", "/"), ("Details", None)],
+            aria_label="section breadcrumb",
+        )
+        table_markup = table(
+            headers=["Name", "Email"],
+            rows=[["Ada", "ada@example.com"]],
+            fullwidth=True,
+        )
+
+        self.assertIn('href="/home"', navbar_markup)
+        self.assertIn('class="ui-navbar-start"', navbar_markup)
+        self.assertIn('href="/docs"', navbar_markup)
+        self.assertIn('href="/api"', navbar_markup)
+        self.assertIn('href="/login"', navbar_markup)
+        self.assertIn('aria-label="breadcrumb"', breadcrumb_markup)
+        self.assertIn('aria-label="section breadcrumb"', overridden_breadcrumb_markup)
+        self.assertIn('class="ui-table is-fullwidth"', table_markup)
+
     def test_tabs_emit_accessible_markup(self):
         markup = tabs(
-            [("profile", "Profile", "<p>Profile</p>"), ("billing", "Billing", "<p>Billing</p>")],
+            [
+                ("profile", "Profile", "<p>Profile</p>"),
+                ("billing", "Billing", "<p>Billing</p>"),
+            ],
             active_id="billing",
         )
         self.assertIn('role="tab"', markup)
@@ -235,7 +433,9 @@ class TestFastBlocksIntegration(unittest.TestCase):
         preview = compose(button("Edit"), button("Delete"))
         self.assertIn('<button class="ui-button" type="button">Edit</button>', preview)
 
-        fragment_markup = fragment(button("Save"), fragment_id="save-fragment", class_="tone")
+        fragment_markup = fragment(
+            button("Save"), fragment_id="save-fragment", class_="tone"
+        )
         block_markup = block(preview, block_id="actions")
 
         self.assertIn('data-fastblocks-fragment="true"', fragment_markup)
@@ -249,7 +449,9 @@ class TestCLI(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             copy_assets(temp_dir)
 
-            css_path = os.path.join(temp_dir, "fastblocks-ui", "css", "fastblocks-ui.css")
+            css_path = os.path.join(
+                temp_dir, "fastblocks-ui", "css", "fastblocks-ui.css"
+            )
             js_path = os.path.join(temp_dir, "fastblocks-ui", "js", "fastblocks-ui.js")
             enhance_path = os.path.join(temp_dir, "fastblocks-ui", "js", "enhance.js")
             manifest_path = os.path.join(temp_dir, "fastblocks-ui", "manifest.json")
@@ -260,15 +462,20 @@ class TestCLI(unittest.TestCase):
             self.assertTrue(os.path.exists(manifest_path))
 
     def test_cli_main_function(self):
-        with tempfile.TemporaryDirectory() as temp_dir, patch.object(
-            sys, "argv", ["fastblocks-ui", "copy-assets", "--dest", temp_dir]
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            patch.object(
+                sys, "argv", ["fastblocks-ui", "copy-assets", "--dest", temp_dir]
+            ),
         ):
             try:
                 cli_main()
             except SystemExit:
                 pass
 
-            css_path = os.path.join(temp_dir, "fastblocks-ui", "css", "fastblocks-ui.css")
+            css_path = os.path.join(
+                temp_dir, "fastblocks-ui", "css", "fastblocks-ui.css"
+            )
             js_path = os.path.join(temp_dir, "fastblocks-ui", "js", "fastblocks-ui.js")
             manifest_path = os.path.join(temp_dir, "fastblocks-ui", "manifest.json")
 

@@ -18,6 +18,14 @@ The goal is to build a modern web UI system that:
 This is not a compatibility package.
 It is a new package that may reuse architectural lessons from Bulma, Kelp, and Web Awesome, but the implementation should be original and the public API should be its own.
 
+The intended direction is a fusion:
+
+- Bulma-like readable composition and utility naming.
+- Kelp-like progressive enhancement around normal HTML.
+- Web Awesome-like modern component ergonomics and attribute-driven state.
+- FastBlocks/Jinja/htmx-first rendering, where the server remains the source of
+  truth.
+
 ## Design Principles
 
 1. Prefer native HTML elements before custom abstractions.
@@ -262,6 +270,22 @@ Preferred rules:
 - no shadow DOM by default
 - minimal event listeners
 - progressive enhancement only
+
+Deferred Custom Elements:
+
+- optional Custom Elements may be considered after v1 for `ui-tabs`,
+  `ui-dialog`, and `ui-menu`
+- those elements must enhance existing light DOM rather than render private
+  internals
+- state must be reflected in attributes so htmx swaps remain
+  server-authoritative
+- helper output remains the canonical render path
+- closed shadow DOM is not allowed for public FastBlocks UI components
+- light DOM stays the default because htmx swaps, CSS class/token theming,
+  server-rendered helpers, and ARIA relationships are all simpler when children
+  remain in the document tree
+
+See `docs/light-dom-custom-elements-spec.md`.
 
 ## Naming Recommendation
 

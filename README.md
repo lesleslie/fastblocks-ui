@@ -11,9 +11,22 @@ FastBlocks UI is a modern HTML/CSS-first UI layer with a stable `ui-*` namespace
 
 - **HTML/CSS First**: Uses semantic markup, CSS variables, and cascade layers as the foundation
 - **Template Helpers**: Ships Python helpers for Jinja, async Jinja, and FastBlocks rendering
+- **htmx Safe**: Keeps IDs, form fields, and interaction state in normal light DOM markup
 - **Optional Enhancement JS**: Keeps behavior light and progressive-enhancement friendly
 - **Modern Styling**: Uses a Tailwind-inspired semantic token baseline with custom visuals
 - **Permissive License**: BSD-3-Clause for commercial and open-source use
+
+## Component Model
+
+FastBlocks UI components are standard HTML patterns with `ui-*` classes and
+helper-backed server rendering. The v1 runtime does not register Custom Elements
+and does not use shadow DOM by default. htmx targets, triggers, and swapped
+regions should remain normal light DOM nodes so the server stays authoritative
+for selected tabs, open menus, form state, and validation state.
+
+Optional light-DOM Custom Elements such as `<ui-tabs>`, `<ui-dialog>`, and
+`<ui-menu>` are available as opt-in wrappers around the canonical helper output
+and are tracked in [docs/light-dom-custom-elements-spec.md](docs/light-dom-custom-elements-spec.md).
 
 ## Installation
 
@@ -47,7 +60,8 @@ Once installed, you can use the `ui-*` classes and Python helpers with server-re
 
 For full examples covering sync Jinja, async Jinja, and htmx fragments, see [docs/usage.md](docs/usage.md).
 The component manifest is documented in [docs/components.md](docs/components.md).
-PWA-friendly app integration notes live in [docs/usage.md](docs/usage.md).
+PWA-friendly app integration notes live in [docs/pwa.md](docs/pwa.md).
+Theming recipes live in [docs/theming-recipes.md](docs/theming-recipes.md).
 
 ## Template Examples
 
@@ -94,17 +108,32 @@ FastBlocks UI components automatically inherit these changes through semantic to
 
 FastBlocks UI centers its public surface on `ui-*` classes and helper APIs:
 
-- `ui-button`
-- `ui-card`
-- `ui-field`
-- `ui-input`
-- `ui-select`
-- `ui-checkbox`
-- `ui-switch`
-- `ui-dialog`
-- `ui-tabs`
-- `ui-menu`
-- `ui-alert`
+### Layout Components
+
+- `ui-container` / `container()` - Centered max-width container
+- `ui-columns` / `columns()` - 12-column responsive grid
+- `ui-column` / `column()` - Individual column in grid
+- `ui-section` / `section()` - Vertical spacing container
+- `ui-footer` / `footer()` - Page footer
+- `ui-level` / `level()` - Horizontal toolbar/nav
+- `ui-hero` / `hero()` - Full-width banner section
+- `ui-title` / `title()` - Typography title
+- `ui-media` / `media()` - Image + text pair
+- `ui-tile` / `tile()` - Hierarchical tile layout
+
+### UI Components
+
+- `ui-button` / `button()` - Buttons
+- `ui-card` / `card()` - Cards
+- `ui-field` / `field()` - Form groups
+- `ui-input` / `input()` - Form inputs
+- `ui-select` / `select()` - Select dropdowns
+- `ui-checkbox` / `checkbox()` - Checkboxes
+- `ui-switch` / `switch()` - Toggle switches
+- `ui-dialog` / `dialog()` - Modal dialogs
+- `ui-tabs` / `tabs()` - Tabbed interfaces
+- `ui-menu` / `menu()` - Menus
+- `ui-alert` / `alert()` - Alerts
 
 ## License
 

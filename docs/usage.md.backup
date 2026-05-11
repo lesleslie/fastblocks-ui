@@ -234,7 +234,6 @@ On validation failure, return the same form fragment with field errors filled in
 ```python
 from fastblocks_ui import validation_summary
 
-
 def render_profile_form(user, errors=None):
     return field(
         label="Email address",
@@ -379,7 +378,6 @@ FastBlocks UI markup is designed to swap cleanly with htmx. Keep state on the se
 ```python
 from fastblocks_ui import table, pagination
 
-
 @app.get("/items")
 def items(request):
     page = int(request.params.get("page", 1))
@@ -388,13 +386,18 @@ def items(request):
     data = get_items(page=page, sort=sort)
     rows = [[item.name, item.email, item.status] for item in data.items]
 
-    return table(
-        headers=["Name", "Email", "Status"],
-        rows=rows,
-        striped=True,
-        hoverable=True,
-    ) + pagination(
-        current=page, total=data.total_pages, url_pattern="/items?page={page}"
+    return (
+        table(
+            headers=["Name", "Email", "Status"],
+            rows=rows,
+            striped=True,
+            hoverable=True,
+        )
+        + pagination(
+            current=page,
+            total=data.total_pages,
+            url_pattern="/items?page={page}"
+        )
     )
 ```
 
@@ -574,4 +577,4 @@ Rendering still works without JavaScript.
 
 ## PWA-Friendly App Integration
 
-PWA guidance now lives in docs/pwa.md.
+PWA guidance now lives in [docs/pwa.md](docs/pwa.md).

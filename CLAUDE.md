@@ -11,22 +11,27 @@ FastBlocks UI is a clean-slate, HTML/CSS-first UI system for FastBlocks and othe
 ## Project Structure
 
 ```text
-src/fastblocks_ui/
-├── __init__.py
-├── __main__.py
-├── cli.py
-├── helpers.py
-├── fastblocks.py
+fastblocks_ui/           # Package root (moved from src/)
+├── __init__.py           # Exports + asset path helpers
+├── __main__.py           # CLI entrypoint
+├── cli.py                # CLI commands
+├── helpers.py            # HTML render helpers
+├── fastblocks.py         # FastBlocks fragment helpers
+├── manifest.py           # Manifest loading
+├── manifest.json         # Component registry
+├── demo.html             # Demo page
 └── static/
     ├── css/
-    │   ├── fastblocks-ui.css
-    │   ├── tokens.css
-    │   ├── base.css
-    │   ├── utilities.css
-    │   └── components.css
+    │   ├── fastblocks-ui.css  # Main bundle (imports layout.css)
+    │   ├── layout.css         # Layout system (container, columns, level, hero, tiles)
+    │   ├── tokens.css         # Design tokens
+    │   ├── base.css           # Reset and base styles
+    │   ├── utilities.css      # Utility classes
+    │   └── components.css     # UI component styles
     └── js/
-        ├── fastblocks-ui.js
-        └── enhance.js
+        ├── fastblocks-ui.js   # Public entrypoint
+        ├── enhance.js         # Progressive enhancement
+        └── manifest.js        # JS component manifest
 
 tests/
 └── test_fastblocks_ui.py
@@ -61,7 +66,8 @@ python -m pytest --cov=fastblocks_ui tests/
 
 - Python helpers should return HTML-safe markup.
 - Jinja, async Jinja, and FastBlocks helpers should share the same render path.
-- `button`, `card`, `field`, `input`, `select`, `checkbox`, `switch`, `dialog`, `tabs`, `menu`, and `alert` are the v1 public components.
+- `button`, `card`, `field`, `input`, `select`, `checkbox`, `switch`, `dialog`, `tabs`, `menu`, `alert` are the v1 public UI components.
+- Layout components: `container`, `columns`, `column`, `section`, `footer`, `level`, `hero`, `title`, `media`, `tile`
 - `ui-*` is the stable public CSS namespace.
 
 ## Theming

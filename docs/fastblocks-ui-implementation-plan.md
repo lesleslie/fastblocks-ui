@@ -25,6 +25,8 @@ Status values:
 | FBUI-007 | done | unassigned | Optional enhancement JS |
 | FBUI-008 | done | unassigned | Packaging, docs, and smoke tests |
 | FBUI-009 | done | unassigned | Final naming decision and rename |
+| FBUI-010 | done | unassigned | Layout v2 follow-up polish |
+| FBUI-011 | done | unassigned | Optional light-DOM Custom Elements |
 
 ## Goals
 
@@ -42,7 +44,7 @@ Status values:
 - No compatibility package for legacy `fast-*` elements.
 - No framework-specific wrappers for React/Vue/Svelte in v1.
 - No broad component catalog before the core system is stable.
-- No table abstraction or data-grid layer in v1.
+- No data-grid layer in v1.
 
 ## Namespace Contract
 
@@ -234,6 +236,86 @@ Status values:
 - Public docs use the new name consistently.
 - Package metadata and repository references are aligned.
 
+## Milestone 8 - Layout v2 Follow-Up
+
+### Scope
+
+- FBUI-010 Layout v2 follow-up polish
+
+The Bulma-inspired layout, flexbox, and grid system is mostly implemented. This
+milestone captures the remaining work from `docs/layout-v2-spec.md` so it is not
+left buried in a draft spec.
+
+### Work Items
+
+1. Keep `navbar()` static-only in the helper layer and document the mobile
+   disclosure pattern as an application- or htmx-level concern.
+1. Add `brand_url`, `start`, and `end` support to `navbar()` for parity with
+   the layout v2 spec.
+1. Make `breadcrumb()` default to `aria-label="breadcrumb"` while still allowing
+   callers to override it.
+1. Add `.ui-table.is-fullwidth` as a documented compatibility modifier even
+   though `.ui-table` is already full width by default.
+1. Expand regression tests for navbar, breadcrumb, progress, table, and
+   pagination helper output.
+1. Update `docs/layout-v2-spec.md` status from in progress to implemented with
+   listed follow-up gaps, or move its remaining items into a smaller checklist.
+
+### Acceptance Criteria
+
+- Navbar behavior and docs clearly state that mobile disclosure remains an
+  htmx/application pattern.
+- Breadcrumb output has a default accessible label.
+- Table full-width behavior is documented and covered by CSS/tests.
+- Layout helper tests cover ARIA attributes, escaped content, progress bounds,
+  table modifiers, and pagination edge cases.
+- `docs/layout-v2-spec.md` no longer reads as an unimplemented draft.
+
+## Milestone 9 - Light-DOM Custom Elements
+
+### Scope
+
+- FBUI-011 Optional light-DOM Custom Elements
+
+This milestone implements `docs/light-dom-custom-elements-spec.md` as a
+post-v1 enhancement layer. It is not a revival of the archived FastBulma/FAST
+runtime, and it does not replace helpers as the canonical render path.
+
+### Work Items
+
+1. Implement optional `<ui-tabs>`, `<ui-dialog>`, and `<ui-menu>` custom
+   elements as light-DOM enhancers.
+1. Keep existing children in place; do not attach closed shadow DOM or move
+   content into implementation-owned markup.
+1. Register custom elements from the optional JavaScript entrypoint while
+   preserving the existing `data-ui-*` enhancement functions.
+1. Derive initial state from server-rendered attributes on connect, including
+   `open`, `aria-selected`, `aria-expanded`, `hidden`, and `data-ui-state`.
+1. Reflect user interaction back into attributes before dispatching completion
+   events so htmx swaps and server-rendered fragments stay authoritative.
+1. Add lifecycle-safe setup and cleanup so repeated connection, disconnection,
+   and htmx fragment replacement do not duplicate listeners.
+1. Add cancelable before-change events and completion events for tab changes,
+   dialog open/close, and menu open/close.
+1. Add helper opt-in support for custom-element wrappers without changing the
+   default helper output.
+1. Document when to use the wrapper elements and when plain helper output plus
+   `data-ui-*` enhancement is enough.
+
+### Acceptance Criteria
+
+- Existing no-JS markup remains useful before custom elements upgrade.
+- `<ui-tabs>`, `<ui-dialog>`, and `<ui-menu>` upgrade idempotently after page
+  load and after htmx-style fragment swaps.
+- State is represented in normal light-DOM attributes, not retained only in
+  client-side memory.
+- Browser tests prove component children remain in light DOM and no closed
+  shadow DOM is used.
+- Tests cover keyboard behavior, focus return, repeated connect/disconnect,
+  cancelable events, and htmx-style replacement.
+- Helper output remains canonical and the custom-element wrapper emits the same
+  IDs, ARIA relationships, classes, and htmx-compatible fragment shape.
+
 ## Recommended Execution Order
 
 1. Milestone 1
@@ -243,10 +325,13 @@ Status values:
 1. Milestone 5
 1. Milestone 6
 1. Milestone 7
+1. Milestone 8
+1. Milestone 9
 
 ## V1 Scope Matrix
 
-This matrix defines the initial package boundary. Items in `defer` are valid future candidates, but they are not part of the first release.
+This matrix defines the initial package boundary. Items in `defer` are valid
+future candidates, but they are not part of the first release.
 
 | Component / Capability | v1 | Defer | Maybe Never |
 |------------------------|----|-------|-------------|
@@ -261,16 +346,19 @@ This matrix defines the initial package boundary. Items in `defer` are valid fut
 | `tabs` | yes | | |
 | `menu` | yes | | |
 | `alert` | yes | | |
+| Bulma-style layout, flexbox, and grid | yes | | |
+| `navbar` | yes | | |
+| `breadcrumb` | yes | | |
+| `progress` | yes | | |
+| `table` / semantic table styling | yes | | |
+| `pagination` | yes | | |
 | `badge` | | yes | |
 | `dropdown` | | yes | |
 | `toast` | | yes | |
-| `progress` | | yes | |
-| `table` | | yes | |
-| semantic table styling | | yes | |
-| `grid` / layout primitives beyond utilities | | yes | |
 | complex date/time inputs | | yes | |
 | deep data-grid behavior | | | yes |
 | framework-specific wrappers | | | yes |
+| optional light-DOM Custom Elements | | yes | |
 | shadow-DOM-based public components | | | yes |
 
 ### V1 Notes
@@ -278,8 +366,12 @@ This matrix defines the initial package boundary. Items in `defer` are valid fut
 - `field` includes label, help, error, and layout patterns.
 - `select` must remain native-first unless a clear HTML-native enhancement path is proven.
 - `dialog`, `tabs`, and `menu` should be progressively enhanced, not JS-first.
+- Optional light-DOM Custom Elements are a deferred enhancement layer, not part
+  of v1. They are tracked by FBUI-011 and
+  `docs/light-dom-custom-elements-spec.md`.
 - Utilities and tokens are part of v1 even though they are not listed as individual components.
-- `table` in this plan means semantic table styling only, and it is deferred.
+- `table` in this plan means semantic table styling only. Deep data-grid
+  behavior remains out of scope.
 
 ## Finalized Decisions
 

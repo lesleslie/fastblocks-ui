@@ -1,0 +1,190 @@
+{
+  "components": [
+    {
+      "class_name": "ui-button",
+      "description": "Primary and secondary action buttons.",
+      "helper": "button",
+      "name": "button"
+    },
+    {
+      "class_name": "ui-card",
+      "description": "Content containers and panels.",
+      "helper": "card",
+      "name": "card"
+    },
+    {
+      "class_name": "ui-container",
+      "description": "Centered max-width container for page content.",
+      "helper": "container",
+      "name": "container"
+    },
+    {
+      "class_name": "ui-columns",
+      "description": "Flexible grid container for responsive column layouts.",
+      "helper": "columns",
+      "name": "columns"
+    },
+    {
+      "class_name": "ui-column",
+      "description": "Individual column within a columns grid.",
+      "helper": "column",
+      "name": "column"
+    },
+    {
+      "class_name": "ui-section",
+      "description": "Vertical spacing container for page sections.",
+      "helper": "section",
+      "name": "section"
+    },
+    {
+      "class_name": "ui-footer",
+      "description": "Page footer with centered content.",
+      "helper": "footer",
+      "name": "footer"
+    },
+    {
+      "class_name": "ui-level",
+      "description": "Horizontal layout with left and right sides.",
+      "helper": "level",
+      "name": "level"
+    },
+    {
+      "class_name": "ui-hero",
+      "description": "Full-width banner section with title and subtitle.",
+      "helper": "hero",
+      "name": "hero"
+    },
+    {
+      "class_name": "ui-title",
+      "description": "Typography title element.",
+      "helper": "title",
+      "name": "title"
+    },
+    {
+      "class_name": "ui-media",
+      "description": "Image + text media object pattern.",
+      "helper": "media",
+      "name": "media"
+    },
+    {
+      "class_name": "ui-tile",
+      "description": "Hierarchical tile for complex nested layouts.",
+      "helper": "tile",
+      "name": "tile"
+    },
+    {
+      "class_name": "ui-navbar",
+      "description": "Navigation bar with brand and menu items.",
+      "helper": "navbar",
+      "name": "navbar"
+    },
+    {
+      "class_name": "ui-breadcrumb",
+      "description": "Navigation trail with links and current page.",
+      "helper": "breadcrumb",
+      "name": "breadcrumb"
+    },
+    {
+      "class_name": "ui-progress",
+      "description": "Progress bar with value and variants.",
+      "helper": "progress",
+      "name": "progress"
+    },
+    {
+      "class_name": "ui-table",
+      "description": "Styled table with optional striping and hover.",
+      "helper": "table",
+      "name": "table"
+    },
+    {
+      "class_name": "ui-pagination",
+      "description": "Pagination links with current page indicator.",
+      "helper": "pagination",
+      "name": "pagination"
+    },
+    {
+      "class_name": "ui-field",
+      "description": "Label, help, and error grouping for form controls.",
+      "helper": "field",
+      "name": "field"
+    },
+    {
+      "class_name": "ui-input",
+      "description": "Native text-like input styling.",
+      "helper": "input",
+      "name": "input"
+    },
+    {
+      "class_name": "ui-select",
+      "description": "Native select styling.",
+      "helper": "select",
+      "name": "select"
+    },
+    {
+      "class_name": "ui-checkbox",
+      "description": "Checkbox label and control grouping.",
+      "helper": "checkbox",
+      "name": "checkbox"
+    },
+    {
+      "class_name": "ui-switch",
+      "description": "Accessible toggle switch presentation.",
+      "helper": "switch",
+      "name": "switch"
+    },
+    {
+      "class_name": "ui-dialog",
+      "description": "Native dialog styling and enhancement hooks.",
+      "helper": "dialog",
+      "name": "dialog"
+    },
+    {
+      "class_name": "ui-tabs",
+      "description": "Accessible tablist, tab, and panel patterns.",
+      "helper": "tabs",
+      "name": "tabs"
+    },
+    {
+      "class_name": "ui-menu",
+      "description": "Disclosure and navigation menu styling.",
+      "helper": "menu",
+      "name": "menu"
+    },
+    {
+      "class_name": "ui-alert",
+      "description": "Inline notices and status messaging.",
+      "helper": "alert",
+      "name": "alert"
+    }
+  ],
+  "namespace": "ui-*",
+  "public_name": "FastBlocks UI",
+  "state_modifiers": [
+    "is-primary",
+    "is-info",
+    "is-success",
+    "is-warning",
+    "is-danger",
+    "is-light",
+    "is-dark",
+    "is-small",
+    "is-medium",
+    "is-large",
+    "is-narrow",
+    "is-full",
+    "is-centered",
+    "is-vcentered",
+    "is-gapless",
+    "is-multiline",
+    "is-fluid",
+    "is-widescreen",
+    "is-fullhd",
+    "is-offset-*",
+    "is-striped",
+    "is-hoverable",
+    "is-bordered",
+    "is-current",
+    "is-disabled",
+    "is-active"
+  ]
+}

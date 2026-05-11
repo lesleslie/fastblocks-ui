@@ -20,8 +20,8 @@
   },
   "name": "fastblocks-ui",
   "scripts": {
-    "format": "prettier --write src/fastblocks_ui/static/js/**/*.js",
-    "lint": "eslint src/fastblocks_ui/static/js/**/*.js",
+    "format": "prettier --write fastblocks_ui/static/js/**/*.js",
+    "lint": "eslint fastblocks_ui/static/js/**/*.js",
     "test": "vitest",
     "test:a11y": "playwright test tests/e2e/accessibility.spec.js --project=accessibility",
     "test:coverage": "vitest --coverage",
@@ -34,5 +34,5 @@
     "validate": "npm run lint && npm run test:run"
   },
   "type": "module",
-  "version": "0.3.0"
+  "version": "0.4.2"
 }

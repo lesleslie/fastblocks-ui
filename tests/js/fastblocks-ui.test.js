@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  defineFastBlocksCustomElements,
   enhanceDialogs,
   enhanceMenus,
   enhanceTabs,
@@ -136,5 +137,206 @@ describe('FastBlocks UI enhancement layer', () => {
   it('returns a cleanup function from the combined initializer', () => {
     cleanup = initFastBlocksUI(document);
     expect(typeof cleanup).toBe('function');
+  });
+
+  it('defines lightweight custom elements and upgrades tabs', () => {
+    defineFastBlocksCustomElements(window);
+
+    root.innerHTML = `
+      <ui-tabs class="ui-tabs" data-ui-tabs aria-label="Profile tabs">
+        <div class="ui-tabs__list" role="tablist">
+          <button type="button" class="ui-tabs__tab" data-ui-tab-target="#panel-1" aria-selected="true">One</button>
+          <button type="button" class="ui-tabs__tab" data-ui-tab-target="#panel-2" aria-selected="false">Two</button>
+        </div>
+        <section id="panel-1" class="ui-tabs__panel" data-ui-panel>First</section>
+        <section id="panel-2" class="ui-tabs__panel" data-ui-panel hidden>Second</section>
+      </ui-tabs>
+    `;
+
+    const tabsHost = root.querySelector('ui-tabs');
+    const secondTab = root.querySelector('[data-ui-tab-target="#panel-2"]');
+    secondTab.click();
+
+    expect(customElements.get('ui-tabs')).toBeTruthy();
+    expect(tabsHost.hasAttribute('data-ui-tabs')).toBe(true);
+    expect(secondTab.getAttribute('aria-selected')).toBe('true');
+    expect(root.querySelector('#panel-2').hasAttribute('hidden')).toBe(false);
+  });
+
+  it('honors cancelable tab change events', () => {
+    defineFastBlocksCustomElements(window);
+
+    root.innerHTML = `
+      <ui-tabs class="ui-tabs" data-ui-tabs aria-label="Profile tabs">
+        <div class="ui-tabs__list" role="tablist">
+          <button type="button" class="ui-tabs__tab" data-ui-tab-target="#panel-1" aria-selected="true">One</button>
+          <button type="button" class="ui-tabs__tab" data-ui-tab-target="#panel-2" aria-selected="false">Two</button>
+        </div>
+        <section id="panel-1" class="ui-tabs__panel" data-ui-panel>First</section>
+        <section id="panel-2" class="ui-tabs__panel" data-ui-panel hidden>Second</section>
+      </ui-tabs>
+    `;
+
+    const tabsHost = root.querySelector('ui-tabs');
+    tabsHost.addEventListener('ui-tab-change', (event) => event.preventDefault(), { once: true });
+
+    const secondTab = root.querySelector('[data-ui-tab-target="#panel-2"]');
+    secondTab.click();
+
+    expect(secondTab.getAttribute('aria-selected')).toBe('false');
+    expect(root.querySelector('#panel-2').hasAttribute('hidden')).toBe(true);
+  });
+
+  it('defines lightweight custom elements and upgrades dialogs and menus', () => {
+    defineFastBlocksCustomElements(window);
+
+    root.innerHTML = `
+      <ui-dialog class="ui-dialog" data-ui-dialog>
+        <button type="button" data-ui-dialog-trigger aria-controls="settings-dialog" aria-expanded="false">
+          Open dialog
+        </button>
+        <dialog id="settings-dialog" class="ui-dialog" aria-hidden="true">
+          <button type="button" data-ui-dialog-close>Close</button>
+        </dialog>
+      </ui-dialog>
+      <ui-menu class="ui-menu" data-ui-menu>
+        <button id="menu-trigger" type="button" data-ui-menu-trigger aria-controls="menu-panel" aria-expanded="false">
+          Menu
+        </button>
+        <div id="menu-panel" data-ui-menu hidden aria-label="Actions">
+          <a href="#">Edit</a>
+        </div>
+      </ui-menu>
+    `;
+
+    const dialogHost = root.querySelector('ui-dialog');
+    const dialogTrigger = root.querySelector('[data-ui-dialog-trigger]');
+    const dialogSurface = root.querySelector('#settings-dialog');
+    const dialogClose = root.querySelector('[data-ui-dialog-close]');
+    const menuHost = root.querySelector('ui-menu');
+    const menuTrigger = root.querySelector('#menu-trigger');
+    const menuBody = root.querySelector('#menu-panel');
+
+    dialogTrigger.click();
+    expect(dialogHost.hasAttribute('open')).toBe(true);
+    expect(dialogSurface.hasAttribute('open')).toBe(true);
+    expect(dialogTrigger.getAttribute('aria-expanded')).toBe('true');
+    dialogClose.click();
+    expect(dialogHost.hasAttribute('open')).toBe(false);
+    expect(dialogSurface.hasAttribute('open')).toBe(false);
+
+    menuTrigger.click();
+    expect(menuHost.hasAttribute('open')).toBe(true);
+    expect(menuBody.hidden).toBe(false);
+    document.body.click();
+    expect(menuHost.hasAttribute('open')).toBe(false);
+    expect(menuBody.hidden).toBe(true);
+  });
+
+  it('honors cancelable dialog and menu events and reconnects cleanly', () => {
+    defineFastBlocksCustomElements(window);
+
+    root.innerHTML = `
+      <ui-dialog class="ui-dialog" data-ui-dialog>
+        <button type="button" data-ui-dialog-trigger aria-controls="settings-dialog" aria-expanded="false">
+          Open dialog
+        </button>
+        <dialog id="settings-dialog" class="ui-dialog" aria-hidden="true">
+          <button type="button" data-ui-dialog-close>Close</button>
+        </dialog>
+      </ui-dialog>
+      <ui-menu class="ui-menu" data-ui-menu>
+        <button id="menu-trigger" type="button" data-ui-menu-trigger aria-controls="menu-panel" aria-expanded="false">
+          Menu
+        </button>
+        <div id="menu-panel" data-ui-menu hidden aria-label="Actions">
+          <a href="#">Edit</a>
+        </div>
+      </ui-menu>
+    `;
+
+    const dialogHost = root.querySelector('ui-dialog');
+    const dialogTrigger = root.querySelector('[data-ui-dialog-trigger]');
+    const menuHost = root.querySelector('ui-menu');
+    const menuTrigger = root.querySelector('#menu-trigger');
+    const menuBody = root.querySelector('#menu-panel');
+
+    dialogHost.addEventListener('ui-dialog-open', (event) => event.preventDefault(), { once: true });
+    dialogTrigger.click();
+    expect(dialogHost.hasAttribute('open')).toBe(false);
+
+    menuHost.addEventListener('ui-menu-open', (event) => event.preventDefault(), { once: true });
+    menuTrigger.click();
+    expect(menuHost.hasAttribute('open')).toBe(false);
+    expect(menuBody.hidden).toBe(true);
+
+    const menuOpenEvents = [];
+    menuHost.addEventListener('ui-menu-opened', () => menuOpenEvents.push('open'));
+    menuHost.remove();
+    document.body.appendChild(menuHost);
+    menuTrigger.click();
+    expect(menuHost.hasAttribute('open')).toBe(true);
+    expect(menuOpenEvents).toHaveLength(1);
+  });
+
+  it('resyncs custom elements after fragment replacement', async () => {
+    defineFastBlocksCustomElements(window);
+
+    root.innerHTML = `
+      <ui-dialog class="ui-dialog" data-ui-dialog>
+        <button type="button" data-ui-dialog-trigger aria-controls="initial-dialog" aria-expanded="false">
+          Open dialog
+        </button>
+        <dialog id="initial-dialog" class="ui-dialog" aria-hidden="true">
+          <button type="button" data-ui-dialog-close>Close</button>
+        </dialog>
+      </ui-dialog>
+      <ui-menu class="ui-menu" data-ui-menu>
+        <button id="menu-trigger" type="button" data-ui-menu-trigger aria-controls="menu-panel" aria-expanded="false">
+          Menu
+        </button>
+        <div id="menu-panel" data-ui-menu hidden aria-label="Actions">
+          <a href="#">Edit</a>
+        </div>
+      </ui-menu>
+    `;
+
+    const dialogHost = root.querySelector('ui-dialog');
+    const menuHost = root.querySelector('ui-menu');
+
+    dialogHost.innerHTML = `
+      <button type="button" data-ui-dialog-trigger aria-controls="replacement-dialog" aria-expanded="false">
+        Open replacement
+      </button>
+      <dialog id="replacement-dialog" class="ui-dialog" aria-hidden="true">
+        <button type="button" data-ui-dialog-close>Close replacement</button>
+      </dialog>
+    `;
+
+    menuHost.innerHTML = `
+      <button id="replacement-menu-trigger" type="button" data-ui-menu-trigger aria-controls="replacement-menu" aria-expanded="false">
+        Menu
+      </button>
+      <div id="replacement-menu" data-ui-menu hidden aria-label="Replacement actions">
+        <a href="#">View</a>
+      </div>
+    `;
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const replacementTrigger = root.querySelector('[aria-controls="replacement-dialog"]');
+    const replacementClose = root.querySelector('[data-ui-dialog-close]');
+    const replacementMenuTrigger = root.querySelector('#replacement-menu-trigger');
+    const replacementMenu = root.querySelector('#replacement-menu');
+
+    replacementTrigger.click();
+    expect(dialogHost.hasAttribute('open')).toBe(true);
+    replacementClose.click();
+    expect(dialogHost.hasAttribute('open')).toBe(false);
+
+    replacementMenuTrigger.click();
+    expect(menuHost.hasAttribute('open')).toBe(true);
+    expect(replacementMenu.hidden).toBe(false);
   });
 });
