@@ -17,7 +17,8 @@ __all__ = [
 def component_manifest() -> dict[str, Any]:
     """Load the canonical component manifest bundled with the package."""
     manifest_path = files(__package__).joinpath("manifest.json")
-    return json.loads(manifest_path.read_text(encoding="utf-8"))
+    data: dict[str, Any] = json.loads(manifest_path.read_text(encoding="utf-8"))
+    return data
 
 
 COMPONENT_MANIFEST = component_manifest()

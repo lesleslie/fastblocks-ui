@@ -5,7 +5,7 @@ import os
 import shutil
 
 
-def copy_assets(dest_dir):
+def copy_assets(dest_dir: str) -> None:
     """Copy FastBlocks UI assets to destination directory."""
     import fastblocks_ui
 
@@ -39,7 +39,7 @@ def copy_assets(dest_dir):
     print(f"FastBlocks UI assets copied to {static_dest}")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="FastBlocks UI CLI tools")
     parser.add_argument("command", choices=["copy-assets"], help="Command to execute")
     parser.add_argument(

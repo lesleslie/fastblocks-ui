@@ -13,7 +13,7 @@ its sibling package `fastblocks-htmy`. It is the single source of planning truth
 > "Endorse-with-changes." Their accepted findings are folded in below and tagged
 > `[rev]` where they changed a prior decision.
 
----
+______________________________________________________________________
 
 ## 1. Architecture decision record
 
@@ -52,6 +52,7 @@ ecosystem convention (one component = one repo).
 components + CSS means three generators of the same surface. We will NOT attempt to
 codegen the string helpers from the manifest (their ARIA/pagination logic is too
 bespoke). Instead:
+
 - Add htmy↔string **parity tests** (same `ui-*`/`is-*` token set for equivalent
   inputs).
 - Document that string helpers MAY be deprecated once htmy reaches parity; do not
@@ -73,6 +74,7 @@ READMEs.
 per-component props, variants, or required CSS classes. As-is it can only catch
 "component missing entirely," not signature/variant drift (the most likely
 divergence). Remediation:
+
 - **Extend the manifest schema** to include per-component props and allowed
   variants/sizes (WS-4), OR explicitly scope the guarantee to "name-level coverage
   only" in docs. We will extend it.
@@ -94,6 +96,7 @@ against it.
 ### 1.4 SemVer & breaking-change coordination
 
 **[rev] A pin is not a policy.** Written, enforced rule:
+
 - Any breaking change to a `ui-*`/`is-*` class, manifest entry, or asset path is a
   **major** bump in `fastblocks-ui` and requires a matching `fastblocks-htmy` release
   before its floor moves.
@@ -105,6 +108,7 @@ against it.
 
 **[rev] Define how htmy locates/serves the CSS+JS that live in the fastblocks-ui
 wheel** (the roadmap previously omitted this):
+
 - Resolution: `importlib.resources` path into the installed `fastblocks-ui` package;
   the FastBlocks adapter mounts it as a static route (no copy).
 - Cache-busting: append `?v=<fastblocks-ui version>` to emitted asset URLs.
@@ -119,7 +123,7 @@ soften the interim `fastblocks-ui` `pyproject.toml` `description` (line 4) and c
 `docs/usage.md` (it currently shows `{{ }}` Jinja, not FastBlocks `[[ ]]`), so the
 PyPI claim isn't misleading in the gap.
 
----
+______________________________________________________________________
 
 ## 2. fastblocks-ui remediation (this repo)
 
@@ -139,8 +143,7 @@ WS-1..WS-5 run in parallel after WS-0.
   Fix `tests/test_fastblocks_ui.py:43` to assert a version *format*, not the literal
   `0.4.2` (otherwise it re-breaks every release).
 - [ ] Add `fastblocks_ui/py.typed` AND declare it in
-  `[tool.setuptools.package-data]` (`pyproject.toml:68`): `fastblocks_ui =
-  ["py.typed", "manifest.json", "static/**/*"]`.
+  `[tool.setuptools.package-data]` (`pyproject.toml:68`): `fastblocks_ui = ["py.typed", "manifest.json", "static/**/*"]`.
 - [ ] `git rm --cached` tracked artifacts already covered by `.gitignore`
   (`.crackerjack/adapter_learning.db`, `.oneiric_cache/domain_activity.sqlite`,
   `fastbulma/.skylos/cache.sqlite`); finish removing the half-deleted `fastbulma/`.
@@ -156,8 +159,7 @@ The `themes/` dir (BOTH `default.css` and `dark.css`) is orphaned. CSS tests ass
 against the non-shipping module files.
 
 - [x] Declare the module CSS files the source of truth — the canonical content was
-  split verbatim out of the shipping bundle into `tokens/theme/base/utilities/
-  components.css` (+ existing `layout.css`); equivalence verified (0 declarations
+  split verbatim out of the shipping bundle into `tokens/theme/base/utilities/ components.css` (+ existing `layout.css`); equivalence verified (0 declarations
   lost/added).
 - [x] **Build step `tools/build_css.py`.** **DEVIATION from the lightningcss
   recommendation:** used a deterministic Python concatenator instead. Rationale: it
@@ -204,7 +206,7 @@ optimization pass.
   `role="progressbar"`, `value`/`max` attributes, text fallback). No inline `style=`,
   so it is safe under a strict `style-src`. The `ui-progress` CSS in `layout.css` was
   rewritten for the native element (`::-webkit-progress-value`/`::-moz-progress-bar`
-  + per-variant rules); the old `.ui-progress__bar` span is gone.
+  - per-variant rules); the old `.ui-progress__bar` span is gone.
 - [x] **[rev] Enforce CSP as a test:** `test_progress_is_csp_safe` asserts no `style=`
   in progress output (it was the only inline style in the helper surface).
 - [ ] **[rev] `pagination()` (`helpers.py:945,947,951`):** (a) replace
@@ -265,7 +267,7 @@ optimization pass.
   (now) declared-variant drift, but NOT signature/return-type parity between string
   helpers and htmy — that is covered by the §1.2 parity tests, not the manifest.
 
-### WS-5 — Dependency & supply-chain hygiene  **[rev — new workstream]**
+### WS-5 — Dependency & supply-chain hygiene **[rev — new workstream]**
 
 > Note: quality gates run via **crackerjack** (`crackerjack all`), not a GitHub
 > Actions workflow; "CI gate" below means the crackerjack pipeline.
@@ -281,7 +283,7 @@ optimization pass.
 - [x] `uv.lock` committed/refreshed (WS-0) and is the version source of truth.
 - [ ] *(carryover)* Document the dependency-floor strategy in CONTRIBUTING/README.
 
----
+______________________________________________________________________
 
 ## 3. fastblocks-htmy spin-up (new sibling repo)
 
@@ -302,7 +304,7 @@ scaffolded; correct its Python-floor claim — see §1.2).
 - [ ] Keep htmy components thin wrappers over the same `ui-*` classes; enforce via the
   §1.2 parity tests.
 
----
+______________________________________________________________________
 
 ## 4. Other improvements
 
@@ -314,28 +316,28 @@ scaffolded; correct its Python-floor claim — see §1.2).
   not just "a budget."
 - Keep Python floor decision documented as intent (§1.2) in the README.
 
----
+______________________________________________________________________
 
 ## 5. Future considerations / guardrails
 
 1. Manifest is law — new components land there first; all layers validated against it
    (existence + declared variants; parity covered separately).
-2. Track htmx 2.x and htmy versions; keep htmx-pattern components in `fastblocks-htmy`,
+1. Track htmx 2.x and htmy versions; keep htmx-pattern components in `fastblocks-htmy`,
    never in zero-dep `fastblocks-ui`.
-3. CSP-clean by default: no inline styles or handlers; **enforced by test** (WS-2).
-4. Accessibility as CI gates: axe **plus** named keyboard/focus acceptance tests for
+1. CSP-clean by default: no inline styles or handlers; **enforced by test** (WS-2).
+1. Accessibility as CI gates: axe **plus** named keyboard/focus acceptance tests for
    the JS layer; `prefers-reduced-motion`, `forced-colors`, `:focus-visible`.
-5. SemVer coordination protocol across two wheels (§1.4) — written gate + downstream
+1. SemVer coordination protocol across two wheels (§1.4) — written gate + downstream
    smoke CI, not just a pin.
-6. Modern CSS (`light-dark()` deliberately NOT used for theming — see WS-1; `:has()`,
+1. Modern CSS (`light-dark()` deliberately NOT used for theming — see WS-1; `:has()`,
    container queries, `color-mix()`) behind a documented browser baseline emitted by
    lightningcss.
-7. Three implementations must not become three behaviors — parity tests enforce it.
-8. **[rev / CONSIDER] RTL via logical properties** — migrate physical
+1. Three implementations must not become three behaviors — parity tests enforce it.
+1. **[rev / CONSIDER] RTL via logical properties** — migrate physical
    `margin-left`/`padding-left` to `margin-inline`/`padding-inline`.
-9. **[rev / CONSIDER] Print styles** — low priority, cheap.
+1. **[rev / CONSIDER] Print styles** — low priority, cheap.
 
----
+______________________________________________________________________
 
 ## 6. Sequencing
 

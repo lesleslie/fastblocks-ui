@@ -162,10 +162,6 @@ skip = "package-lock.json"
 paths = ["fastblocks_ui", "tests", "scripts"]
 max_complexity = 10
 
-[tool.zuban]
-# Configuration for zuban type checking
-config_file = "mypy.ini"
-
 [tool.refurb]
 # Configuration for refurb code quality tool
 python_version = "3.13"

@@ -100,28 +100,28 @@ __all__ = [
 ]
 
 
-def get_static_path():
+def get_static_path() -> str:
     """Return the path to static assets."""
     import os
 
     return os.path.join(os.path.dirname(__file__), "static")
 
 
-def get_css_path():
+def get_css_path() -> str:
     """Return the path to CSS assets."""
     import os
 
     return os.path.join(get_static_path(), "css", "fastblocks-ui.css")
 
 
-def get_js_path():
+def get_js_path() -> str:
     """Return the path to JS assets."""
     import os
 
     return os.path.join(get_static_path(), "js", "fastblocks-ui.js")
 
 
-def get_manifest_path():
+def get_manifest_path() -> str:
     """Return the path to the bundled component manifest."""
     import os
 
