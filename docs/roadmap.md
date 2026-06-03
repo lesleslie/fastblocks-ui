@@ -190,28 +190,23 @@ against the non-shipping module files.
 - [x] CSS tests now validate the canonical modules (which are the source) + a new test
   asserting the bundle declares the explicit `@layer` order.
 
-**WS-1 carryover (follow-up increment):** the `progress()` CSP swap to a native
-`<progress>` + new `ui-progress` CSS (WS-2 sequenced it here), the
-`prefers-color-scheme` default, and the optional lightningcss optimization pass.
+**WS-1 carryover (follow-up increment):** ~~the `progress()` CSP swap~~ (done), the
+`prefers-color-scheme` no-JS default (deferred — needs a no-duplication approach, e.g.
+a build-time macro so dark tokens aren't written twice), and the optional lightningcss
+optimization pass.
 
 ### WS-2 — Helper hardening
 
 - [ ] **[rev] `progress()` (`helpers.py:852,860,869`):** use floats throughout (both
   `int(value)` and `int(max_value)` truncate; `aria_valuenow` also lies); guard
   `max_value == 0`.
-- [ ] **[rev] `progress()` CSP — the previously-proposed "CSS var on style attr" does
-  NOT satisfy strict `style-src` (still inline).** Real fix: render the value with a
-  native `<progress>` element styled via `::-webkit-progress-value` /
-  `::-moz-progress-bar` (no inline width), with stepped utility classes
-  (`.ui-progress--{0..100 by 5}`) for the custom bar. **Ship the missing `ui-progress`
-  CSS** — it has no rule in `components.css` today; the bar is currently *only* the
-  inline width.
-  **→ SEQUENCED INTO WS-1:** this swap removes inline `style=` but requires shipping
-  new `ui-progress` CSS, so it lands with the single-CSS-source work, not against the
-  current diverged bundle. (WS-2 has already fixed the float-math + honest-ARIA bug
-  on the existing markup.)
-- [ ] **[rev] Enforce CSP as a test:** assert no helper output contains `style=`
-  (lands with the WS-1 `progress()` swap above — the only remaining inline style).
+- [x] **[rev] `progress()` CSP** — swapped to a native `<progress>` element (implicit
+  `role="progressbar"`, `value`/`max` attributes, text fallback). No inline `style=`,
+  so it is safe under a strict `style-src`. The `ui-progress` CSS in `layout.css` was
+  rewritten for the native element (`::-webkit-progress-value`/`::-moz-progress-bar`
+  + per-variant rules); the old `.ui-progress__bar` span is gone.
+- [x] **[rev] Enforce CSP as a test:** `test_progress_is_csp_safe` asserts no `style=`
+  in progress output (it was the only inline style in the helper surface).
 - [ ] **[rev] `pagination()` (`helpers.py:945,947,951`):** (a) replace
   `url_pattern.format(page=...)` with `url_pattern.replace("{page}", str(page))` —
   `.format()` allows attribute/index injection (`{page.__class__}`) and crashes on any

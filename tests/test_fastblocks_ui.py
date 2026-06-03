@@ -482,22 +482,34 @@ class TestHelperHardening(unittest.TestCase):
         self.assertEqual(pagination(1, 1), "")
 
     def test_progress_uses_float_math(self):
-        # 0.75 / 1 was truncated to 0 / 1 = 0% under the old int() math.
+        # 0.75 / 1 was truncated to 0 / 1 = 0% under the old int() math; the native
+        # <progress> carries honest value/max attributes.
         markup = progress(0.75, max_value=1)
-        self.assertIn('aria-valuenow="0.75"', markup)
-        self.assertIn('aria-valuemax="1"', markup)
-        self.assertIn("width: 75%", markup)
+        self.assertIn('value="0.75"', markup)
+        self.assertIn('max="1"', markup)
+        self.assertIn(">75%</progress>", markup)
 
-    def test_progress_honest_aria_for_fractional_value(self):
-        self.assertIn('aria-valuenow="33.5"', progress(33.5, max_value=100))
+    def test_progress_honest_value_for_fractional_input(self):
+        self.assertIn('value="33.5"', progress(33.5, max_value=100))
 
     def test_progress_handles_zero_max_without_crashing(self):
         markup = progress(5, max_value=0)
-        self.assertIn("width: 0%", markup)
-        self.assertIn('aria-valuenow="5"', markup)
+        self.assertIn(">0%</progress>", markup)
+        self.assertIn('value="5"', markup)
 
     def test_progress_clamps_overflow(self):
-        self.assertIn("width: 100%", progress(150, max_value=100))
+        self.assertIn(">100%</progress>", progress(150, max_value=100))
+
+    def test_progress_is_csp_safe(self):
+        # Native <progress> needs no inline width, so output never carries a
+        # style attribute (safe under a strict style-src CSP).
+        for markup in (
+            progress(50),
+            progress(0.5, max_value=1, variant="success", size="large"),
+            progress(150, max_value=100, show_label=True),
+        ):
+            self.assertNotIn("style=", markup)
+            self.assertIn("<progress", markup)
 
 
 class TestFastBlocksIntegration(unittest.TestCase):

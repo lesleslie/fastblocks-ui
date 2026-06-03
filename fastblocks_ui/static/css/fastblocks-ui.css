@@ -1295,32 +1295,52 @@
   /* =========================================================================
      PROGRESS
      ========================================================================= */
+  /* Native <progress> element: CSP-clean (no inline width), accessible by default. */
   .ui-progress {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     display: block;
     width: 100%;
     height: 0.5rem;
+    border: 0;
     background: var(--ui-color-surface-muted);
     border-radius: var(--ui-radius-pill);
     overflow: hidden;
-  }
-
-  .ui-progress__bar {
-    display: block;
-    height: 100%;
-    background: var(--ui-color-primary);
-    border-radius: var(--ui-radius-pill);
-    transition: width 300ms ease;
+    color: var(--ui-color-primary);
   }
 
   .ui-progress.is-small { height: 0.25rem; }
   .ui-progress.is-medium { height: 0.75rem; }
   .ui-progress.is-large { height: 1rem; }
 
-  .ui-progress__bar.is-primary { background: var(--ui-color-primary); }
-  .ui-progress__bar.is-info { background: var(--ui-color-info); }
-  .ui-progress__bar.is-success { background: var(--ui-color-success); }
-  .ui-progress__bar.is-warning { background: var(--ui-color-warning); }
-  .ui-progress__bar.is-danger { background: var(--ui-color-danger); }
+  /* Track */
+  .ui-progress::-webkit-progress-bar {
+    background: var(--ui-color-surface-muted);
+    border-radius: var(--ui-radius-pill);
+  }
+
+  /* Value (default variant = primary) */
+  .ui-progress::-webkit-progress-value {
+    background: var(--ui-color-primary);
+    border-radius: var(--ui-radius-pill);
+    transition: width 300ms ease;
+  }
+
+  .ui-progress::-moz-progress-bar {
+    background: var(--ui-color-primary);
+    border-radius: var(--ui-radius-pill);
+  }
+
+  /* Variants — vendor pseudo-elements must be separate rules. */
+  .ui-progress.is-info::-webkit-progress-value { background: var(--ui-color-info); }
+  .ui-progress.is-info::-moz-progress-bar { background: var(--ui-color-info); }
+  .ui-progress.is-success::-webkit-progress-value { background: var(--ui-color-success); }
+  .ui-progress.is-success::-moz-progress-bar { background: var(--ui-color-success); }
+  .ui-progress.is-warning::-webkit-progress-value { background: var(--ui-color-warning); }
+  .ui-progress.is-warning::-moz-progress-bar { background: var(--ui-color-warning); }
+  .ui-progress.is-danger::-webkit-progress-value { background: var(--ui-color-danger); }
+  .ui-progress.is-danger::-moz-progress-bar { background: var(--ui-color-danger); }
 
   /* =========================================================================
      RESPONSIVE

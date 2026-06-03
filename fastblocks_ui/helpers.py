@@ -860,31 +860,32 @@ def progress(
         size: "small", "medium", or "large"
         variant: "primary", "info", "success", "warning", "danger"
         show_label: Include aria-label with percentage
+
+    Renders a native ``<progress>`` element: it carries an implicit
+    ``role="progressbar"`` with ``valuenow``/``valuemax`` derived from
+    ``value``/``max``, and needs no inline ``style`` (safe under a strict
+    ``style-src`` CSP).
     """
     value_f = float(value)
     max_f = float(max_value)
     ratio = (value_f / max_f) if max_f else 0.0
     percentage = min(100.0, max(0.0, ratio * 100.0))
-    size_class = f"is-{size}" if size else None
-    classes = _flatten_classes("ui-progress", size_class, class_)
-    bar_classes = _flatten_classes("ui-progress__bar", f"is-{variant}")
+    classes = _flatten_classes(
+        "ui-progress",
+        f"is-{size}" if size else None,
+        variant and f"is-{variant}",
+        class_,
+    )
 
     attr_html = _render_attrs(
         class_=classes,
-        role="progressbar",
-        aria_valuenow=_format_number(value_f),
-        aria_valuemin="0",
-        aria_valuemax=_format_number(max_f),
+        value=_format_number(value_f),
+        max=_format_number(max_f),
         aria_label=f"{percentage:.0f}% complete" if show_label else None,
         **attrs,
     )
 
-    bar_attr_html = _render_attrs(
-        class_=bar_classes,
-        style=f"width: {percentage:.4g}%",
-    )
-
-    return _safe(f"<div{attr_html}><span{bar_attr_html}></span></div>")
+    return _safe(f"<progress{attr_html}>{percentage:.0f}%</progress>")
 
 
 def table(
