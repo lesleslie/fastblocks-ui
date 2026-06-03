@@ -40,7 +40,9 @@ from fastblocks_ui.cli import main as cli_main
 
 class TestPackageMetadata(unittest.TestCase):
     def test_version_and_license(self):
-        self.assertEqual(fastblocks_ui.__version__, "0.4.2")
+        # Version is single-sourced from installed package metadata (PEP 621),
+        # so assert a PEP 440-style format rather than a brittle literal.
+        self.assertRegex(fastblocks_ui.__version__, r"^\d+\.\d+\.\d+")
         self.assertEqual(fastblocks_ui.__license__, "BSD-3-Clause")
         self.assertEqual(fastblocks_ui.__author__, "FastBlocks UI Team")
 
@@ -62,6 +64,7 @@ class TestPackageMetadata(unittest.TestCase):
             files(fastblocks_ui).joinpath("static/js/manifest.js").is_file()
         )
         self.assertTrue(files(fastblocks_ui).joinpath("manifest.json").is_file())
+        self.assertTrue(files(fastblocks_ui).joinpath("py.typed").is_file())
 
     def test_manifest_exposes_component_surface(self):
         names = [component["name"] for component in COMPONENT_MANIFEST["components"]]
@@ -123,6 +126,7 @@ class TestPackageMetadata(unittest.TestCase):
         self.assertIn("tests*", package_find["exclude"])
         self.assertIn("scripts*", package_find["exclude"])
         self.assertIn("node_modules*", package_find["exclude"])
+        self.assertIn("py.typed", package_data)
         self.assertIn("manifest.json", package_data)
         self.assertIn("static/**/*", package_data)
 

@@ -65,7 +65,7 @@ include = ["fastblocks_ui", "fastblocks_ui.*"]
 exclude = ["tests*", "scripts*", "node_modules*", "src*"]
 
 [tool.setuptools.package-data]
-fastblocks_ui = ["manifest.json", "static/**/*"]
+fastblocks_ui = ["py.typed", "manifest.json", "static/**/*"]
 
 # ============================================================================
 # Crackerjack Quality Tools Configuration

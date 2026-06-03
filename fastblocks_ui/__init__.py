@@ -1,6 +1,13 @@
 """FastBlocks UI package helpers and asset path utilities."""
 
-__version__ = "0.4.2"
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _dist_version
+
+try:
+    __version__ = _dist_version("fastblocks-ui")
+except PackageNotFoundError:  # running from a source checkout without an install
+    __version__ = "0.0.0+dev"
+
 __author__ = "FastBlocks UI Team"
 __license__ = "BSD-3-Clause"
 
