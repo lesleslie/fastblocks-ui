@@ -276,6 +276,42 @@ class TestCSSBuild(unittest.TestCase):
         self.assertIn("forced-colors: active", content)
 
 
+class TestManifestContract(unittest.TestCase):
+    """The manifest is the single source of truth; every layer must agree with it."""
+
+    def test_every_helper_is_exported_and_callable(self):
+        for component in COMPONENT_MANIFEST["components"]:
+            helper = component["helper"]
+            self.assertIn(
+                helper, fastblocks_ui.__all__, f"{helper!r} missing from __all__"
+            )
+            self.assertTrue(
+                callable(getattr(fastblocks_ui, helper, None)),
+                f"{helper!r} is not an importable callable",
+            )
+
+    def test_every_class_name_is_styled_in_bundle(self):
+        with open(fastblocks_ui.get_css_path(), encoding="utf-8") as handle:
+            css = handle.read()
+        for component in COMPONENT_MANIFEST["components"]:
+            class_name = component["class_name"]
+            self.assertIn(
+                f".{class_name}",
+                css,
+                f"{class_name!r} has no rule in the shipped bundle",
+            )
+
+    def test_every_component_is_documented(self):
+        components_doc = Path(__file__).resolve().parents[1] / "docs" / "components.md"
+        content = components_doc.read_text(encoding="utf-8")
+        for component in COMPONENT_MANIFEST["components"]:
+            self.assertIn(
+                f"| {component['name']} |",
+                content,
+                f"{component['name']!r} missing from docs/components.md",
+            )
+
+
 class TestDocumentationConsistency(unittest.TestCase):
     def test_active_guidance_does_not_describe_legacy_fast_runtime(self):
         repo_root = Path(__file__).resolve().parents[1]

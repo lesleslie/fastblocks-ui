@@ -261,8 +261,11 @@ optimization pass.
 - [ ] **[rev] Extend the manifest schema** beyond `name/class_name/helper/description`
   to include per-component props and allowed variants/sizes (leverage existing
   `scripts/generate-*.py`).
-- [ ] CI check: manifest components == exported helpers == documented components ==
-  CSS classes present in the bundle.
+- [x] **Contract tests added** (`TestManifestContract`): every manifest component's
+  helper is exported & callable, its `class_name` is styled in the shipped bundle, and
+  it is documented in `docs/components.md`. These immediately caught real drift —
+  `navbar`/`breadcrumb`/`progress`/`table`/`pagination` were missing from the docs;
+  now added and guarded.
 - [ ] **[rev] Document the limitation:** a Python-side manifest catches existence and
   (now) declared-variant drift, but NOT signature/return-type parity between string
   helpers and htmy — that is covered by the §1.2 parity tests, not the manifest.

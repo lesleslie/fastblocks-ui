@@ -16,6 +16,8 @@ This page is generated from `fastblocks_ui/manifest.json`. Keep the manifest and
 | title | `ui-title` | `title()` | Typography title element |
 | media | `ui-media` | `media()` | Image + text pair |
 | tile | `ui-tile` | `tile()` | Hierarchical tile layout |
+| navbar | `ui-navbar` | `navbar()` | Navigation bar with brand and menu items. |
+| breadcrumb | `ui-breadcrumb` | `breadcrumb()` | Navigation trail with links and current page. |
 
 ## UI Components
 
@@ -32,6 +34,9 @@ This page is generated from `fastblocks_ui/manifest.json`. Keep the manifest and
 | tabs | `ui-tabs` | `tabs()` | Accessible tablist, tab, and panel patterns. |
 | menu | `ui-menu` | `menu()` | Disclosure and navigation menu styling. |
 | alert | `ui-alert` | `alert()` | Inline notices and status messaging. |
+| progress | `ui-progress` | `progress()` | Progress bar with value and variants. |
+| table | `ui-table` | `table()` | Styled table with optional striping and hover. |
+| pagination | `ui-pagination` | `pagination()` | Pagination links with current page indicator. |
 
 ## State Modifiers
 
