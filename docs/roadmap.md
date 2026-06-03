@@ -187,8 +187,11 @@ against the non-shipping module files.
 - [x] **Kept the `[data-theme="dark"]` override model; rejected `light-dark()`** (keys
   off `color-scheme`, not the explicit toggle; can't express non-color tokens). The
   block is now generated from the single `theme.css` source.
-- [ ] *(carryover)* Add `@media (prefers-color-scheme: dark)` no-JS default, gated so
-  an explicit `[data-theme="light"]` still wins.
+- [x] **Added `@media (prefers-color-scheme: dark)` no-JS default**, gated to
+  `:root:not([data-theme])` so an explicit theme still wins. Implemented as a
+  **build-time macro** in `build_css.py` that generates the block from the single
+  `[data-theme="dark"]` source — no hand-duplicated dark tokens. Verified in-browser
+  via the CSSOM; test guards it.
 - [x] CSS tests now validate the canonical modules (which are the source) + a new test
   asserting the bundle declares the explicit `@layer` order.
 

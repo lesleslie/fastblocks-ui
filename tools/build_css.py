@@ -20,6 +20,7 @@ the bundle was not rebuilt.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -49,14 +50,41 @@ HEADER = (
 )
 
 
+def _auto_dark_block(theme_css: str) -> str:
+    """Generate an OS-preference dark block from the single ``[data-theme="dark"]``
+    source so the dark tokens are never duplicated by hand.
+
+    Applies only to ``:root:not([data-theme])`` so an explicit ``data-theme`` (light
+    or dark) always wins over the system setting.
+    """
+    match = re.search(r'\[data-theme="dark"\]\s*\{(.*?)\n {2}\}', theme_css, re.S)
+    if not match:
+        return ""
+    body = match.group(1).strip("\n")
+    return (
+        "\n@layer theme {\n"
+        "  /* GENERATED from [data-theme=\"dark\"]: OS dark-mode default. */\n"
+        "  @media (prefers-color-scheme: dark) {\n"
+        "    :root:not([data-theme]) {\n"
+        f"{body}\n"
+        "    }\n"
+        "  }\n"
+        "}\n"
+    )
+
+
 def render_bundle() -> str:
     layer_stmt = "@layer " + ", ".join(LAYER_ORDER) + ";\n"
     parts = [HEADER, "\n", layer_stmt]
+    theme_css = ""
     for name in MODULES:
         module_text = (CSS_DIR / name).read_text(encoding="utf-8").strip("\n")
+        if name == "theme.css":
+            theme_css = module_text
         parts.append("\n")
         parts.append(module_text)
         parts.append("\n")
+    parts.append(_auto_dark_block(theme_css))
     return "".join(parts)
 
 

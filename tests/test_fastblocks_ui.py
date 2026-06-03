@@ -275,6 +275,14 @@ class TestCSSBuild(unittest.TestCase):
         self.assertIn("prefers-reduced-motion: reduce", content)
         self.assertIn("forced-colors: active", content)
 
+    def test_bundle_includes_os_dark_mode_default(self):
+        # Generated from the single [data-theme="dark"] source; gated to
+        # :root:not([data-theme]) so an explicit theme choice still wins.
+        with open(fastblocks_ui.get_css_path(), encoding="utf-8") as handle:
+            content = handle.read()
+        self.assertIn("prefers-color-scheme: dark", content)
+        self.assertIn(":root:not([data-theme])", content)
+
 
 class TestManifestContract(unittest.TestCase):
     """The manifest is the single source of truth; every layer must agree with it."""
