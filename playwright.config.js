@@ -24,7 +24,7 @@ export default defineConfig({
   ],
 
   use: {
-    // Base URL for tests - demo.html is served from src/fastblocks_ui.
+    // Base URL for tests - demo.html is served from the fastblocks_ui package.
     baseURL: 'http://localhost:8080',
 
     // Collect trace when retrying the failed test
@@ -68,7 +68,7 @@ export default defineConfig({
 
   // Run your local dev server before starting the tests
   webServer: {
-    command: 'python3 -m http.server 8080 --directory src/fastblocks_ui',
+    command: 'python3 -m http.server 8080 --directory fastblocks_ui',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

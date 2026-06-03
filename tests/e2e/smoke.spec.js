@@ -10,7 +10,12 @@ test.describe('FastBlocks UI smoke', () => {
     await expect(page.getByRole('heading', { name: 'FastBlocks UI' })).toBeVisible();
     await expect(page.getByText('HTML/CSS-first components, semantic tokens, htmx-safe fragments, and optional enhancement JavaScript.')).toBeVisible();
     await expect(page.getByText('Source of truth:')).toBeVisible();
-    await expect(page.locator('[data-ui-component-list] .ui-badge')).toHaveCount(11);
+    const manifest = await page.evaluate(() =>
+      fetch('/manifest.json').then((response) => response.json()),
+    );
+    await expect(page.locator('[data-ui-component-list] .ui-badge')).toHaveCount(
+      manifest.components.length,
+    );
     await expect(page.getByRole('heading', { name: 'Validation' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Display name must be at least 3 characters.' })).toBeVisible();
     await expect(page.locator('#demo-display-name-error')).toBeVisible();

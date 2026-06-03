@@ -245,12 +245,16 @@ optimization pass.
   - *Discovery:* menu and dialog logic is **duplicated** across a custom-element class
     and a function enhancer; the shared helper removes the menu duplication. The dialog
     pair should be consolidated similarly.
-- [ ] *(carryover — needs browser verification)* **Dialog focus trap** on the
-  `setAttribute('open')` fallback path (`showModal()` traps natively, the fallback does
-  not). Deferred because reliable focus-trap/modal semantics need a real browser
-  (Playwright), not jsdom, and the fix touches both dialog implementations.
-- [ ] *(carryover)* Extend the existing axe suite (`tests/e2e/accessibility.spec.js`)
-  with named Playwright interaction tests for the focus trap + focus restoration.
+- [x] **Dialog focus trap** on the `setAttribute('open')` fallback path — added a
+  shared `trapTabFocus` helper (Tab/Shift+Tab wrap) wired into BOTH dialog
+  implementations, tracking modal vs fallback so native `showModal()` keeps its own
+  trap. Covered by a deterministic jsdom test (forced fallback) AND a real-browser
+  Playwright spec (`tests/e2e/dialog-focus-trap.spec.js`): focus-into-dialog, Escape
+  restores focus to the trigger, and Tab wraps on the fallback path. Both pass in
+  Chromium.
+- [x] **Fixed the stale Playwright `webServer`** (`src/fastblocks_ui` →
+  `fastblocks_ui`); the whole e2e suite was serving an empty dir. Made the smoke
+  badge-count assertion derive from the served manifest (no longer hard-coded to 11).
 - [x] **[rev] Added `prefers-reduced-motion` global block** to `base.css` (neutralizes
   animations/transitions/smooth-scroll — WCAG 2.3.3); test asserts it ships.
 - [x] **[rev] Added `@media (forced-colors: active)`** outline fallback so the

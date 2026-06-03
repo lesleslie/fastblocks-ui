@@ -316,6 +316,38 @@ describe('FastBlocks UI enhancement layer', () => {
     expect(document.activeElement).toBe(trigger);
   });
 
+  it('traps Tab focus in the non-modal dialog fallback path', () => {
+    defineFastBlocksCustomElements(window);
+
+    root.innerHTML = `
+      <ui-dialog class="ui-dialog" data-ui-dialog>
+        <button type="button" data-ui-dialog-trigger aria-controls="ft-dialog" aria-expanded="false">Open</button>
+        <dialog id="ft-dialog" class="ui-dialog" aria-hidden="true">
+          <button id="ft-first" type="button" data-ui-dialog-close>Close</button>
+          <a id="ft-last" href="#ok">OK</a>
+        </dialog>
+      </ui-dialog>
+    `;
+
+    const dialog = root.querySelector('#ft-dialog');
+    // Force the non-modal fallback so our trap (not native showModal) runs.
+    dialog.showModal = undefined;
+    root.querySelector('[data-ui-dialog-trigger]').click();
+
+    const first = root.querySelector('#ft-first');
+    const last = root.querySelector('#ft-last');
+
+    last.focus();
+    last.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(document.activeElement).toBe(first); // wrapped forward
+
+    first.focus();
+    first.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }),
+    );
+    expect(document.activeElement).toBe(last); // wrapped backward
+  });
+
   it('navigates ui-menu custom-element items with arrow keys', () => {
     defineFastBlocksCustomElements(window);
 

@@ -151,6 +151,46 @@ function handleMenuKeydown(event, { menu, trigger, open, close }) {
   return false;
 }
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function focusableWithin(container) {
+  if (!container) {
+    return [];
+  }
+  return Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+    (el) => !el.closest('[hidden]'),
+  );
+}
+
+// Wrap Tab focus inside a container. Native modal dialogs (showModal) trap focus
+// themselves; this backs the non-modal fallback path (setAttribute('open')) where
+// the browser does not. Returns true if focus was wrapped.
+function trapTabFocus(event, container) {
+  if (event.key !== 'Tab' || !container) {
+    return false;
+  }
+  const items = focusableWithin(container);
+  if (items.length === 0) {
+    return false;
+  }
+  const first = items[0];
+  const last = items[items.length - 1];
+  const active = document.activeElement;
+  if (event.shiftKey) {
+    if (active === first || !container.contains(active)) {
+      event.preventDefault();
+      last.focus({ preventScroll: true });
+      return true;
+    }
+  } else if (active === last || !container.contains(active)) {
+    event.preventDefault();
+    first.focus({ preventScroll: true });
+    return true;
+  }
+  return false;
+}
+
 class UiTabsElement extends HTMLElement {
   constructor() {
     super();
@@ -356,8 +396,10 @@ class UiDialogElement extends HTMLElement {
 
     if (typeof dialog.showModal === 'function' && !dialog.open) {
       dialog.showModal();
+      this._modal = true;
     } else {
       dialog.setAttribute('open', '');
+      this._modal = false;
     }
 
     dialog.setAttribute('aria-hidden', 'false');
@@ -441,13 +483,17 @@ class UiDialogElement extends HTMLElement {
   }
 
   onKeyDown(event) {
-    if (event.key !== 'Escape') {
+    const dialog = this.getDialog();
+    if (event.key === 'Escape') {
+      if (dialog?.open) {
+        this.closeDialog();
+      }
       return;
     }
 
-    const dialog = this.getDialog();
-    if (dialog?.open) {
-      this.closeDialog();
+    // Native modal dialogs trap Tab themselves; back the non-modal fallback.
+    if (event.key === 'Tab' && dialog?.hasAttribute('open') && !this._modal) {
+      trapTabFocus(event, dialog);
     }
   }
 }
@@ -683,8 +729,10 @@ function showDialog(dialog, trigger) {
 
   if (typeof dialog.showModal === 'function' && !dialog.open) {
     dialog.showModal();
+    dialog.__uiModal = true;
   } else {
     dialog.setAttribute('open', '');
+    dialog.__uiModal = false;
   }
 
   dialog.setAttribute('open', '');
@@ -738,13 +786,23 @@ export function enhanceDialogs(root = document) {
   };
 
   const onKeyDown = (event) => {
-    if (event.key !== 'Escape') {
+    const openDialog = root.querySelector('dialog[open], [data-ui-dialog][open]');
+    if (
+      !openDialog ||
+      isCustomElementHost(openDialog, 'ui-dialog') ||
+      openDialog.closest('ui-dialog')
+    ) {
       return;
     }
 
-    const openDialog = root.querySelector('dialog[open], [data-ui-dialog][open]');
-    if (openDialog && !isCustomElementHost(openDialog, 'ui-dialog') && !openDialog.closest('ui-dialog')) {
+    if (event.key === 'Escape') {
       closeDialog(openDialog);
+      return;
+    }
+
+    // Native modal dialogs trap Tab themselves; back the non-modal fallback.
+    if (event.key === 'Tab' && !openDialog.__uiModal) {
+      trapTabFocus(event, openDialog);
     }
   };
 
