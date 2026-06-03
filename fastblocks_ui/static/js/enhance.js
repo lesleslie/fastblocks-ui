@@ -3,6 +3,7 @@ const PANEL_SELECTOR = '[data-ui-panel]';
 const DIALOG_TRIGGER_SELECTOR = '[data-ui-dialog-trigger]';
 const DIALOG_CLOSE_SELECTOR = '[data-ui-dialog-close]';
 const MENU_TRIGGER_SELECTOR = '[data-ui-menu-trigger]';
+const MENU_ITEM_SELECTOR = 'a[href], button:not([disabled]), [role="menuitem"]';
 
 function dispatchCustomEvent(target, name, detail = {}, options = {}) {
   return target.dispatchEvent(
@@ -72,6 +73,82 @@ function activateTab(tabRoot, tab) {
 
 function isCustomElementHost(element, tagName) {
   return Boolean(element?.matches?.(tagName));
+}
+
+function menuItems(menu) {
+  if (!menu) {
+    return [];
+  }
+  return Array.from(menu.querySelectorAll(MENU_ITEM_SELECTOR));
+}
+
+// Shared keyboard handling for the menu disclosure pattern (used by both the
+// custom-element and the function-based enhancers). Implements the WAI-ARIA menu
+// keyboard contract: arrow navigation, Home/End, Escape (close + restore focus),
+// and Tab (close). Returns true if the event was consumed.
+function handleMenuKeydown(event, { menu, trigger, open, close }) {
+  if (!menu) {
+    return false;
+  }
+
+  const { key } = event;
+  const items = menuItems(menu);
+  const onTrigger = Boolean(
+    trigger && (event.target === trigger || trigger.contains(event.target)),
+  );
+
+  if (key === 'Escape') {
+    if (!menu.hidden) {
+      close();
+      trigger?.focus?.({ preventScroll: true });
+      return true;
+    }
+    return false;
+  }
+
+  // Open from the trigger and move into the list.
+  if (onTrigger && (key === 'ArrowDown' || key === 'Enter' || key === ' ')) {
+    event.preventDefault();
+    if (menu.hidden) {
+      open();
+    }
+    items[0]?.focus?.({ preventScroll: true });
+    return true;
+  }
+
+  if (menu.hidden || items.length === 0) {
+    return false;
+  }
+
+  const index = items.indexOf(document.activeElement);
+
+  if (key === 'ArrowDown') {
+    event.preventDefault();
+    (items[(index + 1) % items.length] || items[0]).focus({ preventScroll: true });
+    return true;
+  }
+  if (key === 'ArrowUp') {
+    event.preventDefault();
+    (
+      items[(index - 1 + items.length) % items.length] || items[items.length - 1]
+    ).focus({ preventScroll: true });
+    return true;
+  }
+  if (key === 'Home') {
+    event.preventDefault();
+    items[0].focus({ preventScroll: true });
+    return true;
+  }
+  if (key === 'End') {
+    event.preventDefault();
+    items[items.length - 1].focus({ preventScroll: true });
+    return true;
+  }
+  if (key === 'Tab') {
+    // Let focus leave naturally, but collapse the menu behind it.
+    close();
+  }
+  return false;
 }
 
 class UiTabsElement extends HTMLElement {
@@ -484,9 +561,12 @@ class UiMenuElement extends HTMLElement {
   }
 
   onKeyDown(event) {
-    if (event.key === 'Escape') {
-      this.closeMenu();
-    }
+    handleMenuKeydown(event, {
+      menu: this.getMenu(),
+      trigger: this.getTrigger(),
+      open: () => this.setOpen(true),
+      close: () => this.closeMenu(),
+    });
   }
 
   onDocumentClick(event) {
@@ -750,11 +830,23 @@ export function enhanceMenus(root = document) {
   };
 
   const onKeyDown = (event) => {
-    if (event.key !== 'Escape') {
-      return;
+    // Route the event to the menu that owns the current focus, or any open menu.
+    for (const [trigger, menu] of menus) {
+      const relevant =
+        trigger.contains(event.target) || menu.contains(event.target) || !menu.hidden;
+      if (!relevant) {
+        continue;
+      }
+      const handled = handleMenuKeydown(event, {
+        menu,
+        trigger,
+        open: () => openMenu(trigger, menu),
+        close: () => closeMenu(trigger, menu),
+      });
+      if (handled) {
+        return;
+      }
     }
-
-    closeAllMenus();
   };
 
   root.addEventListener('click', onClick);

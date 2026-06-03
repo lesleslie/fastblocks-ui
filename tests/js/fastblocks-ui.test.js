@@ -279,6 +279,65 @@ describe('FastBlocks UI enhancement layer', () => {
     expect(menuOpenEvents).toHaveLength(1);
   });
 
+  it('navigates menu items with the keyboard and restores focus on escape', () => {
+    root.innerHTML = `
+      <button id="menu-trigger" type="button" data-ui-menu-trigger aria-controls="kbd-menu" aria-expanded="false">Menu</button>
+      <div id="kbd-menu" data-ui-menu hidden aria-label="Actions">
+        <a href="#one">One</a>
+        <a href="#two">Two</a>
+        <a href="#three">Three</a>
+      </div>
+    `;
+
+    cleanup = enhanceMenus(document);
+
+    const trigger = root.querySelector('#menu-trigger');
+    const items = root.querySelectorAll('#kbd-menu a');
+
+    trigger.focus();
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    expect(root.querySelector('#kbd-menu').hidden).toBe(false);
+    expect(document.activeElement).toBe(items[0]);
+
+    items[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    expect(document.activeElement).toBe(items[1]);
+
+    items[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    expect(document.activeElement).toBe(items[2]);
+
+    items[2].dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+    expect(document.activeElement).toBe(items[0]);
+
+    items[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    expect(document.activeElement).toBe(items[2]);
+
+    items[2].dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(root.querySelector('#kbd-menu').hidden).toBe(true);
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('navigates ui-menu custom-element items with arrow keys', () => {
+    defineFastBlocksCustomElements(window);
+
+    root.innerHTML = `
+      <ui-menu class="ui-menu" data-ui-menu>
+        <button id="cm-trigger" type="button" data-ui-menu-trigger aria-controls="cm-menu" aria-expanded="false">Menu</button>
+        <div id="cm-menu" data-ui-menu hidden aria-label="Actions">
+          <a href="#a">A</a>
+          <a href="#b">B</a>
+        </div>
+      </ui-menu>
+    `;
+
+    const trigger = root.querySelector('#cm-trigger');
+    const items = root.querySelectorAll('#cm-menu a');
+
+    trigger.click();
+    items[0].focus();
+    items[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    expect(document.activeElement).toBe(items[1]);
+  });
+
   it('resyncs custom elements after fragment replacement', async () => {
     defineFastBlocksCustomElements(window);
 

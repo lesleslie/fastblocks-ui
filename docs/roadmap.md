@@ -232,14 +232,20 @@ optimization pass.
   generic Jinja (`{{ }}`) and pointing FastBlocks `[[ ]]` integration to
   `fastblocks-htmy`. Also softened the `pyproject.toml` description (interim branding
   honesty, §1.6) so the PyPI metadata no longer overclaims FastBlocks-optimization.
-- [ ] **[rev] Extend (not "add") the existing axe suite**
-  (`tests/e2e/accessibility.spec.js`). axe cannot catch the behaviors the custom
-  elements implement — add named Playwright acceptance tests for:
-  - **Dialog focus trap** on the `setAttribute('open')` fallback path
-    (`enhance.js:283`) — `showModal()` traps natively, the fallback does not.
-  - **Menu arrow-key navigation + focus management** — `UiMenuElement.onKeyDown`
-    (`enhance.js:486`) only handles Escape; `role="menu"` requires arrow keys.
-  - **Focus restoration** after dialog/menu close (ESC, backdrop, roving tabindex).
+- [x] **Menu arrow-key navigation + focus management** — added a shared
+  `handleMenuKeydown` helper (ArrowUp/Down with wrap, Home/End, Enter/Space-to-open,
+  Tab-to-close, Escape closes + restores focus to the trigger) wired into BOTH the
+  `UiMenuElement` class and the function-based `enhanceMenus` (previously Escape-only,
+  and duplicated). jsdom tests cover both paths.
+  - *Discovery:* menu and dialog logic is **duplicated** across a custom-element class
+    and a function enhancer; the shared helper removes the menu duplication. The dialog
+    pair should be consolidated similarly.
+- [ ] *(carryover — needs browser verification)* **Dialog focus trap** on the
+  `setAttribute('open')` fallback path (`showModal()` traps natively, the fallback does
+  not). Deferred because reliable focus-trap/modal semantics need a real browser
+  (Playwright), not jsdom, and the fix touches both dialog implementations.
+- [ ] *(carryover)* Extend the existing axe suite (`tests/e2e/accessibility.spec.js`)
+  with named Playwright interaction tests for the focus trap + focus restoration.
 - [x] **[rev] Added `prefers-reduced-motion` global block** to `base.css` (neutralizes
   animations/transitions/smooth-scroll — WCAG 2.3.3); test asserts it ships.
 - [x] **[rev] Added `@media (forced-colors: active)`** outline fallback so the
