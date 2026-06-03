@@ -299,22 +299,31 @@ ______________________________________________________________________
 
 ## 3. fastblocks-htmy spin-up (new sibling repo)
 
-Reference spec: `docs/fastblocks-htmy-spec.md` (move into the new repo once
-scaffolded; correct its Python-floor claim — see §1.2).
+Reference spec copied to the new repo at `fastblocks-htmy/docs/spec.md`.
+**Scaffolded at `/Users/les/Projects/fastblocks-htmy/` (separate git repo, initial
+commit `f3b7755`).**
 
-- [ ] Scaffold `fastblocks-htmy` with crackerjack (own `.git`, `pyproject.toml`,
-  `py.typed`, coverage target).
-- [ ] `FastBlocksComponent` base + Phase 1 components: Button, Container, Table, Field.
-- [ ] **Adapter** (`fastblocks_htmy/fastblocks/`): register CSS/JS assets (per §1.5)
-  and install helpers/components as template globals using FastBlocks `[[ ]]`
-  delimiters. This is the deliverable that makes the FastBlocks branding true.
-- [ ] Generate htmy component stubs from the installed `fastblocks-ui` manifest;
-  validate coverage + the CSS-token presence check (§1.3) in CI.
-- [ ] Import-time version-range assertion + hard upper-bound pin on `fastblocks-ui`
-  (§1.3).
-- [ ] Pin `htmy` with a tested floor; add htmx-pattern components (DataTable, Modal).
-- [ ] Keep htmy components thin wrappers over the same `ui-*` classes; enforce via the
-  §1.2 parity tests.
+- [x] Scaffolded `fastblocks-htmy` (own `.git`, `pyproject.toml`, `py.typed`,
+  coverage target; ruff + pyright clean; 9 tests).
+- [x] `FastBlocksComponent` base + Phase 1 components: Button, Container, Table, Field
+  — thin wrappers rendering fastblocks-ui helper output wrapped in htmy `SafeStr`.
+- [x] **Adapter** (`fastblocks_htmy/fastblocks/`): `asset_paths`, cache-busted
+  `asset_urls` (per §1.5), and `template_globals` (components + helpers + asset URLs)
+  for a FastBlocks `[[ ]]` environment. (Live framework wiring is documented; the
+  registration surface is in place.)
+- [x] Import-time fastblocks-ui version-range check (`>=0.5,<0.6`) + hard pyproject
+  pin (§1.3).
+- [x] Pinned `htmy>=0.11`. Verified the bridge renders via `HTMY().render(...)`.
+- [x] **Parity test** asserts the htmy Button output is byte-identical to the
+  fastblocks-ui helper (§1.2) — the anti-drift guarantee.
+- [ ] *(carryover)* Generate htmy stubs from the manifest + CSS-token presence CI
+  (§1.3); add htmx-pattern components (DataTable, Modal); extend parity tests to all
+  components.
+
+> **Cross-repo testing gotcha (informs §1.3):** with both packages at `0.5.0`, `uv`'s
+> cache conflated the local fastblocks-ui build with PyPI's same-version wheel. A
+> distinct local/dev version avoids it — reinforces that the SemVer coordination
+> (§1.4) must give the unreleased layer a bumped version.
 
 ______________________________________________________________________
 
