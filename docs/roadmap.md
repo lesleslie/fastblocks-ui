@@ -212,9 +212,15 @@ optimization pass.
   `.format()` allows attribute/index injection (`{page.__class__}`) and crashes on any
   other `{...}`; (b) wrap the `label` in `page_link` with `_render_fragment` (it is
   emitted unescaped); (c) fix the `label: str | int = None` type lie.
-- [ ] Add typing to `variant`/`size` params. **DECISION: use `Literal[...] | str`**
-  (autocomplete for known values, custom CSS variants still pass) — preserves the
-  library's extensible-by-design philosophy. Precondition for `py.typed` value.
+- [x] Added `Variant`/`Size` aliases (`Literal[...] | str` — autocomplete for known
+  values, custom CSS variants still pass) and applied them to button/alert/hero/
+  navbar/section/title/progress (grid sizes on `column`/`tile` deliberately stay
+  `str`). Exported `Variant`/`Size` from the package.
+- [x] **Made `py.typed` genuinely sound:** `pyright` is now 0 errors/0 warnings on the
+  helper surface. Fixed two pre-existing type defects en route — the `__html__` access
+  on `object` (use `getattr`), and `pagination()`'s `list[int | str]` page list (now a
+  pure `list[int]` window with boolean ellipsis boundaries; behavior verified
+  unchanged).
 - [ ] **[rev] `_inject_attrs` (`helpers.py:110`) is a known-UNSAFE regex HTML path**,
   not merely "single-root contract" — it breaks on `>` inside attribute values and
   feeds `field()`. Document it as known-unsafe and superseded by htmy; do not expand

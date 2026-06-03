@@ -5,9 +5,17 @@ from __future__ import annotations
 import re
 from hashlib import sha1
 from html import escape
+from typing import Literal
+
+# Public vocabulary hints. Unioned with ``str`` so custom CSS variants/sizes still
+# type-check — the library is extensible by design (autocomplete, not enforcement).
+Variant = Literal["primary", "info", "success", "warning", "danger"] | str
+Size = Literal["small", "medium", "large"] | str
 
 __all__ = [
     "SafeHTML",
+    "Size",
+    "Variant",
     "alert",
     "breadcrumb",
     "button",
@@ -53,7 +61,8 @@ def _render_fragment(value: object | None) -> str:
     if value is None:
         return ""
     if _is_safe_html(value):
-        return str(value.__html__() if hasattr(value, "__html__") else value)
+        html = getattr(value, "__html__", None)
+        return str(html() if callable(html) else value)
     return escape(str(value))
 
 
@@ -160,8 +169,8 @@ def _format_number(value: float) -> str:
 def button(
     label: object,
     *,
-    variant: str | None = None,
-    size: str | None = None,
+    variant: Variant | None = None,
+    size: Size | None = None,
     href: str | None = None,
     type: str = "button",
     class_: object = None,
@@ -363,7 +372,7 @@ def switch(
 def alert(
     content: object,
     *,
-    variant: str | None = None,
+    variant: Variant | None = None,
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
@@ -524,7 +533,7 @@ def container(
 def section(
     content: object = None,
     *,
-    size: str | None = None,
+    size: Size | None = None,
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
@@ -635,8 +644,8 @@ def hero(
     title: object,
     *,
     subtitle: object | None = None,
-    variant: str | None = None,
-    size: str | None = None,
+    variant: Variant | None = None,
+    size: Size | None = None,
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
@@ -664,7 +673,7 @@ def hero(
 def title(
     content: object,
     *,
-    size: str | None = None,
+    size: Size | None = None,
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
@@ -739,7 +748,7 @@ def navbar(
     brand_url: str | None = "/",
     start: object = None,
     end: object = None,
-    variant: str | None = None,
+    variant: Variant | None = None,
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
@@ -846,8 +855,8 @@ def progress(
     value: int | float,
     *,
     max_value: int | float = 100,
-    size: str | None = None,
-    variant: str = "primary",
+    size: Size | None = None,
+    variant: Variant = "primary",
     show_label: bool = False,
     class_: object = None,
     **attrs: object,
@@ -972,22 +981,9 @@ def pagination(
     def ellipsis() -> str:
         return '<span class="ui-pagination__ellipsis">…</span>'
 
-    # Generate page range
-    pages: list[int | str] = []
-    for p in range(max(1, current - siblings), min(total, current + siblings) + 1):
-        pages.append(p)
-
-    # Add first page and ellipsis if needed
-    if pages and pages[0] > 1:
-        if pages[0] > 2:
-            pages.insert(0, "…first")
-        pages.insert(0, 1)
-
-    # Add last page and ellipsis if needed
-    if pages and pages[-1] < total:
-        if pages[-1] < total - 1:
-            pages.append("…last")
-        pages.append(total)
+    # Window of page numbers around the current page (a pure list[int]); ellipses are
+    # rendered at the boundaries rather than stored as sentinel strings in the list.
+    window = list(range(max(1, current - siblings), min(total, current + siblings) + 1))
 
     parts = [f"<nav{attr_html}>"]
 
@@ -997,14 +993,21 @@ def pagination(
     else:
         parts.append('<span class="ui-pagination__item is-disabled">‹</span>')
 
-    # Page links
-    for page in pages:
-        if page == "…first":
+    # Leading first page + ellipsis
+    if window and window[0] > 1:
+        parts.append(page_link(1))
+        if window[0] > 2:
             parts.append(ellipsis())
-        elif page == "…last":
+
+    # Page window
+    for page in window:
+        parts.append(page_link(page))
+
+    # Trailing ellipsis + last page
+    if window and window[-1] < total:
+        if window[-1] < total - 1:
             parts.append(ellipsis())
-        else:
-            parts.append(page_link(int(page)))
+        parts.append(page_link(total))
 
     # Next link
     if current < total:

@@ -481,6 +481,14 @@ class TestHelperHardening(unittest.TestCase):
     def test_pagination_single_page_is_empty(self):
         self.assertEqual(pagination(1, 1), "")
 
+    def test_pagination_renders_ellipsis_for_large_range(self):
+        markup = pagination(50, 100, url_pattern="/p?page={page}", siblings=1)
+        self.assertIn('href="/p?page=1"', markup)  # first page
+        self.assertIn('href="/p?page=100"', markup)  # last page
+        self.assertIn('href="/p?page=49"', markup)  # window
+        self.assertIn('href="/p?page=51"', markup)
+        self.assertIn("ui-pagination__ellipsis", markup)
+
     def test_progress_uses_float_math(self):
         # 0.75 / 1 was truncated to 0 / 1 = 0% under the old int() math; the native
         # <progress> carries honest value/max attributes.

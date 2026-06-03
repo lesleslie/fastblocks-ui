@@ -14,6 +14,8 @@ __license__ = "BSD-3-Clause"
 from .fastblocks import block, compose, fragment, stable_id
 from .helpers import (
     SafeHTML,
+    Size,
+    Variant,
     alert,
     breadcrumb,
     button,
@@ -52,6 +54,8 @@ from .manifest import (
 __all__ = [
     "SafeHTML",
     "COMPONENT_MANIFEST",
+    "Size",
+    "Variant",
     "__author__",
     "__license__",
     "__version__",
