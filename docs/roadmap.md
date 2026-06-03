@@ -194,7 +194,12 @@ against the non-shipping module files.
   (`.ui-progress--{0..100 by 5}`) for the custom bar. **Ship the missing `ui-progress`
   CSS** — it has no rule in `components.css` today; the bar is currently *only* the
   inline width.
-- [ ] **[rev] Enforce CSP as a test:** assert no helper output contains `style=`.
+  **→ SEQUENCED INTO WS-1:** this swap removes inline `style=` but requires shipping
+  new `ui-progress` CSS, so it lands with the single-CSS-source work, not against the
+  current diverged bundle. (WS-2 has already fixed the float-math + honest-ARIA bug
+  on the existing markup.)
+- [ ] **[rev] Enforce CSP as a test:** assert no helper output contains `style=`
+  (lands with the WS-1 `progress()` swap above — the only remaining inline style).
 - [ ] **[rev] `pagination()` (`helpers.py:945,947,951`):** (a) replace
   `url_pattern.format(page=...)` with `url_pattern.replace("{page}", str(page))` —
   `.format()` allows attribute/index injection (`{page.__class__}`) and crashes on any

@@ -108,7 +108,14 @@ def _safe(markup: str) -> SafeHTML:
 
 
 def _inject_attrs(markup: object, **attrs: object) -> SafeHTML | str:
-    """Inject attributes into the first opening tag of a simple HTML fragment."""
+    """Inject attributes into the first opening tag of a simple HTML fragment.
+
+    KNOWN-UNSAFE: this performs a regex match on the first ``<tag ...>`` and is only
+    reliable for single-root fragments whose opening tag contains no ``>`` inside an
+    attribute value. It does not parse HTML. It exists to back :func:`field`'s control
+    wiring for the simple inputs this library emits; do not expand its use. The typed
+    ``fastblocks-htmy`` component layer supersedes it for non-trivial composition.
+    """
 
     rendered_markup = _render_fragment(markup)
     if not attrs:
@@ -143,6 +150,11 @@ def _normalize_dom_id(value: object, *, prefix: str = "ui") -> str:
         return candidate
     digest = sha1(candidate.encode("utf-8")).hexdigest()[:10] if candidate else "0"
     return f"{prefix}-{digest}"
+
+
+def _format_number(value: float) -> str:
+    """Render a number without a spurious trailing ``.0`` for integral values."""
+    return str(int(value)) if float(value).is_integer() else str(value)
 
 
 def button(
@@ -849,7 +861,10 @@ def progress(
         variant: "primary", "info", "success", "warning", "danger"
         show_label: Include aria-label with percentage
     """
-    percentage = min(100, max(0, (int(value) / int(max_value)) * 100))
+    value_f = float(value)
+    max_f = float(max_value)
+    ratio = (value_f / max_f) if max_f else 0.0
+    percentage = min(100.0, max(0.0, ratio * 100.0))
     size_class = f"is-{size}" if size else None
     classes = _flatten_classes("ui-progress", size_class, class_)
     bar_classes = _flatten_classes("ui-progress__bar", f"is-{variant}")
@@ -857,16 +872,16 @@ def progress(
     attr_html = _render_attrs(
         class_=classes,
         role="progressbar",
-        aria_valuenow=str(int(value)),
+        aria_valuenow=_format_number(value_f),
         aria_valuemin="0",
-        aria_valuemax=str(int(max_value)),
+        aria_valuemax=_format_number(max_f),
         aria_label=f"{percentage:.0f}% complete" if show_label else None,
         **attrs,
     )
 
     bar_attr_html = _render_attrs(
         class_=bar_classes,
-        style=f"width: {percentage:.0f}%",
+        style=f"width: {percentage:.4g}%",
     )
 
     return _safe(f"<div{attr_html}><span{bar_attr_html}></span></div>")
@@ -942,13 +957,16 @@ def pagination(
     classes = _flatten_classes("ui-pagination", class_)
     attr_html = _render_attrs(class_=classes, aria_label="pagination", **attrs)
 
-    def page_link(page: int, label: str | int = None) -> str:
-        label = label or page
-        url = url_pattern.format(page=page)
+    def page_link(page: int, label: str | int | None = None) -> str:
+        link_label = page if label is None else label
+        # Use a literal substitution rather than str.format() so a caller-supplied
+        # url_pattern cannot trigger format-string injection (e.g. "{page.__class__}")
+        # or crash on unrelated braces (e.g. "/items/{category}?page={page}").
+        url = url_pattern.replace("{page}", str(page))
         is_current = page == current
         cls = "ui-pagination__item" + (" is-current" if is_current else "")
         attrs_str = f'class="{cls}" href="{escape(url, quote=True)}"'
-        return f"<a {attrs_str}>{label}</a>"
+        return f"<a {attrs_str}>{_render_fragment(link_label)}</a>"
 
     def ellipsis() -> str:
         return '<span class="ui-pagination__ellipsis">…</span>'

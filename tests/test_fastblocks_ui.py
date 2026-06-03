@@ -22,6 +22,8 @@ from fastblocks_ui import (
     fragment,
     menu,
     navbar,
+    pagination,
+    progress,
     stable_id,
     switch,
     table,
@@ -427,6 +429,49 @@ class TestHelpers(unittest.TestCase):
         self.assertIn('aria-controls="profile-panel"', markup)
         self.assertIn('aria-labelledby="profile"', markup)
         self.assertIn('data-ui-tab-target="#billing-panel"', markup)
+
+
+class TestHelperHardening(unittest.TestCase):
+    def test_pagination_url_pattern_uses_literal_substitution(self):
+        # Unrelated braces must not crash (str.format would KeyError on {category});
+        # only {page} is substituted.
+        markup = pagination(2, 5, url_pattern="/shop/{category}/items?page={page}")
+        self.assertIn("/shop/{category}/items?page=1", markup)
+        self.assertIn("/shop/{category}/items?page=3", markup)
+
+    def test_pagination_url_pattern_rejects_format_injection(self):
+        # "{page.__class__}" must stay literal — no attribute access is evaluated.
+        markup = pagination(2, 3, url_pattern="/p/{page.__class__}/{page}")
+        self.assertNotIn("class 'int'", markup)
+        self.assertIn("{page.__class__}", markup)
+
+    def test_pagination_marks_current_and_renders_siblings(self):
+        markup = pagination(3, 10, url_pattern="/items?page={page}", siblings=1)
+        self.assertIn('href="/items?page=2"', markup)
+        self.assertIn('href="/items?page=4"', markup)
+        self.assertIn("is-current", markup)
+        self.assertIn('aria-label="pagination"', markup)
+
+    def test_pagination_single_page_is_empty(self):
+        self.assertEqual(pagination(1, 1), "")
+
+    def test_progress_uses_float_math(self):
+        # 0.75 / 1 was truncated to 0 / 1 = 0% under the old int() math.
+        markup = progress(0.75, max_value=1)
+        self.assertIn('aria-valuenow="0.75"', markup)
+        self.assertIn('aria-valuemax="1"', markup)
+        self.assertIn("width: 75%", markup)
+
+    def test_progress_honest_aria_for_fractional_value(self):
+        self.assertIn('aria-valuenow="33.5"', progress(33.5, max_value=100))
+
+    def test_progress_handles_zero_max_without_crashing(self):
+        markup = progress(5, max_value=0)
+        self.assertIn("width: 0%", markup)
+        self.assertIn('aria-valuenow="5"', markup)
+
+    def test_progress_clamps_overflow(self):
+        self.assertIn("width: 100%", progress(150, max_value=100))
 
 
 class TestFastBlocksIntegration(unittest.TestCase):
