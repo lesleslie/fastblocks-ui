@@ -90,6 +90,19 @@ html = await template.render_async(user=user, button=button)
 </form>
 ```
 
+## Demo
+
+A self-contained showcase of every component (light + dark) is generated from the
+Python helpers:
+
+```bash
+python scripts/build_demo.py        # writes demo/index.html
+open demo/index.html                # or serve the demo/ directory
+```
+
+The page inlines the CSS bundle and the `enhance.js` behavior layer, so it runs as a
+single file with no build step or server required.
+
 ## Theming
 
 FastBlocks UI enables flexible theming through CSS variables:
