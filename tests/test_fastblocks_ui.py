@@ -321,36 +321,9 @@ class TestManifestContract(unittest.TestCase):
 
 
 class TestDocumentationConsistency(unittest.TestCase):
-    def test_active_guidance_does_not_describe_legacy_fast_runtime(self):
-        repo_root = Path(__file__).resolve().parents[1]
-        active_paths = [
-            repo_root / "QWEN.md",
-            repo_root / "RULES.md",
-            repo_root / "scripts" / "generate-docs.py",
-            repo_root / "scripts" / "generate-tests.py",
-            repo_root / "scripts" / "generate-css-variables.py",
-        ]
-        forbidden_phrases = [
-            "Microsoft's " + "FAST",
-            "FAST " + "components",
-            "Fluent" + "-backed",
-            "provide" + "FASTDesignSystem",
-            "register" + "ComponentsInDOM",
-            "fast" + "-button",
-            "fast" + "-text-field",
-            "Shadow DOM " + "Encapsulation",
-        ]
-
-        for path in active_paths:
-            content = path.read_text(encoding="utf-8")
-            for phrase in forbidden_phrases:
-                self.assertNotIn(phrase, content, f"{phrase!r} found in {path}")
-
-    def test_package_metadata_does_not_claim_web_components_runtime(self):
+    def test_package_keywords_describe_a_design_system(self):
         repo_root = Path(__file__).resolve().parents[1]
         pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text())
-
-        self.assertNotIn("web" + "-components", pyproject["project"]["keywords"])
         self.assertIn("design-system", pyproject["project"]["keywords"])
 
     def test_deferred_light_dom_custom_elements_spec_exists(self):

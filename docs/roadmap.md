@@ -259,9 +259,11 @@ optimization pass.
   animations/transitions/smooth-scroll — WCAG 2.3.3); test asserts it ships.
 - [x] **[rev] Added `@media (forced-colors: active)`** outline fallback so the
   box-shadow focus ring stays visible in forced-colors/high-contrast mode.
-- [ ] Replace brittle substring HTML assertions with parsed-DOM checks where it
-  matters; keep manifest-coverage tests. Retire the `"Microsoft's " + "FAST"`
-  string-splitting doc tests (`tests/test_fastblocks_ui.py:252`).
+- [x] Retired the `"Microsoft's " + "FAST"` string-splitting legacy-runtime guard
+  tests (guarded a fully-removed era; won't regress). Kept the positive
+  `design-system` keyword check.
+- [ ] *(carryover)* Replace brittle substring HTML assertions with parsed-DOM checks
+  where it matters.
 
 ### WS-4 — Manifest as contract
 
