@@ -42,4 +42,26 @@
     outline: none;
     box-shadow: var(--ui-focus-ring);
   }
+
+  /* In forced-colors / high-contrast mode box-shadow is stripped, so the
+     box-shadow focus ring disappears. Restore a system-colored outline. */
+  @media (forced-colors: active) {
+    :focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+    }
+  }
+
+  /* Honor a user request to minimize motion (WCAG 2.3.3): neutralize animations,
+     transitions, and smooth scrolling. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

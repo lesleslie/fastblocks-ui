@@ -2,6 +2,14 @@
 
 FastBlocks UI is built for server-rendered Python apps first. The public API is the `ui-*` CSS namespace plus the helper functions exported by `fastblocks_ui`.
 
+> **Template syntax note.** The examples below use standard Jinja delimiters
+> (`{{ ... }}`), which work with plain Jinja, Flask, and Django (via Jinja).
+> FastBlocks templates use ACB's `[[ ... ]]` delimiters instead — the helper API is
+> identical, only the surrounding delimiters differ. The forthcoming `fastblocks-htmy`
+> package provides typed components and an adapter that registers these helpers as
+> template globals for FastBlocks apps, so the FastBlocks-native integration lives
+> there. `fastblocks-ui` itself is framework-agnostic.
+
 ## Layout Examples
 
 ### Container

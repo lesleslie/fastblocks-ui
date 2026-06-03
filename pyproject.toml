@@ -1,7 +1,7 @@
 [project]
 name = "fastblocks-ui"
 version = "0.5.0"
-description = "FastBlocks UI: HTML/CSS-first styling and component helpers for FastBlocks, successor to archived fastbulma"
+description = "HTML/CSS-first UI kit (ui-* CSS + Python render helpers) for server-rendered Python apps; framework-agnostic and FastBlocks-friendly"
 authors = [{name = "FastBlocks UI Team", email = "team@fastblocks-ui.dev"}]
 readme = "README.md"
 license = "BSD-3-Clause"

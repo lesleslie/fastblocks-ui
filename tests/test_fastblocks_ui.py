@@ -269,6 +269,12 @@ class TestCSSBuild(unittest.TestCase):
             content = handle.read()
         self.assertIn("@layer components, tokens, theme, base, utilities;", content)
 
+    def test_bundle_includes_accessibility_media_queries(self):
+        with open(fastblocks_ui.get_css_path(), encoding="utf-8") as handle:
+            content = handle.read()
+        self.assertIn("prefers-reduced-motion: reduce", content)
+        self.assertIn("forced-colors: active", content)
+
 
 class TestDocumentationConsistency(unittest.TestCase):
     def test_active_guidance_does_not_describe_legacy_fast_runtime(self):

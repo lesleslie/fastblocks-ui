@@ -228,8 +228,10 @@ optimization pass.
 
 ### WS-3 — Docs, a11y & test integrity
 
-- [ ] Correct `docs/usage.md`: mark examples as generic Jinja (`{{ }}`) OR move the
-  FastBlocks `[[ ]]` examples into `fastblocks-htmy` docs.
+- [x] Corrected `docs/usage.md`: added a template-syntax note framing the examples as
+  generic Jinja (`{{ }}`) and pointing FastBlocks `[[ ]]` integration to
+  `fastblocks-htmy`. Also softened the `pyproject.toml` description (interim branding
+  honesty, §1.6) so the PyPI metadata no longer overclaims FastBlocks-optimization.
 - [ ] **[rev] Extend (not "add") the existing axe suite**
   (`tests/e2e/accessibility.spec.js`). axe cannot catch the behaviors the custom
   elements implement — add named Playwright acceptance tests for:
@@ -238,10 +240,10 @@ optimization pass.
   - **Menu arrow-key navigation + focus management** — `UiMenuElement.onKeyDown`
     (`enhance.js:486`) only handles Escape; `role="menu"` requires arrow keys.
   - **Focus restoration** after dialog/menu close (ESC, backdrop, roving tabindex).
-- [ ] **[rev] Add `prefers-reduced-motion` global block** to `base.css` (currently
-  zero hits while the bundle animates — WCAG 2.3.3 miss for a "hard contract").
-- [ ] **[rev] Add `@media (forced-colors: active)`** outline fallback (box-shadow
-  focus rings vanish in forced-colors mode).
+- [x] **[rev] Added `prefers-reduced-motion` global block** to `base.css` (neutralizes
+  animations/transitions/smooth-scroll — WCAG 2.3.3); test asserts it ships.
+- [x] **[rev] Added `@media (forced-colors: active)`** outline fallback so the
+  box-shadow focus ring stays visible in forced-colors/high-contrast mode.
 - [ ] Replace brittle substring HTML assertions with parsed-DOM checks where it
   matters; keep manifest-coverage tests. Retire the `"Microsoft's " + "FAST"`
   string-splitting doc tests (`tests/test_fastblocks_ui.py:252`).
