@@ -139,6 +139,13 @@ class TestPackageMetadata(unittest.TestCase):
         for path in ("node_modules", "scripts", "src", "tests"):
             self.assertIn(f"prune {path}", manifest)
 
+    def test_zero_runtime_dependencies(self):
+        # The package must ship with no runtime dependencies; this is a deliberate
+        # security/supply-chain property, so enforce it as a tripwire.
+        repo_root = Path(__file__).resolve().parents[1]
+        pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text())
+        self.assertEqual(pyproject["project"].get("dependencies", []), [])
+
 
 class TestFoundationCSS(unittest.TestCase):
     def test_css_entrypoint_imports_layers(self):

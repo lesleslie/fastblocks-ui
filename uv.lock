@@ -1050,7 +1050,7 @@ requires-dist = [
     { name = "bandit", extras = ["toml"], marker = "extra == 'dev'", specifier = ">=1.7.10" },
     { name = "codespell", marker = "extra == 'dev'", specifier = ">=2.3.0" },
     { name = "complexipy", marker = "extra == 'dev'", specifier = ">=0.9.0" },
-    { name = "crackerjack", marker = "extra == 'dev'", specifier = ">=0.1.0" },
+    { name = "crackerjack", marker = "extra == 'dev'", specifier = ">=0.50.1" },
     { name = "creosote", marker = "extra == 'dev'", specifier = ">=3.0.0" },
     { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1.300" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },

@@ -32,7 +32,7 @@ Changelog = "https://github.com/lesleslie/fastblocks-ui/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
-    "crackerjack>=0.1.0",
+    "crackerjack>=0.50.1",
     "session-buddy>=0.1.0",
     # Code quality
     "ruff>=0.8.0",

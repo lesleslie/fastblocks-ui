@@ -245,14 +245,19 @@ against the non-shipping module files.
 
 ### WS-5 — Dependency & supply-chain hygiene  **[rev — new workstream]**
 
-- [ ] Reconcile contradictory crackerjack pins: `crackerjack>=0.1.0`
-  (`pyproject.toml:35`, extras) vs `>=0.50.1` (`pyproject.toml:184`,
-  `[dependency-groups]`).
-- [ ] Restore/resolve the deleted `.pip-audit-suppressions.txt` (in git status) and
-  add a `pip-audit` (or `uv`-native audit) CI gate.
-- [ ] **Assert zero runtime dependencies in CI** — `creosote` is already a dev dep but
-  unused as a gate; wire it in. Zero-deps is a security asset; protect it.
-- [ ] Commit/refresh the lockfile policy (`uv.lock`) and document the floor strategy.
+> Note: quality gates run via **crackerjack** (`crackerjack all`), not a GitHub
+> Actions workflow; "CI gate" below means the crackerjack pipeline.
+
+- [x] Reconcile contradictory crackerjack pins: bumped `crackerjack>=0.1.0`
+  (extras) to `>=0.50.1` to match `[dependency-groups]`.
+- [x] Restore the accidentally-deleted `.pip-audit-suppressions.txt` (held a
+  legitimate transitive protobuf CVE suppression consumed by crackerjack's
+  `pip-audit` step).
+- [x] **Assert zero runtime dependencies** via a test
+  (`test_zero_runtime_dependencies`) — chosen over `creosote` because creosote
+  detects *unused* declared deps, not the empty-`dependencies` invariant we want.
+- [x] `uv.lock` committed/refreshed (WS-0) and is the version source of truth.
+- [ ] *(carryover)* Document the dependency-floor strategy in CONTRIBUTING/README.
 
 ---
 
