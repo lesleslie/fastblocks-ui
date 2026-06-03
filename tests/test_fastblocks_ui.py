@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 import tempfile
 import tomllib
@@ -249,6 +250,24 @@ class TestFoundationCSS(unittest.TestCase):
             ".ui-progress",
         ):
             self.assertIn(selector, content, f"Missing layout selector: {selector}")
+
+
+class TestCSSBuild(unittest.TestCase):
+    def test_bundle_is_in_sync_with_source_modules(self):
+        # The shipped bundle is generated from the canonical source modules. If a
+        # module changed without rebuilding, the build drift gate must fail.
+        repo_root = Path(__file__).resolve().parents[1]
+        result = subprocess.run(
+            [sys.executable, str(repo_root / "tools" / "build_css.py"), "--check"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_bundle_declares_explicit_layer_order(self):
+        with open(fastblocks_ui.get_css_path(), encoding="utf-8") as handle:
+            content = handle.read()
+        self.assertIn("@layer components, tokens, theme, base, utilities;", content)
 
 
 class TestDocumentationConsistency(unittest.TestCase):
@@ -516,6 +535,15 @@ class TestCLI(unittest.TestCase):
             self.assertTrue(os.path.exists(js_path))
             self.assertTrue(os.path.exists(enhance_path))
             self.assertTrue(os.path.exists(manifest_path))
+
+            # Only the built bundle ships, never the source modules (which would
+            # let the bundle and modules drift apart in consumer projects).
+            css_dir = os.path.join(temp_dir, "fastblocks-ui", "css")
+            for module in ("tokens.css", "components.css", "layout.css", "theme.css"):
+                self.assertFalse(
+                    os.path.exists(os.path.join(css_dir, module)),
+                    f"copy-assets should not ship source module {module}",
+                )
 
     def test_cli_main_function(self):
         with (

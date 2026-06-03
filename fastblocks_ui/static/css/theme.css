@@ -1,4 +1,12 @@
 @layer theme {
+  :root {
+    color-scheme: light;
+  }
+
+  [data-theme="light"] {
+    color-scheme: light;
+  }
+
   [data-theme="dark"] {
     color-scheme: dark;
 
@@ -36,5 +44,34 @@
     --ui-color-danger-contrast: #ffffff;
     --ui-color-danger-subtle: #7f1d1d;
     --ui-color-danger-strong: #fca5a5;
+
+    --fast-primary: #818cf8;
+    --fast-primary-invert: #ffffff;
+    --fast-primary-light: #312e81;
+    --fast-primary-dark: #a5b4fc;
+    --fast-info: #22d3ee;
+    --fast-info-invert: #000000;
+    --fast-info-light: #164e63;
+    --fast-info-dark: #67e8f9;
+    --fast-success: #4ade80;
+    --fast-success-invert: #000000;
+    --fast-success-light: #14532d;
+    --fast-success-dark: #86efac;
+    --fast-warning: #facc15;
+    --fast-warning-invert: #000000;
+    --fast-warning-light: #713f12;
+    --fast-warning-dark: #fde047;
+    --fast-danger: #f87171;
+    --fast-danger-invert: #ffffff;
+    --fast-danger-light: #7f1d1d;
+    --fast-danger-dark: #fca5a5;
+    --fast-grey: #94a3b8;
+    --fast-grey-light: #1e293b;
+    --fast-grey-lighter: #111827;
+    --fast-grey-dark: #cbd5e1;
+    --fast-grey-darker: #f8fafc;
+    --fast-background: #0f172a;
+    --fast-text: #cbd5e1;
+    --fast-focus-color: #818cf8;
   }
 }

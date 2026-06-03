@@ -21,7 +21,9 @@
     color: var(--ui-color-text);
   }
 
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
   }
 

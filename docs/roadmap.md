@@ -155,32 +155,44 @@ standalone modules are unimported and have **already diverged**
 The `themes/` dir (BOTH `default.css` and `dark.css`) is orphaned. CSS tests assert
 against the non-shipping module files.
 
-- [ ] Declare the module CSS files the source of truth.
-- [ ] **[rev] Build with `lightningcss`** (dev-only; vendored Rust binary, preserves
-  zero runtime deps) via `tools/build-css.py` — NOT hand-rolled `cat`. This gives
-  `@layer` correctness, minification, autoprefixing, `color-mix()`/nesting
-  transpilation, and a documented browser baseline in one pass.
-- [ ] **[rev] Emit an explicit `@layer tokens, theme, base, utilities, components;`
-  statement first.** The shipped bundle currently has NO layer-order declaration;
-  precedence relies on first-appearance order, so naive concatenation silently
-  reorders the cascade.
-- [ ] **[rev] Fix the downstream drift the bundle creates.** `copy-assets`
-  (`cli.py:21`) `copytree`s the whole `css/` dir, shipping modules + orphaned
-  `themes/` alongside the bundle. Change `copy-assets` to emit **only the built
-  bundle + manifest** (build into a `dist/`-style output the CLI ships exclusively).
-  Add a test asserting `copy-assets` output contains no module CSS.
-- [ ] CI gate: `build-css && git diff --exit-code` fails on drift.
-- [ ] **[rev] Delete the entire orphaned `themes/` dir** (default.css AND dark.css),
-  not just dark.css.
-- [ ] **[rev] Keep the `[data-theme="dark"]` override model; do NOT migrate to
-  `light-dark()`.** `light-dark()` keys off `color-scheme` (not the explicit
-  `data-theme` toggle), only swaps colors (not spacing/radius tokens), and would need
-  ~40 per-token calls. The correct fix is to *generate* the existing two-block model
-  (override `--ui-*` under `[data-theme="dark"]` + set `color-scheme`) from one
-  source.
-- [ ] **[rev] Add `@media (prefers-color-scheme: dark)`** for the no-JS / no-explicit-
-  toggle default, gated so an explicit `[data-theme="light"]` still wins.
-- [ ] Re-point CSS tests at the shipped bundle, not the module files.
+- [x] Declare the module CSS files the source of truth — the canonical content was
+  split verbatim out of the shipping bundle into `tokens/theme/base/utilities/
+  components.css` (+ existing `layout.css`); equivalence verified (0 declarations
+  lost/added).
+- [x] **Build step `tools/build_css.py`.** **DEVIATION from the lightningcss
+  recommendation:** used a deterministic Python concatenator instead. Rationale: it
+  satisfies every *correctness* concern (explicit `@layer` order, single source) with
+  **provable** byte-equivalence and **zero new build-tool/transpilation risk**, and
+  keeps the package Node-free for the core build. lightningcss's remaining value
+  (minify / autoprefix / `color-mix()` fallbacks) is *optimization* — the current
+  bundle has none of those today, so deferring is not a regression.
+  **→ carryover:** add lightningcss as a post-processing optimization once visual
+  tests can validate transpiled output.
+- [x] **Explicit `@layer` order statement.** Emitted as
+  `@layer components, tokens, theme, base, utilities;` — this **preserves the
+  historical effective order** (components lowest, utilities highest; it arose because
+  `layout.css` was `@import`ed first). Order is now intentional and
+  concatenation-independent. *(Note: differs from the originally-guessed
+  `tokens,theme,base,utilities,components`; the as-shipped order is what we preserved
+  to guarantee no visual regression. Reconsidering the order is a future design call.)*
+- [x] **`copy-assets` now ships only the built bundle** (`cli.py`), not the source
+  modules; test asserts no module CSS (`tokens/components/layout/theme.css`) is copied.
+- [x] **Drift gate:** `python tools/build_css.py --check` + a unit test that fails if
+  the committed bundle is stale (replaces the `git diff` idea; works without CI yaml).
+  Verified it actually fires on a perturbed module.
+- [x] **Deleted the orphaned `themes/` dir** (default.css AND dark.css); dark mode
+  ships via the `[data-theme="dark"]` block now living in `theme.css`.
+- [x] **Kept the `[data-theme="dark"]` override model; rejected `light-dark()`** (keys
+  off `color-scheme`, not the explicit toggle; can't express non-color tokens). The
+  block is now generated from the single `theme.css` source.
+- [ ] *(carryover)* Add `@media (prefers-color-scheme: dark)` no-JS default, gated so
+  an explicit `[data-theme="light"]` still wins.
+- [x] CSS tests now validate the canonical modules (which are the source) + a new test
+  asserting the bundle declares the explicit `@layer` order.
+
+**WS-1 carryover (follow-up increment):** the `progress()` CSP swap to a native
+`<progress>` + new `ui-progress` CSS (WS-2 sequenced it here), the
+`prefers-color-scheme` default, and the optional lightningcss optimization pass.
 
 ### WS-2 — Helper hardening
 
@@ -205,8 +217,9 @@ against the non-shipping module files.
   `.format()` allows attribute/index injection (`{page.__class__}`) and crashes on any
   other `{...}`; (b) wrap the `label` in `page_link` with `_render_fragment` (it is
   emitted unescaped); (c) fix the `label: str | int = None` type lie.
-- [ ] Add `Literal[...]` to `variant`/`size` params so call sites type-check (also
-  the precondition for `py.typed` to be worth shipping — see WS-5 ruff `A001`).
+- [ ] Add typing to `variant`/`size` params. **DECISION: use `Literal[...] | str`**
+  (autocomplete for known values, custom CSS variants still pass) — preserves the
+  library's extensible-by-design philosophy. Precondition for `py.typed` value.
 - [ ] **[rev] `_inject_attrs` (`helpers.py:110`) is a known-UNSAFE regex HTML path**,
   not merely "single-root contract" — it breaks on `>` inside attribute values and
   feeds `field()`. Document it as known-unsafe and superseded by htmy; do not expand

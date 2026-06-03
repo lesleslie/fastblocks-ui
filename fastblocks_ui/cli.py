@@ -14,11 +14,15 @@ def copy_assets(dest_dir):
 
     os.makedirs(static_dest, exist_ok=True)
 
-    # Copy CSS
+    # Copy only the built CSS bundle, not the source modules. Shipping the module
+    # files would let the (canonical) modules and the generated bundle drift apart
+    # in consumer projects.
     css_src = os.path.join(static_src, "css")
     css_dest = os.path.join(static_dest, "css")
-    if os.path.exists(css_src):
-        shutil.copytree(css_src, css_dest, dirs_exist_ok=True)
+    bundle_src = os.path.join(css_src, "fastblocks-ui.css")
+    if os.path.exists(bundle_src):
+        os.makedirs(css_dest, exist_ok=True)
+        shutil.copy2(bundle_src, os.path.join(css_dest, "fastblocks-ui.css"))
 
     # Copy JS
     js_src = os.path.join(static_src, "js")
