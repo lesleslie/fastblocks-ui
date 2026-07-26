@@ -183,6 +183,49 @@ DEMO_CSS = """
 .demo-bordered + .demo-bordered {
   margin-top: var(--ui-space-2);
 }
+.demo-swatch-row + .demo-swatch-row {
+  margin-top: var(--ui-space-4);
+}
+.demo-swatch-family {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ui-color-text-muted);
+  margin: 0 0 var(--ui-space-2);
+}
+.demo-swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: var(--ui-space-3);
+}
+.demo-swatch-cell {
+  display: grid;
+  gap: var(--ui-space-1);
+  min-width: 0;
+}
+.demo-swatch {
+  block-size: 3.5rem;
+  border: var(--ui-border-width) solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  display: flex;
+  align-items: flex-end;
+  padding: var(--ui-space-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+/* Label color per family, so it stays readable on the fill. */
+.demo-swatch-on-primary { color: var(--ui-color-primary-contrast); }
+.demo-swatch-on-info { color: var(--ui-color-info-contrast); }
+.demo-swatch-on-success { color: var(--ui-color-success-contrast); }
+.demo-swatch-on-warning { color: var(--ui-color-warning-contrast); }
+.demo-swatch-on-danger { color: var(--ui-color-danger-contrast); }
+.demo-swatch-name {
+  font-size: 0.6875rem;
+  color: var(--ui-color-text-muted);
+  overflow-wrap: anywhere;
+}
+
 /* Container-query comparison. The panels' fixed widths ARE the demo, so
    they must not shrink -- but a 31rem panel cannot fit a 375px phone, and
    left alone it widens every ancestor and overflows the page by ~2x.
@@ -700,6 +743,103 @@ def table_demo() -> SafeHTML:
 # Patterns, extras & reference (bonus sections -- not tied to a single
 # manifest component, so they aren't counted toward per-component coverage).
 # ---------------------------------------------------------------------------
+# Semantic token ramps, in the order they appear on the palette swatch grid.
+# Each entry is (token-suffix, label). The `-contrast` token is deliberately
+# not shown as a swatch -- it is the *text* color for its family, so it is
+# demonstrated by the readable label sitting on each base swatch instead.
+PALETTE_FAMILIES: list[tuple[str, str]] = [
+    ("primary", "Primary"),
+    ("info", "Info"),
+    ("success", "Success"),
+    ("warning", "Warning"),
+    ("danger", "Danger"),
+]
+PALETTE_STEPS: list[tuple[str, str]] = [
+    ("subtle", "subtle"),
+    ("", "base"),
+    ("strong", "strong"),
+]
+PALETTE_NEUTRALS: list[tuple[str, str]] = [
+    ("surface", "surface"),
+    ("surface-raised", "surface-raised"),
+    ("surface-muted", "surface-muted"),
+    ("surface-subtle", "surface-subtle"),
+    ("border", "border"),
+    ("border-strong", "border-strong"),
+    ("text-muted", "text-muted"),
+    ("text", "text"),
+    ("text-strong", "text-strong"),
+]
+
+
+def _palette_token_names() -> list[str]:
+    """Every `--ui-color-*` token the swatch grid renders, in render order."""
+    names: list[str] = []
+    for family, _ in PALETTE_FAMILIES:
+        for step, _label in PALETTE_STEPS:
+            names.append(f"{family}-{step}" if step else family)
+    names.extend(token for token, _ in PALETTE_NEUTRALS)
+    return names
+
+
+def palette_css() -> str:
+    """One background rule per token.
+
+    Generated rather than hand-written so the stylesheet cannot drift from
+    ``PALETTE_FAMILIES``/``PALETTE_NEUTRALS``, and emitted as real CSS rules
+    rather than ``style="background:..."`` so the page stays inline-style-free
+    (the same CSP constraint that pushed ``progress()`` to native
+    ``<progress>``).
+    """
+    rules = [
+        f'.demo-swatch[data-token="{name}"] {{ background: var(--ui-color-{name}); }}'
+        for name in _palette_token_names()
+    ]
+    return "\n".join(rules)
+
+
+def palette_demo() -> SafeHTML:
+    def swatch(token: str, label: str, *, on_color: bool = False, family: str = "") -> str:
+        # Colored swatches carry their family's `-contrast` token so the label
+        # is legible on the fill; neutral swatches inherit page text.
+        cls = "demo-swatch"
+        if on_color:
+            cls += f" demo-swatch-on-{family}"
+        return (
+            f'<div class="demo-swatch-cell">'
+            f'<div class="{cls}" data-token="{token}"><span>{_esc(label)}</span></div>'
+            f'<code class="demo-swatch-name">--ui-color-{token}</code>'
+            f"</div>"
+        )
+
+    rows: list[str] = []
+    for family, family_label in PALETTE_FAMILIES:
+        cells = "".join(
+            swatch(
+                f"{family}-{step}" if step else family,
+                step_label,
+                on_color=step != "subtle",
+                family=family,
+            )
+            for step, step_label in PALETTE_STEPS
+        )
+        rows.append(
+            f'<div class="demo-swatch-row">'
+            f'<p class="demo-swatch-family">{_esc(family_label)}</p>'
+            f'<div class="demo-swatch-grid">{cells}</div>'
+            f"</div>"
+        )
+
+    neutrals = "".join(swatch(token, label) for token, label in PALETTE_NEUTRALS)
+    rows.append(
+        '<div class="demo-swatch-row">'
+        '<p class="demo-swatch-family">Neutrals</p>'
+        f'<div class="demo-swatch-grid">{neutrals}</div>'
+        "</div>"
+    )
+    return _safe("".join(rows))
+
+
 def theme_demo() -> SafeHTML:
     return _safe(
         '<div class="ui-cluster demo-toolbar">'
@@ -992,6 +1132,16 @@ def build_categories() -> list[tuple[str, str, list[tuple[str, str, str | None, 
             "Patterns & extras",
             [
                 (
+                    "palette",
+                    "Color palette",
+                    "Every semantic --ui-color-* token, rendered live. Values "
+                    "track Tailwind v3's palette; the labels sit on each fill "
+                    "using that family's -contrast token, so anything hard to "
+                    "read here is a real contrast bug. Toggle the theme to "
+                    "see the dark ramp.",
+                    palette_demo(),
+                ),
+                (
                     "theme",
                     "Theme",
                     "Toggles the data-theme attribute on the document root; "
@@ -1135,6 +1285,7 @@ def render_page() -> str:
 <style>
 {css}
 {DEMO_CSS}
+{palette_css()}
 </style>
 </head>
 <body>
