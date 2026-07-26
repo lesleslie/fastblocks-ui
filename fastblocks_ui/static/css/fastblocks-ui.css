@@ -3,7 +3,7 @@
  * Rebuild: python tools/build_css.py
  */
 
-@layer components, tokens, theme, base, utilities;
+@layer base, tokens, theme, components, utilities;
 
 @layer tokens {
   :root {
@@ -13,22 +13,31 @@
     --ui-color-primary-subtle: #e0e7ff;
     --ui-color-primary-strong: #4338ca;
 
-    --ui-color-info: #06b6d4;
+    /* Fixed 2026-07-26: info/success's Tailwind 500/600 shades (#06b6d4/#0891b2
+       and #22c55e/#16a34a) failed WCAG AA's 4.5:1 text-contrast threshold
+       against white (2.43:1/3.68:1 and 2.28:1/3.30:1) -- a real, rendered
+       issue wherever these tokens pair with `-contrast` white text (e.g.
+       `.ui-hero.is-info/.is-success`, `.ui-button.is-success`). Moved to
+       Tailwind's 700/800 shades of the same hues, which pass comfortably
+       (5.36:1/7.27:1 and 5.02:1/7.13:1) -- still genuine Tailwind default
+       palette values, just two steps darker, not a different color. Danger
+       only needed one step (500 -> 600) since it started closer (3.76:1). */
+    --ui-color-info: #0e7490;
     --ui-color-info-contrast: #ffffff;
     --ui-color-info-subtle: #cffafe;
-    --ui-color-info-strong: #0891b2;
+    --ui-color-info-strong: #155e75;
 
-    --ui-color-success: #22c55e;
+    --ui-color-success: #15803d;
     --ui-color-success-contrast: #ffffff;
     --ui-color-success-subtle: #dcfce7;
-    --ui-color-success-strong: #16a34a;
+    --ui-color-success-strong: #166534;
 
     --ui-color-warning: #eab308;
     --ui-color-warning-contrast: #000000;
     --ui-color-warning-subtle: #fef9c3;
     --ui-color-warning-strong: #ca8a04;
 
-    --ui-color-danger: #ef4444;
+    --ui-color-danger: #dc2626;
     --ui-color-danger-contrast: #ffffff;
     --ui-color-danger-subtle: #fee2e2;
     --ui-color-danger-strong: #b91c1c;
@@ -71,53 +80,6 @@
     --ui-line-height-base: 1.5;
 
     --ui-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ui-color-focus) 24%, transparent);
-
-    /* Legacy bridge tokens. */
-    --fast-primary: #4f46e5;
-    --fast-primary-invert: #ffffff;
-    --fast-primary-light: #e0e7ff;
-    --fast-primary-dark: #4338ca;
-    --fast-info: #06b6d4;
-    --fast-info-invert: #ffffff;
-    --fast-info-light: #cffafe;
-    --fast-info-dark: #0891b2;
-    --fast-success: #22c55e;
-    --fast-success-invert: #ffffff;
-    --fast-success-light: #dcfce7;
-    --fast-success-dark: #16a34a;
-    --fast-warning: #eab308;
-    --fast-warning-invert: #000000;
-    --fast-warning-light: #fef9c3;
-    --fast-warning-dark: #ca8a04;
-    --fast-danger: #ef4444;
-    --fast-danger-invert: #ffffff;
-    --fast-danger-light: #fee2e2;
-    --fast-danger-dark: #dc2626;
-    --fast-grey: #6b7280;
-    --fast-grey-light: #f3f4f6;
-    --fast-grey-lighter: #f9fafb;
-    --fast-grey-dark: #374151;
-    --fast-grey-darker: #111827;
-    --fast-white: #ffffff;
-    --fast-black: #000000;
-    --fast-background: #ffffff;
-    --fast-text: #374151;
-    --fast-radius-small: 4px;
-    --fast-radius: 6px;
-    --fast-radius-large: 8px;
-    --fast-radius-rounded: 9999px;
-    --fast-size-small: 0.875rem;
-    --fast-size-normal: 1rem;
-    --fast-size-medium: 1.125rem;
-    --fast-size-large: 1.25rem;
-    --fast-family-primary: var(--ui-font-sans);
-    --fast-family-secondary: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-    --fast-family-monospace: var(--ui-font-mono);
-    --fast-focus-color: #4f46e5;
-    --fast-focus-width: 2px;
-
-    --accent-fill-rest: var(--fast-primary);
-    --control-height: 2.5em;
   }
 }
 
@@ -143,10 +105,19 @@
     --ui-color-border: #334155;
     --ui-color-border-strong: #64748b;
 
-    --ui-color-primary: #818cf8;
+    /* Fixed 2026-07-26: indigo-400/-300 (#818cf8/#a5b4fc) against white text
+       only reached 2.98:1/1.99:1 (hover), both failing WCAG AA's 4.5:1.
+       Unlike info/success/danger above, flipping `-contrast` to black isn't
+       a good option here -- indigo reads muddy with black text at any
+       shade light enough to still look "dark-mode-native". Darkened to
+       indigo-600/-700 instead (6.29:1/7.90:1) -- the same two shades light
+       mode already uses for `--ui-color-primary`/`-strong`, so the primary
+       button/hero is now the same color in both themes; still a real,
+       intentional Tailwind indigo shade, not an arbitrary one-off. */
+    --ui-color-primary: #4f46e5;
     --ui-color-primary-contrast: #ffffff;
     --ui-color-primary-subtle: #312e81;
-    --ui-color-primary-strong: #a5b4fc;
+    --ui-color-primary-strong: #4338ca;
 
     --ui-color-info: #22d3ee;
     --ui-color-info-contrast: #000000;
@@ -163,39 +134,15 @@
     --ui-color-warning-subtle: #713f12;
     --ui-color-warning-strong: #fde047;
 
+    /* Fixed 2026-07-26: unlike info/success/warning above, danger's
+       dark-mode contrast text was never flipped to black -- the pastel
+       #f87171 fill only reaches 2.77:1/1.90:1 (hover) against white text,
+       both failing WCAG AA. Flipping to black (matching the same pattern
+       already used for info/success/warning) fixes it: 7.59:1/11.06:1. */
     --ui-color-danger: #f87171;
-    --ui-color-danger-contrast: #ffffff;
+    --ui-color-danger-contrast: #000000;
     --ui-color-danger-subtle: #7f1d1d;
     --ui-color-danger-strong: #fca5a5;
-
-    --fast-primary: #818cf8;
-    --fast-primary-invert: #ffffff;
-    --fast-primary-light: #312e81;
-    --fast-primary-dark: #a5b4fc;
-    --fast-info: #22d3ee;
-    --fast-info-invert: #000000;
-    --fast-info-light: #164e63;
-    --fast-info-dark: #67e8f9;
-    --fast-success: #4ade80;
-    --fast-success-invert: #000000;
-    --fast-success-light: #14532d;
-    --fast-success-dark: #86efac;
-    --fast-warning: #facc15;
-    --fast-warning-invert: #000000;
-    --fast-warning-light: #713f12;
-    --fast-warning-dark: #fde047;
-    --fast-danger: #f87171;
-    --fast-danger-invert: #ffffff;
-    --fast-danger-light: #7f1d1d;
-    --fast-danger-dark: #fca5a5;
-    --fast-grey: #94a3b8;
-    --fast-grey-light: #1e293b;
-    --fast-grey-lighter: #111827;
-    --fast-grey-dark: #cbd5e1;
-    --fast-grey-darker: #f8fafc;
-    --fast-background: #0f172a;
-    --fast-text: #cbd5e1;
-    --fast-focus-color: #818cf8;
   }
 }
 
@@ -330,25 +277,40 @@
     transition:
       background-color 160ms ease,
       border-color 160ms ease,
-      transform 160ms ease,
       box-shadow 160ms ease;
   }
 
-  .ui-button:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--ui-shadow-1);
+  /* Fixed 2026-07-26: replaced the translateY(-1px) hover "lift" (disliked --
+     see CHANGELOG) with a single, uniform mechanism used across every
+     variant: hover/active always move to that color's own next-defined step
+     along its existing token ramp (surface-muted -> surface-raised for the
+     neutral button; each color's own `-strong` token for filled variants).
+     No runtime color math (no `filter: brightness()`), no per-variant
+     one-off hex values -- same rule everywhere, mirroring the fact that
+     Bulma's own hover treatment is one consistent darken-by-a-fixed-amount
+     rule computed per color, not several different techniques mixed
+     together. This also sidesteps a real contrast regression a
+     brightness-filter approach would have introduced: brightening a
+     saturated fill (e.g. is-primary/is-success/is-danger) pushes its
+     background luminance *toward* the white button text's own luminance,
+     shrinking the contrast ratio -- verified by computing WCAG contrast
+     ratios for both directions before choosing this approach. */
+  .ui-button:hover,
+  .ui-button:active {
+    background: var(--ui-color-surface-raised);
+    border-color: var(--ui-color-border-strong);
   }
 
+  /* Pressed feedback is a depth cue (inset shadow), not a second color
+     mechanism -- keeps the "one rule" promise above intact. */
   .ui-button:active {
-    transform: translateY(0);
-    box-shadow: none;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.12);
   }
 
   .ui-button:disabled,
   .ui-button[aria-disabled="true"] {
     cursor: not-allowed;
     opacity: 0.65;
-    transform: none;
     box-shadow: none;
   }
 
@@ -357,9 +319,21 @@
     color: var(--ui-color-primary-contrast);
   }
 
+  .ui-button.is-primary:hover,
+  .ui-button.is-primary:active {
+    background: var(--ui-color-primary-strong);
+    border-color: transparent;
+  }
+
   .ui-button.is-success {
     background: var(--ui-color-success);
     color: var(--ui-color-success-contrast);
+  }
+
+  .ui-button.is-success:hover,
+  .ui-button.is-success:active {
+    background: var(--ui-color-success-strong);
+    border-color: transparent;
   }
 
   .ui-button.is-warning {
@@ -367,9 +341,21 @@
     color: var(--ui-color-warning-contrast);
   }
 
+  .ui-button.is-warning:hover,
+  .ui-button.is-warning:active {
+    background: var(--ui-color-warning-strong);
+    border-color: transparent;
+  }
+
   .ui-button.is-danger {
     background: var(--ui-color-danger);
     color: var(--ui-color-danger-contrast);
+  }
+
+  .ui-button.is-danger:hover,
+  .ui-button.is-danger:active {
+    background: var(--ui-color-danger-strong);
+    border-color: transparent;
   }
 
   .ui-card {
@@ -389,6 +375,34 @@
 
   .ui-card__body {
     color: var(--ui-color-text);
+  }
+
+  /* Container-query variant (WS-6, opt-in). `.ui-card` has no existing
+     size-variant system to extend (unlike columns/tiles) -- this is new,
+     modest, and deliberately conservative: a card opted in via
+     `.is-container` gets more generous internal padding once its own
+     container is wide enough (e.g. a card in a wide main column vs. the
+     same card in a narrow sidebar), without requiring any new markup (no
+     image/media slot is invented here -- `card()` doesn't render one).
+     Non-opted-in cards are completely unaffected.
+
+     IMPORTANT: a container query can only restyle a container's
+     *descendants*, never the container element itself (that would create a
+     circular size dependency, and no browser allows it) -- so this targets
+     `.ui-card`'s own header/body/footer children, not `.ui-card` directly.
+     `card()` always emits at least one of these as a direct child, so the
+     effect is visible without any extra wrapper markup. */
+  .ui-card.is-container {
+    container-type: inline-size;
+  }
+
+  @container (min-width: 24rem) {
+    .ui-card.is-container > .ui-card__header,
+    .ui-card.is-container > .ui-card__body,
+    .ui-card.is-container > .ui-card__footer {
+      padding-block: var(--ui-space-2);
+      padding-inline: var(--ui-space-2);
+    }
   }
 
   .ui-field {
@@ -658,6 +672,21 @@
     border-radius: var(--ui-radius-md);
     background: var(--ui-color-surface);
     box-shadow: var(--ui-shadow-2);
+    /* Fixed 2026-07-26: previously a plain in-flow block, so opening it
+       pushed all following page content downward instead of overlaying it
+       like a real dropdown. `position: absolute` removes it from flow --
+       with top/left left at their `auto` default, browsers fall back to the
+       element's "static position" (roughly where it would have sat in
+       normal flow), which for this component's expected markup (a trigger
+       button immediately followed by the menu) already lands it directly
+       under the trigger with no extra offsets needed. The immediate parent
+       wrapping the trigger + menu together must have `position: relative`
+       (or any other positioned value) so the menu anchors there instead of
+       walking up to whatever positioned ancestor exists further up the page
+       -- see `menu()`'s docstring and `demo/demo.html`'s `.demo-panel`. */
+    position: absolute;
+    z-index: 20;
+    margin-top: var(--ui-space-1);
   }
 
   .ui-menu[hidden] {
@@ -699,15 +728,13 @@
   .ui-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding-left: var(--ui-space-4);
-    padding-right: var(--ui-space-4);
+    padding-inline: var(--ui-space-4);
     width: 100%;
   }
 
   .ui-container.is-fluid {
     max-width: none;
-    padding-left: var(--ui-space-4);
-    padding-right: var(--ui-space-4);
+    padding-inline: var(--ui-space-4);
   }
 
   .ui-container.is-widescreen {
@@ -724,8 +751,7 @@
   .ui-columns {
     display: flex;
     flex-wrap: wrap;
-    margin-left: calc(-1 * var(--ui-space-4));
-    margin-right: calc(-1 * var(--ui-space-4));
+    margin-inline: calc(-1 * var(--ui-space-4));
     margin-top: calc(-1 * var(--ui-space-4));
   }
 
@@ -752,8 +778,7 @@
 
   /* Gap modifiers */
   .ui-columns.is-gapless {
-    margin-left: 0;
-    margin-right: 0;
+    margin-inline: 0;
     margin-top: 0;
   }
 
@@ -808,17 +833,53 @@
   .ui-column.is-12 { flex: none; width: 100%; }
 
   /* Offsets */
-  .ui-column.is-offset-1 { margin-left: calc(100% * 1 / 12); }
-  .ui-column.is-offset-2 { margin-left: calc(100% * 2 / 12); }
-  .ui-column.is-offset-3 { margin-left: calc(100% * 3 / 12); }
-  .ui-column.is-offset-4 { margin-left: calc(100% * 4 / 12); }
-  .ui-column.is-offset-5 { margin-left: calc(100% * 5 / 12); }
-  .ui-column.is-offset-6 { margin-left: calc(100% * 6 / 12); }
-  .ui-column.is-offset-7 { margin-left: calc(100% * 7 / 12); }
-  .ui-column.is-offset-8 { margin-left: calc(100% * 8 / 12); }
-  .ui-column.is-offset-9 { margin-left: calc(100% * 9 / 12); }
-  .ui-column.is-offset-10 { margin-left: calc(100% * 10 / 12); }
-  .ui-column.is-offset-11 { margin-left: calc(100% * 11 / 12); }
+  .ui-column.is-offset-1 { margin-inline-start: calc(100% * 1 / 12); }
+  .ui-column.is-offset-2 { margin-inline-start: calc(100% * 2 / 12); }
+  .ui-column.is-offset-3 { margin-inline-start: calc(100% * 3 / 12); }
+  .ui-column.is-offset-4 { margin-inline-start: calc(100% * 4 / 12); }
+  .ui-column.is-offset-5 { margin-inline-start: calc(100% * 5 / 12); }
+  .ui-column.is-offset-6 { margin-inline-start: calc(100% * 6 / 12); }
+  .ui-column.is-offset-7 { margin-inline-start: calc(100% * 7 / 12); }
+  .ui-column.is-offset-8 { margin-inline-start: calc(100% * 8 / 12); }
+  .ui-column.is-offset-9 { margin-inline-start: calc(100% * 9 / 12); }
+  .ui-column.is-offset-10 { margin-inline-start: calc(100% * 10 / 12); }
+  .ui-column.is-offset-11 { margin-inline-start: calc(100% * 11 / 12); }
+
+  /* =========================================================================
+     COLUMNS — container-query variant (WS-6, opt-in)
+     =========================================================================
+     The `.is-N`/`.is-N-tablet`/`.is-N-desktop`/`.is-N-widescreen` classes
+     above respond to *viewport* width and remain the default — nothing
+     above this comment changes. `.ui-columns.is-container` opts a columns
+     grid into responding to its own container's width instead, via the
+     `.is-N-cq` variants below, for layouts where the grid's available
+     width isn't the same as the viewport (e.g. a grid inside a sidebar).
+
+     This ships one container-query tier (>= 30rem) as a first cut, not the
+     full four-tier matrix the viewport-based system has — extend by adding
+     further `@container` blocks with additional `-cq` suffixes (e.g.
+     `is-N-cq-lg`) following the same pattern if/when a second tier is
+     needed. `@container` has no IE/legacy-browser fallback; browsers
+     without support simply keep the default (unsized, wrapped) column
+     layout, which is an acceptable, non-broken fallback. */
+  .ui-columns.is-container {
+    container-type: inline-size;
+  }
+
+  @container (min-width: 30rem) {
+    .ui-column.is-1-cq { flex: none; width: calc(100% * 1 / 12); }
+    .ui-column.is-2-cq { flex: none; width: calc(100% * 2 / 12); }
+    .ui-column.is-3-cq { flex: none; width: calc(100% * 3 / 12); }
+    .ui-column.is-4-cq { flex: none; width: calc(100% * 4 / 12); }
+    .ui-column.is-5-cq { flex: none; width: calc(100% * 5 / 12); }
+    .ui-column.is-6-cq { flex: none; width: calc(100% * 6 / 12); }
+    .ui-column.is-7-cq { flex: none; width: calc(100% * 7 / 12); }
+    .ui-column.is-8-cq { flex: none; width: calc(100% * 8 / 12); }
+    .ui-column.is-9-cq { flex: none; width: calc(100% * 9 / 12); }
+    .ui-column.is-10-cq { flex: none; width: calc(100% * 10 / 12); }
+    .ui-column.is-11-cq { flex: none; width: calc(100% * 11 / 12); }
+    .ui-column.is-12-cq { flex: none; width: 100%; }
+  }
 
   /* =========================================================================
      LEVEL
@@ -833,6 +894,15 @@
   .ui-level-right {
     display: flex;
     align-items: center;
+    /* Fixed 2026-07-26: multiple inline children (e.g. a label plus a status
+       span passed via `level(left=...)`) had no defined spacing at all --
+       only whatever literal whitespace happened to be in the source markup,
+       which visually reads as no gap ("ToolbarAction clicked 1 time."). A
+       logical `gap` is the modern equivalent of Bulma's non-last-child
+       spacing between level items, and applies uniformly regardless of how
+       many children are passed -- deliberately not a physical left/right
+       margin, so it doesn't need a WS-7 logical-properties exception. */
+    gap: var(--ui-space-3);
   }
 
   .ui-level-left {
@@ -974,14 +1044,39 @@
     margin-top: calc(-1 * var(--ui-space-3));
   }
 
-  /* Light/dark hero subtitle */
+  /* Hero subtitle contrast.
+
+     Every *colored* hero variant sets its own `color` (the matching
+     `-contrast` token), so the subtitle must inherit it rather than keep
+     `--ui-color-text-muted` -- a fixed gray has no relationship to a
+     variant's background and will fail WCAG on the lighter fills.
+
+     This list must name every variant in "Hero color variants" above.
+     `is-warning` was previously missing: muted gray on the yellow fill
+     measured 2.52:1 (light) / 1.67:1 (dark), both failing AA's 4.5:1,
+     while the sibling `.ui-title` correctly inherited black at 10.95:1.
+     `is-light` was also missing; it passed at 4.63:1 but only by accident
+     of its near-white fill, so it is included here for consistency.
+
+     The bare `.ui-hero` (no variant) is deliberately NOT listed -- it sets
+     a background but no color, so its muted subtitle is intentional.
+
+     No `opacity` here, deliberately. The `-contrast` tokens are picked to
+     land just above AA against their own fill (danger is the tightest at
+     4.83:1), so they have no headroom to give away: a decorative
+     `opacity: 0.9` blends the text back toward the background and drops
+     danger to 4.14:1 and success to 4.39:1 -- i.e. the de-emphasis alone
+     was enough to fail AA on two variants. Even 0.95 leaves danger at
+     4.47:1. The subtitle is already distinguished from the title by size
+     (1.25rem vs 2.5rem), so the opacity bought nothing it needed. */
   .ui-hero.is-primary .ui-subtitle,
   .ui-hero.is-info .ui-subtitle,
   .ui-hero.is-success .ui-subtitle,
+  .ui-hero.is-warning .ui-subtitle,
   .ui-hero.is-danger .ui-subtitle,
+  .ui-hero.is-light .ui-subtitle,
   .ui-hero.is-dark .ui-subtitle {
     color: inherit;
-    opacity: 0.9;
   }
 
   /* =========================================================================
@@ -1036,6 +1131,13 @@
     min-width: 0;
   }
 
+  /* Intentional exception to the logical-properties migration below: these
+     classes name a physical visual position ("image on the left" /
+     "image on the right"), the same way Bulma's media-left/media-right do
+     -- not a logical start/end that should flip under `dir="rtl"`. Using
+     `margin-inline-start`/`-end` here would swap which side gets the gap in
+     RTL, breaking the documented "always visually left/right" contract of
+     these specific classes. */
   .ui-media-left,
   .ui-media-right {
     flex-shrink: 0;
@@ -1101,11 +1203,64 @@
   .ui-tiles.is-vbottom { align-items: flex-end; }
 
   /* =========================================================================
+     TILES — container-query variant (WS-6, opt-in)
+     =========================================================================
+     Tiles are naturally hierarchical/nested (ancestor > parent > child), so
+     unlike columns they had no viewport-responsive stacking at all before
+     this: `.is-N` was always its fractional width regardless of viewport or
+     container size. `.ui-tiles.is-container` opts a tile group into
+     stacking to full width until its *own container* (not the viewport)
+     reaches the threshold below -- useful for tiles nested inside a
+     narrower parent tile or a sidebar, where viewport width tells you
+     nothing about the space actually available. Existing non-opted-in
+     `.is-N` tiles are completely unaffected. */
+  .ui-tiles.is-container {
+    container-type: inline-size;
+  }
+
+  .ui-tiles.is-container > .ui-tile.is-1,
+  .ui-tiles.is-container > .ui-tile.is-2,
+  .ui-tiles.is-container > .ui-tile.is-3,
+  .ui-tiles.is-container > .ui-tile.is-4,
+  .ui-tiles.is-container > .ui-tile.is-5,
+  .ui-tiles.is-container > .ui-tile.is-6,
+  .ui-tiles.is-container > .ui-tile.is-7,
+  .ui-tiles.is-container > .ui-tile.is-8,
+  .ui-tiles.is-container > .ui-tile.is-9,
+  .ui-tiles.is-container > .ui-tile.is-10,
+  .ui-tiles.is-container > .ui-tile.is-11 {
+    width: 100%;
+  }
+
+  @container (min-width: 30rem) {
+    .ui-tiles.is-container > .ui-tile.is-1 { width: calc(100% * 1 / 12); }
+    .ui-tiles.is-container > .ui-tile.is-2 { width: calc(100% * 2 / 12); }
+    .ui-tiles.is-container > .ui-tile.is-3 { width: calc(100% * 3 / 12); }
+    .ui-tiles.is-container > .ui-tile.is-4 { width: calc(100% * 4 / 12); }
+    .ui-tiles.is-container > .ui-tile.is-5 { width: calc(100% * 5 / 12); }
+    .ui-tiles.is-container > .ui-tile.is-6 { width: calc(100% * 6 / 12); }
+    .ui-tiles.is-container > .ui-tile.is-7 { width: calc(100% * 7 / 12); }
+    .ui-tiles.is-container > .ui-tile.is-8 { width: calc(100% * 8 / 12); }
+    .ui-tiles.is-container > .ui-tile.is-9 { width: calc(100% * 9 / 12); }
+    .ui-tiles.is-container > .ui-tile.is-10 { width: calc(100% * 10 / 12); }
+    .ui-tiles.is-container > .ui-tile.is-11 { width: calc(100% * 11 / 12); }
+  }
+
+  /* =========================================================================
    NAVBAR
    ========================================================================= */
+  /* Wrapping is the CSS-first answer to a narrow viewport here. A burger
+     menu would need JavaScript, and this library keeps JS optional and
+     behavior-only -- so the navbar reflows instead: `.ui-navbar-brand`
+     keeps its `margin-inline-end: auto`, which pushes the menu onto its
+     own row once the two no longer fit side by side. Without this the
+     navbar is a fixed-width non-shrinkable row that overflows the viewport
+     (and widens its ancestors) on any phone. */
   .ui-navbar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    row-gap: var(--ui-space-2);
     min-height: 3rem;
     padding: 0 var(--ui-space-4);
     background: var(--ui-color-surface);
@@ -1115,7 +1270,7 @@
   .ui-navbar-brand {
     display: flex;
     align-items: center;
-    margin-right: auto;
+    margin-inline-end: auto;
     font-weight: 600;
     color: var(--ui-color-text-strong);
     text-decoration: none;
@@ -1123,6 +1278,7 @@
 
   .ui-navbar-menu {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--ui-space-1);
   }
@@ -1130,6 +1286,7 @@
   .ui-navbar-start,
   .ui-navbar-end {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--ui-space-1);
   }
@@ -1210,8 +1367,17 @@
   /* =========================================================================
      PAGINATION
      ========================================================================= */
+  /* `flex-wrap: wrap` is load-bearing, not cosmetic: each `__item` has a
+     `min-width` of 2.5rem, so a non-wrapping row of N links has a
+     min-content width of roughly N * 2.5rem and can never shrink. A
+     default `pagination(5, 12)` renders 9 items (~419px), which overflows
+     any viewport under ~420px -- and because a non-shrinkable child also
+     raises the min-content width of every grid/flex ancestor, it drags the
+     surrounding layout wider with it. Wrapping keeps the component
+     self-contained on narrow screens. */
   .ui-pagination {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: var(--ui-space-1);
@@ -1276,7 +1442,7 @@
   .ui-table th,
   .ui-table td {
     padding: 0.75rem 1rem;
-    text-align: left;
+    text-align: start;
     border-bottom: var(--ui-border-width) solid var(--ui-color-border);
   }
 
@@ -1383,18 +1549,18 @@
     .ui-column.is-11-tablet { flex: none; width: calc(100% * 11 / 12); }
     .ui-column.is-12-tablet { flex: none; width: 100%; }
 
-    .ui-column.is-offset-0-tablet { margin-left: 0; }
-    .ui-column.is-offset-1-tablet { margin-left: calc(100% * 1 / 12); }
-    .ui-column.is-offset-2-tablet { margin-left: calc(100% * 2 / 12); }
-    .ui-column.is-offset-3-tablet { margin-left: calc(100% * 3 / 12); }
-    .ui-column.is-offset-4-tablet { margin-left: calc(100% * 4 / 12); }
-    .ui-column.is-offset-5-tablet { margin-left: calc(100% * 5 / 12); }
-    .ui-column.is-offset-6-tablet { margin-left: calc(100% * 6 / 12); }
-    .ui-column.is-offset-7-tablet { margin-left: calc(100% * 7 / 12); }
-    .ui-column.is-offset-8-tablet { margin-left: calc(100% * 8 / 12); }
-    .ui-column.is-offset-9-tablet { margin-left: calc(100% * 9 / 12); }
-    .ui-column.is-offset-10-tablet { margin-left: calc(100% * 10 / 12); }
-    .ui-column.is-offset-11-tablet { margin-left: calc(100% * 11 / 12); }
+    .ui-column.is-offset-0-tablet { margin-inline-start: 0; }
+    .ui-column.is-offset-1-tablet { margin-inline-start: calc(100% * 1 / 12); }
+    .ui-column.is-offset-2-tablet { margin-inline-start: calc(100% * 2 / 12); }
+    .ui-column.is-offset-3-tablet { margin-inline-start: calc(100% * 3 / 12); }
+    .ui-column.is-offset-4-tablet { margin-inline-start: calc(100% * 4 / 12); }
+    .ui-column.is-offset-5-tablet { margin-inline-start: calc(100% * 5 / 12); }
+    .ui-column.is-offset-6-tablet { margin-inline-start: calc(100% * 6 / 12); }
+    .ui-column.is-offset-7-tablet { margin-inline-start: calc(100% * 7 / 12); }
+    .ui-column.is-offset-8-tablet { margin-inline-start: calc(100% * 8 / 12); }
+    .ui-column.is-offset-9-tablet { margin-inline-start: calc(100% * 9 / 12); }
+    .ui-column.is-offset-10-tablet { margin-inline-start: calc(100% * 10 / 12); }
+    .ui-column.is-offset-11-tablet { margin-inline-start: calc(100% * 11 / 12); }
   }
 
   /* Desktop breakpoint */
@@ -1412,18 +1578,18 @@
     .ui-column.is-11-desktop { flex: none; width: calc(100% * 11 / 12); }
     .ui-column.is-12-desktop { flex: none; width: 100%; }
 
-    .ui-column.is-offset-0-desktop { margin-left: 0; }
-    .ui-column.is-offset-1-desktop { margin-left: calc(100% * 1 / 12); }
-    .ui-column.is-offset-2-desktop { margin-left: calc(100% * 2 / 12); }
-    .ui-column.is-offset-3-desktop { margin-left: calc(100% * 3 / 12); }
-    .ui-column.is-offset-4-desktop { margin-left: calc(100% * 4 / 12); }
-    .ui-column.is-offset-5-desktop { margin-left: calc(100% * 5 / 12); }
-    .ui-column.is-offset-6-desktop { margin-left: calc(100% * 6 / 12); }
-    .ui-column.is-offset-7-desktop { margin-left: calc(100% * 7 / 12); }
-    .ui-column.is-offset-8-desktop { margin-left: calc(100% * 8 / 12); }
-    .ui-column.is-offset-9-desktop { margin-left: calc(100% * 9 / 12); }
-    .ui-column.is-offset-10-desktop { margin-left: calc(100% * 10 / 12); }
-    .ui-column.is-offset-11-desktop { margin-left: calc(100% * 11 / 12); }
+    .ui-column.is-offset-0-desktop { margin-inline-start: 0; }
+    .ui-column.is-offset-1-desktop { margin-inline-start: calc(100% * 1 / 12); }
+    .ui-column.is-offset-2-desktop { margin-inline-start: calc(100% * 2 / 12); }
+    .ui-column.is-offset-3-desktop { margin-inline-start: calc(100% * 3 / 12); }
+    .ui-column.is-offset-4-desktop { margin-inline-start: calc(100% * 4 / 12); }
+    .ui-column.is-offset-5-desktop { margin-inline-start: calc(100% * 5 / 12); }
+    .ui-column.is-offset-6-desktop { margin-inline-start: calc(100% * 6 / 12); }
+    .ui-column.is-offset-7-desktop { margin-inline-start: calc(100% * 7 / 12); }
+    .ui-column.is-offset-8-desktop { margin-inline-start: calc(100% * 8 / 12); }
+    .ui-column.is-offset-9-desktop { margin-inline-start: calc(100% * 9 / 12); }
+    .ui-column.is-offset-10-desktop { margin-inline-start: calc(100% * 10 / 12); }
+    .ui-column.is-offset-11-desktop { margin-inline-start: calc(100% * 11 / 12); }
   }
 
   /* Widescreen breakpoint */
@@ -1441,34 +1607,39 @@
     .ui-column.is-11-widescreen { flex: none; width: calc(100% * 11 / 12); }
     .ui-column.is-12-widescreen { flex: none; width: 100%; }
 
-    .ui-column.is-offset-0-widescreen { margin-left: 0; }
-    .ui-column.is-offset-1-widescreen { margin-left: calc(100% * 1 / 12); }
-    .ui-column.is-offset-2-widescreen { margin-left: calc(100% * 2 / 12); }
-    .ui-column.is-offset-3-widescreen { margin-left: calc(100% * 3 / 12); }
-    .ui-column.is-offset-4-widescreen { margin-left: calc(100% * 4 / 12); }
-    .ui-column.is-offset-5-widescreen { margin-left: calc(100% * 5 / 12); }
-    .ui-column.is-offset-6-widescreen { margin-left: calc(100% * 6 / 12); }
-    .ui-column.is-offset-7-widescreen { margin-left: calc(100% * 7 / 12); }
-    .ui-column.is-offset-8-widescreen { margin-left: calc(100% * 8 / 12); }
-    .ui-column.is-offset-9-widescreen { margin-left: calc(100% * 9 / 12); }
-    .ui-column.is-offset-10-widescreen { margin-left: calc(100% * 10 / 12); }
-    .ui-column.is-offset-11-widescreen { margin-left: calc(100% * 11 / 12); }
+    .ui-column.is-offset-0-widescreen { margin-inline-start: 0; }
+    .ui-column.is-offset-1-widescreen { margin-inline-start: calc(100% * 1 / 12); }
+    .ui-column.is-offset-2-widescreen { margin-inline-start: calc(100% * 2 / 12); }
+    .ui-column.is-offset-3-widescreen { margin-inline-start: calc(100% * 3 / 12); }
+    .ui-column.is-offset-4-widescreen { margin-inline-start: calc(100% * 4 / 12); }
+    .ui-column.is-offset-5-widescreen { margin-inline-start: calc(100% * 5 / 12); }
+    .ui-column.is-offset-6-widescreen { margin-inline-start: calc(100% * 6 / 12); }
+    .ui-column.is-offset-7-widescreen { margin-inline-start: calc(100% * 7 / 12); }
+    .ui-column.is-offset-8-widescreen { margin-inline-start: calc(100% * 8 / 12); }
+    .ui-column.is-offset-9-widescreen { margin-inline-start: calc(100% * 9 / 12); }
+    .ui-column.is-offset-10-widescreen { margin-inline-start: calc(100% * 10 / 12); }
+    .ui-column.is-offset-11-widescreen { margin-inline-start: calc(100% * 11 / 12); }
   }
 
   /* =========================================================================
      MOBILE RESPONSIVENESS
      ========================================================================= */
 
-  /* On mobile, columns stack by default unless explicitly marked */
+  /* On mobile, columns stack by default unless explicitly marked. `.is-container`
+     is also excluded here (WS-6 fix): its stacking/width is driven by the
+     container's own inline size via @container, not the viewport, and this
+     viewport-based rule's higher specificity (`.ui-columns:not(...) > .ui-column`)
+     would otherwise silently override `.is-N-cq` any time the *page* is narrow,
+     even if the container itself has crossed its own width threshold (e.g. a
+     wide sidebar on an otherwise-narrow page). */
   @media screen and (max-width: 768px) {
-    .ui-columns:not(.is-desktop) {
+    .ui-columns:not(.is-desktop):not(.is-container) {
       display: block;
     }
 
-    .ui-columns:not(.is-desktop) > .ui-column {
+    .ui-columns:not(.is-desktop):not(.is-container) > .ui-column {
       width: 100%;
-      margin-left: 0;
-      margin-right: 0;
+      margin-inline: 0;
     }
 
     .ui-level {
@@ -1507,10 +1678,19 @@
     --ui-color-border: #334155;
     --ui-color-border-strong: #64748b;
 
-    --ui-color-primary: #818cf8;
+    /* Fixed 2026-07-26: indigo-400/-300 (#818cf8/#a5b4fc) against white text
+       only reached 2.98:1/1.99:1 (hover), both failing WCAG AA's 4.5:1.
+       Unlike info/success/danger above, flipping `-contrast` to black isn't
+       a good option here -- indigo reads muddy with black text at any
+       shade light enough to still look "dark-mode-native". Darkened to
+       indigo-600/-700 instead (6.29:1/7.90:1) -- the same two shades light
+       mode already uses for `--ui-color-primary`/`-strong`, so the primary
+       button/hero is now the same color in both themes; still a real,
+       intentional Tailwind indigo shade, not an arbitrary one-off. */
+    --ui-color-primary: #4f46e5;
     --ui-color-primary-contrast: #ffffff;
     --ui-color-primary-subtle: #312e81;
-    --ui-color-primary-strong: #a5b4fc;
+    --ui-color-primary-strong: #4338ca;
 
     --ui-color-info: #22d3ee;
     --ui-color-info-contrast: #000000;
@@ -1527,39 +1707,15 @@
     --ui-color-warning-subtle: #713f12;
     --ui-color-warning-strong: #fde047;
 
+    /* Fixed 2026-07-26: unlike info/success/warning above, danger's
+       dark-mode contrast text was never flipped to black -- the pastel
+       #f87171 fill only reaches 2.77:1/1.90:1 (hover) against white text,
+       both failing WCAG AA. Flipping to black (matching the same pattern
+       already used for info/success/warning) fixes it: 7.59:1/11.06:1. */
     --ui-color-danger: #f87171;
-    --ui-color-danger-contrast: #ffffff;
+    --ui-color-danger-contrast: #000000;
     --ui-color-danger-subtle: #7f1d1d;
     --ui-color-danger-strong: #fca5a5;
-
-    --fast-primary: #818cf8;
-    --fast-primary-invert: #ffffff;
-    --fast-primary-light: #312e81;
-    --fast-primary-dark: #a5b4fc;
-    --fast-info: #22d3ee;
-    --fast-info-invert: #000000;
-    --fast-info-light: #164e63;
-    --fast-info-dark: #67e8f9;
-    --fast-success: #4ade80;
-    --fast-success-invert: #000000;
-    --fast-success-light: #14532d;
-    --fast-success-dark: #86efac;
-    --fast-warning: #facc15;
-    --fast-warning-invert: #000000;
-    --fast-warning-light: #713f12;
-    --fast-warning-dark: #fde047;
-    --fast-danger: #f87171;
-    --fast-danger-invert: #ffffff;
-    --fast-danger-light: #7f1d1d;
-    --fast-danger-dark: #fca5a5;
-    --fast-grey: #94a3b8;
-    --fast-grey-light: #1e293b;
-    --fast-grey-lighter: #111827;
-    --fast-grey-dark: #cbd5e1;
-    --fast-grey-darker: #f8fafc;
-    --fast-background: #0f172a;
-    --fast-text: #cbd5e1;
-    --fast-focus-color: #818cf8;
     }
   }
 }

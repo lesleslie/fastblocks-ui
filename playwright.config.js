@@ -24,7 +24,11 @@ export default defineConfig({
   ],
 
   use: {
-    // Base URL for tests - demo.html is served from the fastblocks_ui package.
+    // Base URL for tests. Specs target demo/demo.html (hand-written reference; see
+    // tests/test_demo_parity.py for the drift check against demo/index.html's real
+    // helper output). Both demo pages inline their own CSS and JS, so the only
+    // runtime asset either one fetches is demo/manifest.json -- a symlink to
+    // fastblocks_ui/manifest.json, resolved relative to the page.
     baseURL: 'http://localhost:8080',
 
     // Collect trace when retrying the failed test
@@ -66,9 +70,11 @@ export default defineConfig({
     },
   ],
 
-  // Run your local dev server before starting the tests
+  // Run your local dev server before starting the tests. Serves the repo root so the
+  // specs' /demo/... paths resolve, and so demo/manifest.json (a symlink up into
+  // fastblocks_ui/) stays inside the served tree.
   webServer: {
-    command: 'python3 -m http.server 8080 --directory fastblocks_ui',
+    command: 'python3 -m http.server 8080',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

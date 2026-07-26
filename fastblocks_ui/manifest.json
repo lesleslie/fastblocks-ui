@@ -1,160 +1,805 @@
 {
   "components": [
     {
-      "class_name": "ui-button",
-      "description": "Primary and secondary action buttons.",
-      "helper": "button",
-      "name": "button"
-    },
-    {
-      "class_name": "ui-card",
-      "description": "Content containers and panels.",
-      "helper": "card",
-      "name": "card"
-    },
-    {
-      "class_name": "ui-container",
-      "description": "Centered max-width container for page content.",
-      "helper": "container",
-      "name": "container"
-    },
-    {
-      "class_name": "ui-columns",
-      "description": "Flexible grid container for responsive column layouts.",
-      "helper": "columns",
-      "name": "columns"
-    },
-    {
-      "class_name": "ui-column",
-      "description": "Individual column within a columns grid.",
-      "helper": "column",
-      "name": "column"
-    },
-    {
-      "class_name": "ui-section",
-      "description": "Vertical spacing container for page sections.",
-      "helper": "section",
-      "name": "section"
-    },
-    {
-      "class_name": "ui-footer",
-      "description": "Page footer with centered content.",
-      "helper": "footer",
-      "name": "footer"
-    },
-    {
-      "class_name": "ui-level",
-      "description": "Horizontal layout with left and right sides.",
-      "helper": "level",
-      "name": "level"
-    },
-    {
-      "class_name": "ui-hero",
-      "description": "Full-width banner section with title and subtitle.",
-      "helper": "hero",
-      "name": "hero"
-    },
-    {
-      "class_name": "ui-title",
-      "description": "Typography title element.",
-      "helper": "title",
-      "name": "title"
-    },
-    {
-      "class_name": "ui-media",
-      "description": "Image + text media object pattern.",
-      "helper": "media",
-      "name": "media"
-    },
-    {
-      "class_name": "ui-tile",
-      "description": "Hierarchical tile for complex nested layouts.",
-      "helper": "tile",
-      "name": "tile"
-    },
-    {
-      "class_name": "ui-navbar",
-      "description": "Navigation bar with brand and menu items.",
-      "helper": "navbar",
-      "name": "navbar"
+      "class_name": "ui-alert",
+      "description": "Inline notices and status messaging.",
+      "helper": "alert",
+      "name": "alert",
+      "params": [
+        {
+          "name": "content",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "required": true
+        },
+        {
+          "name": "variant",
+          "kind": "keyword_only",
+          "type": "Variant | None",
+          "default": null
+        }
+      ],
+      "codegen": true
     },
     {
       "class_name": "ui-breadcrumb",
       "description": "Navigation trail with links and current page.",
       "helper": "breadcrumb",
-      "name": "breadcrumb"
+      "name": "breadcrumb",
+      "params": [
+        {
+          "name": "items",
+          "kind": "positional_or_keyword",
+          "type": "list[tuple[object, str | None]]",
+          "required": true
+        }
+      ],
+      "codegen": false
     },
     {
-      "class_name": "ui-progress",
-      "description": "Progress bar with value and variants.",
-      "helper": "progress",
-      "name": "progress"
+      "class_name": "ui-button",
+      "description": "Primary and secondary action buttons.",
+      "helper": "button",
+      "name": "button",
+      "params": [
+        {
+          "name": "label",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "required": true
+        },
+        {
+          "name": "variant",
+          "kind": "keyword_only",
+          "type": "Variant | None",
+          "default": null
+        },
+        {
+          "name": "size",
+          "kind": "keyword_only",
+          "type": "Size | None",
+          "default": null
+        },
+        {
+          "name": "href",
+          "kind": "keyword_only",
+          "type": "str | None",
+          "default": null
+        },
+        {
+          "name": "type",
+          "kind": "keyword_only",
+          "type": "str",
+          "default": "button"
+        }
+      ],
+      "codegen": false
     },
     {
-      "class_name": "ui-table",
-      "description": "Styled table with optional striping and hover.",
-      "helper": "table",
-      "name": "table"
-    },
-    {
-      "class_name": "ui-pagination",
-      "description": "Pagination links with current page indicator.",
-      "helper": "pagination",
-      "name": "pagination"
-    },
-    {
-      "class_name": "ui-field",
-      "description": "Label, help, and error grouping for form controls.",
-      "helper": "field",
-      "name": "field"
-    },
-    {
-      "class_name": "ui-input",
-      "description": "Native text-like input styling.",
-      "helper": "input",
-      "name": "input"
-    },
-    {
-      "class_name": "ui-select",
-      "description": "Native select styling.",
-      "helper": "select",
-      "name": "select"
+      "class_name": "ui-card",
+      "description": "Content containers and panels.",
+      "helper": "card",
+      "name": "card",
+      "params": [
+        {
+          "name": "header",
+          "kind": "keyword_only",
+          "type": "object | None",
+          "default": null
+        },
+        {
+          "name": "body",
+          "kind": "keyword_only",
+          "type": "object | None",
+          "default": null
+        },
+        {
+          "name": "footer",
+          "kind": "keyword_only",
+          "type": "object | None",
+          "default": null
+        }
+      ],
+      "codegen": true
     },
     {
       "class_name": "ui-checkbox",
       "description": "Checkbox label and control grouping.",
       "helper": "checkbox",
-      "name": "checkbox"
+      "name": "checkbox",
+      "params": [
+        {
+          "name": "label",
+          "kind": "keyword_only",
+          "type": "object",
+          "required": true
+        },
+        {
+          "name": "checked",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "codegen": true
     },
     {
-      "class_name": "ui-switch",
-      "description": "Accessible toggle switch presentation.",
-      "helper": "switch",
-      "name": "switch"
+      "class_name": "ui-column",
+      "description": "Individual column within a columns grid.",
+      "helper": "column",
+      "name": "column",
+      "params": [
+        {
+          "name": "content",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "default": null
+        },
+        {
+          "name": "size",
+          "kind": "keyword_only",
+          "type": "str | None",
+          "default": null
+        },
+        {
+          "name": "offset",
+          "kind": "keyword_only",
+          "type": "str | None",
+          "default": null
+        },
+        {
+          "name": "narrow",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "full",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "codegen": true
+    },
+    {
+      "class_name": "ui-columns",
+      "description": "Flexible grid container for responsive column layouts.",
+      "helper": "columns",
+      "name": "columns",
+      "params": [
+        {
+          "name": "children",
+          "kind": "var_positional",
+          "type": "object",
+          "required": true
+        },
+        {
+          "name": "centered",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "vcentered",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "gapless",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "multiline",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": true
+        }
+      ],
+      "codegen": false
+    },
+    {
+      "class_name": "ui-container",
+      "description": "Centered max-width container for page content.",
+      "helper": "container",
+      "name": "container",
+      "params": [
+        {
+          "name": "content",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "default": null
+        },
+        {
+          "name": "fluid",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "widescreen",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "fullhd",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "codegen": false
     },
     {
       "class_name": "ui-dialog",
       "description": "Native dialog styling and enhancement hooks.",
       "helper": "dialog",
-      "name": "dialog"
+      "name": "dialog",
+      "params": [
+        {
+          "name": "content",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "required": true
+        },
+        {
+          "name": "title",
+          "kind": "keyword_only",
+          "type": "object | None",
+          "default": null
+        },
+        {
+          "name": "open",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "custom_element",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "codegen": true
     },
     {
-      "class_name": "ui-tabs",
-      "description": "Accessible tablist, tab, and panel patterns.",
-      "helper": "tabs",
-      "name": "tabs"
+      "class_name": "ui-field",
+      "description": "Label, help, and error grouping for form controls.",
+      "helper": "field",
+      "name": "field",
+      "params": [
+        {
+          "name": "label",
+          "kind": "keyword_only",
+          "type": "object | None",
+          "default": null
+        },
+        {
+          "name": "help_text",
+          "kind": "keyword_only",
+          "type": "object | None",
+          "default": null
+        },
+        {
+          "name": "error_text",
+          "kind": "keyword_only",
+          "type": "object | None",
+          "default": null
+        },
+        {
+          "name": "control_html",
+          "kind": "keyword_only",
+          "type": "object",
+          "default": ""
+        },
+        {
+          "name": "control_id",
+          "kind": "keyword_only",
+          "type": "str | None",
+          "default": null
+        }
+      ],
+      "codegen": false
+    },
+    {
+      "class_name": "ui-footer",
+      "description": "Page footer with centered content.",
+      "helper": "footer",
+      "name": "footer",
+      "params": [
+        {
+          "name": "content",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "default": null
+        }
+      ],
+      "codegen": true
+    },
+    {
+      "class_name": "ui-hero",
+      "description": "Full-width banner section with title and subtitle.",
+      "helper": "hero",
+      "name": "hero",
+      "params": [
+        {
+          "name": "title",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "required": true
+        },
+        {
+          "name": "subtitle",
+          "kind": "keyword_only",
+          "type": "object | None",
+          "default": null
+        },
+        {
+          "name": "variant",
+          "kind": "keyword_only",
+          "type": "Variant | None",
+          "default": null
+        },
+        {
+          "name": "size",
+          "kind": "keyword_only",
+          "type": "Size | None",
+          "default": null
+        }
+      ],
+      "codegen": true
+    },
+    {
+      "class_name": "ui-input",
+      "description": "Native text-like input styling.",
+      "helper": "input",
+      "name": "input",
+      "params": [
+        {
+          "name": "value",
+          "kind": "keyword_only",
+          "type": "object | None",
+          "default": null
+        },
+        {
+          "name": "placeholder",
+          "kind": "keyword_only",
+          "type": "object | None",
+          "default": null
+        },
+        {
+          "name": "type",
+          "kind": "keyword_only",
+          "type": "str",
+          "default": "text"
+        }
+      ],
+      "codegen": true
+    },
+    {
+      "class_name": "ui-level",
+      "description": "Horizontal layout with left and right sides.",
+      "helper": "level",
+      "name": "level",
+      "params": [
+        {
+          "name": "left",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "default": null
+        },
+        {
+          "name": "right",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "default": null
+        },
+        {
+          "name": "centered",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "codegen": true
+    },
+    {
+      "class_name": "ui-media",
+      "description": "Image + text media object pattern.",
+      "helper": "media",
+      "name": "media",
+      "params": [
+        {
+          "name": "content",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "default": null
+        },
+        {
+          "name": "image",
+          "kind": "keyword_only",
+          "type": "object",
+          "default": null
+        },
+        {
+          "name": "position",
+          "kind": "keyword_only",
+          "type": "str",
+          "default": "start"
+        }
+      ],
+      "codegen": true
     },
     {
       "class_name": "ui-menu",
       "description": "Disclosure and navigation menu styling.",
       "helper": "menu",
-      "name": "menu"
+      "name": "menu",
+      "params": [
+        {
+          "name": "items",
+          "kind": "positional_or_keyword",
+          "type": "list[tuple[object, object]] | None",
+          "default": null
+        },
+        {
+          "name": "label",
+          "kind": "keyword_only",
+          "type": "str",
+          "default": "Menu"
+        },
+        {
+          "name": "custom_element",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "codegen": false
     },
     {
-      "class_name": "ui-alert",
-      "description": "Inline notices and status messaging.",
-      "helper": "alert",
-      "name": "alert"
+      "class_name": "ui-navbar",
+      "description": "Navigation bar with brand and menu items.",
+      "helper": "navbar",
+      "name": "navbar",
+      "params": [
+        {
+          "name": "brand",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "default": null
+        },
+        {
+          "name": "items",
+          "kind": "positional_or_keyword",
+          "type": "list[tuple[object, str]] | None",
+          "default": null
+        },
+        {
+          "name": "brand_url",
+          "kind": "keyword_only",
+          "type": "str | None",
+          "default": "/"
+        },
+        {
+          "name": "start",
+          "kind": "keyword_only",
+          "type": "object",
+          "default": null
+        },
+        {
+          "name": "end",
+          "kind": "keyword_only",
+          "type": "object",
+          "default": null
+        },
+        {
+          "name": "variant",
+          "kind": "keyword_only",
+          "type": "Variant | None",
+          "default": null
+        }
+      ],
+      "codegen": false
+    },
+    {
+      "class_name": "ui-pagination",
+      "description": "Pagination links with current page indicator.",
+      "helper": "pagination",
+      "name": "pagination",
+      "params": [
+        {
+          "name": "current",
+          "kind": "positional_or_keyword",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "total",
+          "kind": "positional_or_keyword",
+          "type": "int",
+          "required": true
+        },
+        {
+          "name": "url_pattern",
+          "kind": "keyword_only",
+          "type": "str",
+          "default": "?page={page}"
+        },
+        {
+          "name": "siblings",
+          "kind": "keyword_only",
+          "type": "int",
+          "default": 2
+        }
+      ],
+      "codegen": true
+    },
+    {
+      "class_name": "ui-progress",
+      "description": "Progress bar with value and variants.",
+      "helper": "progress",
+      "name": "progress",
+      "params": [
+        {
+          "name": "value",
+          "kind": "positional_or_keyword",
+          "type": "int | float",
+          "required": true
+        },
+        {
+          "name": "max_value",
+          "kind": "keyword_only",
+          "type": "int | float",
+          "default": 100
+        },
+        {
+          "name": "size",
+          "kind": "keyword_only",
+          "type": "Size | None",
+          "default": null
+        },
+        {
+          "name": "variant",
+          "kind": "keyword_only",
+          "type": "Variant",
+          "default": "primary"
+        },
+        {
+          "name": "show_label",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "codegen": true
+    },
+    {
+      "class_name": "ui-section",
+      "description": "Vertical spacing container for page sections.",
+      "helper": "section",
+      "name": "section",
+      "params": [
+        {
+          "name": "content",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "default": null
+        },
+        {
+          "name": "size",
+          "kind": "keyword_only",
+          "type": "Size | None",
+          "default": null
+        }
+      ],
+      "codegen": true
+    },
+    {
+      "class_name": "ui-select",
+      "description": "Native select styling.",
+      "helper": "select",
+      "name": "select",
+      "params": [
+        {
+          "name": "options",
+          "kind": "positional_or_keyword",
+          "type": "list[tuple[object, object]] | None",
+          "default": null
+        },
+        {
+          "name": "value",
+          "kind": "keyword_only",
+          "type": "object | None",
+          "default": null
+        }
+      ],
+      "codegen": false
+    },
+    {
+      "class_name": "ui-switch",
+      "description": "Accessible toggle switch presentation.",
+      "helper": "switch",
+      "name": "switch",
+      "params": [
+        {
+          "name": "label",
+          "kind": "keyword_only",
+          "type": "object",
+          "required": true
+        },
+        {
+          "name": "checked",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "codegen": true
+    },
+    {
+      "class_name": "ui-table",
+      "description": "Styled table with optional striping and hover.",
+      "helper": "table",
+      "name": "table",
+      "params": [
+        {
+          "name": "headers",
+          "kind": "positional_or_keyword",
+          "type": "list[str]",
+          "required": true
+        },
+        {
+          "name": "rows",
+          "kind": "positional_or_keyword",
+          "type": "list[list[object]]",
+          "required": true
+        },
+        {
+          "name": "striped",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "hoverable",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "bordered",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "fullwidth",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "codegen": false
+    },
+    {
+      "class_name": "ui-tabs",
+      "description": "Accessible tablist, tab, and panel patterns.",
+      "helper": "tabs",
+      "name": "tabs",
+      "params": [
+        {
+          "name": "items",
+          "kind": "positional_or_keyword",
+          "type": "list[tuple[str, str, object]]",
+          "required": true
+        },
+        {
+          "name": "active_id",
+          "kind": "keyword_only",
+          "type": "str | None",
+          "default": null
+        },
+        {
+          "name": "label",
+          "kind": "keyword_only",
+          "type": "str",
+          "default": "Tabs"
+        },
+        {
+          "name": "custom_element",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "codegen": false
+    },
+    {
+      "class_name": "ui-tile",
+      "description": "Hierarchical tile for complex nested layouts.",
+      "helper": "tile",
+      "name": "tile",
+      "params": [
+        {
+          "name": "content",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "default": null
+        },
+        {
+          "name": "size",
+          "kind": "keyword_only",
+          "type": "str | None",
+          "default": null
+        },
+        {
+          "name": "parent",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "child",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "name": "ancestor",
+          "kind": "keyword_only",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "codegen": true
+    },
+    {
+      "class_name": "ui-title",
+      "description": "Typography title element.",
+      "helper": "title",
+      "name": "title",
+      "params": [
+        {
+          "name": "content",
+          "kind": "positional_or_keyword",
+          "type": "object",
+          "required": true
+        },
+        {
+          "name": "size",
+          "kind": "keyword_only",
+          "type": "Size | None",
+          "default": null
+        }
+      ],
+      "codegen": true
+    },
+    {
+      "name": "validation_summary",
+      "class_name": "ui-validation-summary",
+      "helper": "validation_summary",
+      "description": "Aggregated form-error summary linking to individual fields.",
+      "params": [
+        {
+          "name": "errors",
+          "kind": "positional_or_keyword",
+          "type": "dict[str, object] | list[object] | tuple[object, ...]",
+          "required": true
+        },
+        {
+          "name": "title",
+          "kind": "keyword_only",
+          "type": "object",
+          "default": "Please correct the errors below."
+        }
+      ],
+      "codegen": false
     }
   ],
   "namespace": "ui-*",
@@ -185,6 +830,7 @@
     "is-bordered",
     "is-current",
     "is-disabled",
-    "is-active"
+    "is-active",
+    "is-container"
   ]
 }
