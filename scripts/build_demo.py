@@ -225,11 +225,19 @@ DEMO_CSS = """
     grid-template-columns: 16rem 1fr;
     padding-top: var(--ui-space-6);
   }
+  /* `top` must equal `.demo-layout`'s padding-top (both --ui-space-6).
+     A sticky element scrolls normally until its box reaches the `top`
+     threshold, so any gap between where it starts and where it sticks is
+     visible travel: with top at --ui-space-4 (16px) and the layout
+     padding at --ui-space-6 (32px), the sidebar slid up exactly 16px on
+     the first scroll before locking. Matching them makes it start already
+     at its threshold, so it never moves. max-height follows the same
+     offset on both edges to keep the gap symmetric. */
   .demo-sidebar {
     display: block;
     position: sticky;
-    top: var(--ui-space-4);
-    max-height: calc(100vh - var(--ui-space-8));
+    top: var(--ui-space-6);
+    max-height: calc(100vh - var(--ui-space-6) * 2);
     overflow-y: auto;
   }
 }

@@ -1173,8 +1173,29 @@
     flex-wrap: wrap;
   }
 
+  /* A tile is both a flex *item* (it fills the space its parent gives it)
+     and -- unless it is a leaf `.is-child` -- a flex *container* for the
+     tiles nested inside it. Both halves were missing: `.is-ancestor` had
+     no `display: flex` and no `flex-grow`, so it shrink-wrapped to its
+     content (measured 115px inside a 794px `.ui-tiles`). Every nested
+     `.is-N` width is a percentage *of the ancestor*, so that collapse
+     cascaded down and rendered the demo's tile cards ~50px wide.
+
+     `flex` is written as the shorthand here on purpose. `.ui-tile.is-N`
+     below overrides it with `flex: none`, and shorthand-vs-shorthand
+     resolves cleanly on specificity; a longhand base (`flex-grow` etc.)
+     against a shorthand override leaves per-property gaps, which silently
+     un-fixes the sized tiles. */
   .ui-tile {
+    align-items: stretch;
+    display: block;
+    flex: 1 1 0;
+    min-height: min-content;
     padding: calc(var(--ui-space-3) / 2);
+  }
+
+  .ui-tile:not(.is-child) {
+    display: flex;
   }
 
   .ui-tile.is-ancestor {
@@ -1890,11 +1911,19 @@
     grid-template-columns: 16rem 1fr;
     padding-top: var(--ui-space-6);
   }
+  /* `top` must equal `.demo-layout`'s padding-top (both --ui-space-6).
+     A sticky element scrolls normally until its box reaches the `top`
+     threshold, so any gap between where it starts and where it sticks is
+     visible travel: with top at --ui-space-4 (16px) and the layout
+     padding at --ui-space-6 (32px), the sidebar slid up exactly 16px on
+     the first scroll before locking. Matching them makes it start already
+     at its threshold, so it never moves. max-height follows the same
+     offset on both edges to keep the gap symmetric. */
   .demo-sidebar {
     display: block;
     position: sticky;
-    top: var(--ui-space-4);
-    max-height: calc(100vh - var(--ui-space-8));
+    top: var(--ui-space-6);
+    max-height: calc(100vh - var(--ui-space-6) * 2);
     overflow-y: auto;
   }
 }

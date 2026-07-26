@@ -1164,8 +1164,29 @@
     flex-wrap: wrap;
   }
 
+  /* A tile is both a flex *item* (it fills the space its parent gives it)
+     and -- unless it is a leaf `.is-child` -- a flex *container* for the
+     tiles nested inside it. Both halves were missing: `.is-ancestor` had
+     no `display: flex` and no `flex-grow`, so it shrink-wrapped to its
+     content (measured 115px inside a 794px `.ui-tiles`). Every nested
+     `.is-N` width is a percentage *of the ancestor*, so that collapse
+     cascaded down and rendered the demo's tile cards ~50px wide.
+
+     `flex` is written as the shorthand here on purpose. `.ui-tile.is-N`
+     below overrides it with `flex: none`, and shorthand-vs-shorthand
+     resolves cleanly on specificity; a longhand base (`flex-grow` etc.)
+     against a shorthand override leaves per-property gaps, which silently
+     un-fixes the sized tiles. */
   .ui-tile {
+    align-items: stretch;
+    display: block;
+    flex: 1 1 0;
+    min-height: min-content;
     padding: calc(var(--ui-space-3) / 2);
+  }
+
+  .ui-tile:not(.is-child) {
+    display: flex;
   }
 
   .ui-tile.is-ancestor {
