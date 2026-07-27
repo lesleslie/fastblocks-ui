@@ -104,6 +104,92 @@ describe('FastBlocks UI enhancement layer', () => {
     expect(document.activeElement).toBe(trigger);
   });
 
+  it('dispatches ui-dialog-* events on the plain (function-path) dialog element (WS-12)', () => {
+    root.innerHTML = `
+      <button type="button" data-ui-dialog-trigger aria-controls="event-dialog" aria-expanded="false">
+        Open dialog
+      </button>
+      <dialog id="event-dialog" data-ui-dialog aria-hidden="true">
+        <button type="button" data-ui-dialog-close>Close</button>
+      </dialog>
+    `;
+
+    cleanup = enhanceDialogs(document);
+
+    const trigger = root.querySelector('[data-ui-dialog-trigger]');
+    const dialog = root.querySelector('#event-dialog');
+    const closeButton = root.querySelector('[data-ui-dialog-close]');
+
+    const events = [];
+    ['ui-dialog-open', 'ui-dialog-opened', 'ui-dialog-close', 'ui-dialog-closed'].forEach((name) => {
+      dialog.addEventListener(name, () => events.push(name));
+    });
+
+    trigger.click();
+    closeButton.click();
+
+    expect(events).toEqual([
+      'ui-dialog-open',
+      'ui-dialog-opened',
+      'ui-dialog-close',
+      'ui-dialog-closed',
+    ]);
+  });
+
+  it('honors a canceled ui-dialog-open event on the plain (function-path) dialog (WS-12)', () => {
+    root.innerHTML = `
+      <button type="button" data-ui-dialog-trigger aria-controls="cancel-dialog" aria-expanded="false">
+        Open dialog
+      </button>
+      <dialog id="cancel-dialog" data-ui-dialog aria-hidden="true">
+        <button type="button" data-ui-dialog-close>Close</button>
+      </dialog>
+    `;
+
+    cleanup = enhanceDialogs(document);
+
+    const trigger = root.querySelector('[data-ui-dialog-trigger]');
+    const dialog = root.querySelector('#cancel-dialog');
+
+    dialog.addEventListener('ui-dialog-open', (event) => event.preventDefault(), { once: true });
+    trigger.click();
+
+    expect(dialog.hasAttribute('open')).toBe(false);
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('resyncs aria state when a plain (function-path) dialog closes natively, e.g. form[method=dialog] (WS-12)', () => {
+    root.innerHTML = `
+      <button type="button" data-ui-dialog-trigger aria-controls="native-close-dialog" aria-expanded="false">
+        Open dialog
+      </button>
+      <dialog id="native-close-dialog" data-ui-dialog aria-hidden="true">
+        <form method="dialog">
+          <button type="submit" data-ui-dialog-close>Close</button>
+        </form>
+      </dialog>
+    `;
+
+    cleanup = enhanceDialogs(document);
+
+    const trigger = root.querySelector('[data-ui-dialog-trigger]');
+    const dialog = root.querySelector('#native-close-dialog');
+
+    trigger.click();
+    expect(dialog.hasAttribute('open')).toBe(true);
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+
+    // Simulate the browser's native dialog close (form[method=dialog] submit,
+    // or dialog.close() called directly) rather than our own close handler --
+    // jsdom doesn't implement <dialog> form submission, so fire the `close`
+    // event dialog elements emit natively in that case.
+    dialog.removeAttribute('open');
+    dialog.dispatchEvent(new Event('close'));
+
+    expect(dialog.getAttribute('aria-hidden')).toBe('true');
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+  });
+
   it('toggles menus and closes them on outside click or escape', () => {
     root.innerHTML = `
       <button id="menu-trigger" type="button" data-ui-menu-trigger aria-controls="test-menu" aria-expanded="false">
@@ -346,6 +432,39 @@ describe('FastBlocks UI enhancement layer', () => {
       new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }),
     );
     expect(document.activeElement).toBe(last); // wrapped backward
+  });
+
+  it('resyncs the ui-dialog wrapper when the native dialog closes some other way (WS-12)', () => {
+    defineFastBlocksCustomElements(window);
+
+    root.innerHTML = `
+      <ui-dialog class="ui-dialog" data-ui-dialog>
+        <button type="button" data-ui-dialog-trigger aria-controls="ce-native-close" aria-expanded="false">
+          Open dialog
+        </button>
+        <dialog id="ce-native-close" class="ui-dialog" aria-hidden="true">
+          <form method="dialog">
+            <button type="submit" data-ui-dialog-close>Close</button>
+          </form>
+        </dialog>
+      </ui-dialog>
+    `;
+
+    const dialogHost = root.querySelector('ui-dialog');
+    const trigger = root.querySelector('[data-ui-dialog-trigger]');
+    const dialog = root.querySelector('#ce-native-close');
+
+    trigger.click();
+    expect(dialogHost.hasAttribute('open')).toBe(true);
+
+    // jsdom doesn't implement <dialog> form submission; simulate the native
+    // `close` event a real browser fires in that case.
+    dialog.removeAttribute('open');
+    dialog.dispatchEvent(new Event('close'));
+
+    expect(dialogHost.hasAttribute('open')).toBe(false);
+    expect(dialogHost.getAttribute('aria-hidden')).toBe('true');
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
   });
 
   it('navigates ui-menu custom-element items with arrow keys', () => {

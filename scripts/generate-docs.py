@@ -79,6 +79,15 @@ def example_markup(component: dict[str, Any]) -> str:
         return '<div class="ui-alert is-info" role="status">Saved.</div>'
     if name == "button":
         return '<button class="ui-button is-primary" type="button">Save</button>'
+    if name == "validation_summary":
+        return (
+            '<div class="ui-alert is-danger ui-validation-summary" role="alert">\n'
+            '  <strong class="ui-validation-summary__title">Please correct the errors below.</strong>\n'
+            '  <ul class="ui-validation-summary__list">\n'
+            '    <li><a href="#email">Email is required.</a></li>\n'
+            "  </ul>\n"
+            "</div>"
+        )
 
     return f'<div class="{class_name}">{name.title()} content</div>'
 

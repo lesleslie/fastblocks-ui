@@ -20,10 +20,19 @@
     --ui-color-border: #334155;
     --ui-color-border-strong: #64748b;
 
-    --ui-color-primary: #818cf8;
+    /* Fixed 2026-07-26: indigo-400/-300 (#818cf8/#a5b4fc) against white text
+       only reached 2.98:1/1.99:1 (hover), both failing WCAG AA's 4.5:1.
+       Unlike info/success/danger above, flipping `-contrast` to black isn't
+       a good option here -- indigo reads muddy with black text at any
+       shade light enough to still look "dark-mode-native". Darkened to
+       indigo-600/-700 instead (6.29:1/7.90:1) -- the same two shades light
+       mode already uses for `--ui-color-primary`/`-strong`, so the primary
+       button/hero is now the same color in both themes; still a real,
+       intentional Tailwind indigo shade, not an arbitrary one-off. */
+    --ui-color-primary: #4f46e5;
     --ui-color-primary-contrast: #ffffff;
     --ui-color-primary-subtle: #312e81;
-    --ui-color-primary-strong: #a5b4fc;
+    --ui-color-primary-strong: #4338ca;
 
     --ui-color-info: #22d3ee;
     --ui-color-info-contrast: #000000;
@@ -40,38 +49,14 @@
     --ui-color-warning-subtle: #713f12;
     --ui-color-warning-strong: #fde047;
 
+    /* Fixed 2026-07-26: unlike info/success/warning above, danger's
+       dark-mode contrast text was never flipped to black -- the pastel
+       #f87171 fill only reaches 2.77:1/1.90:1 (hover) against white text,
+       both failing WCAG AA. Flipping to black (matching the same pattern
+       already used for info/success/warning) fixes it: 7.59:1/11.06:1. */
     --ui-color-danger: #f87171;
-    --ui-color-danger-contrast: #ffffff;
+    --ui-color-danger-contrast: #000000;
     --ui-color-danger-subtle: #7f1d1d;
     --ui-color-danger-strong: #fca5a5;
-
-    --fast-primary: #818cf8;
-    --fast-primary-invert: #ffffff;
-    --fast-primary-light: #312e81;
-    --fast-primary-dark: #a5b4fc;
-    --fast-info: #22d3ee;
-    --fast-info-invert: #000000;
-    --fast-info-light: #164e63;
-    --fast-info-dark: #67e8f9;
-    --fast-success: #4ade80;
-    --fast-success-invert: #000000;
-    --fast-success-light: #14532d;
-    --fast-success-dark: #86efac;
-    --fast-warning: #facc15;
-    --fast-warning-invert: #000000;
-    --fast-warning-light: #713f12;
-    --fast-warning-dark: #fde047;
-    --fast-danger: #f87171;
-    --fast-danger-invert: #ffffff;
-    --fast-danger-light: #7f1d1d;
-    --fast-danger-dark: #fca5a5;
-    --fast-grey: #94a3b8;
-    --fast-grey-light: #1e293b;
-    --fast-grey-lighter: #111827;
-    --fast-grey-dark: #cbd5e1;
-    --fast-grey-darker: #f8fafc;
-    --fast-background: #0f172a;
-    --fast-text: #cbd5e1;
-    --fast-focus-color: #818cf8;
   }
 }

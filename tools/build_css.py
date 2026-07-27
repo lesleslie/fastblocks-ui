@@ -5,9 +5,23 @@ This builder concatenates them into a single self-contained ``fastblocks-ui.css`
 consumers ship one file (no runtime ``@import`` chain, no module duplication).
 
 An explicit ``@layer`` statement pins cascade-layer precedence independent of source
-order. The order below preserves the historical effective order (``components`` is the
-lowest-priority layer, ``utilities`` the highest) so regenerating causes no visual
-regression. It is now intentional rather than an accident of import order.
+order: ``base`` (reset/defaults) lowest, then ``tokens``/``theme`` (custom-property
+definitions only -- they never target the same selectors as ``base``/``components``, so
+their position relative to those two is a no-op either way), then ``components``, then
+``utilities`` highest -- standard ITCSS-style ordering so component rules can always
+override base resets, and utilities can always override components.
+
+Fixed 2026-07-26: the order used to be ``components, tokens, theme, base, utilities``,
+which put ``base`` *above* ``components``. Cascade layers give layer order priority over
+selector specificity, so ``base.css``'s generic ``a { color: inherit; }`` silently beat
+every component's anchor ``color`` declaration (e.g. ``.ui-pagination__item.is-current``'s
+white text-on-primary-background), regardless of how specific the component selector
+was. That's why the "current page" pagination indicator rendered with the wrong text
+color. Verified safe to reorder: ``tokens``/``theme`` only ever touch
+``:root``/``[data-theme]``, and ``components.css``'s two ``:focus-visible`` rules either
+target a different element (a sibling, via ``+``) or agree with ``base``'s reset on the
+only overlapping property (``outline: none``), so moving ``components`` above ``base``
+introduces no new conflicts.
 
 Usage:
     python tools/build_css.py            # write the bundle
@@ -27,8 +41,11 @@ from pathlib import Path
 CSS_DIR = Path(__file__).resolve().parents[1] / "fastblocks_ui" / "static" / "css"
 BUNDLE = CSS_DIR / "fastblocks-ui.css"
 
-# Explicit cascade-layer order (low -> high priority). Preserves historical behavior.
-LAYER_ORDER = ("components", "tokens", "theme", "base", "utilities")
+# Explicit cascade-layer order (low -> high priority). ITCSS-style: base resets lowest,
+# then token/theme custom-property layers (selector-disjoint from the rest -- position
+# among these three is a no-op), then components, then utilities highest so utility
+# classes can always win.
+LAYER_ORDER = ("base", "tokens", "theme", "components", "utilities")
 
 # Concatenation order of source modules. Layer precedence is fixed by LAYER_ORDER
 # above, so this order only affects intra-layer source order (and is kept stable).

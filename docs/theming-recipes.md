@@ -55,6 +55,19 @@ Prefer a class or attribute switch rather than JavaScript-driven inline styles:
 Keep semantic tokens intact so the same helpers render consistently in either
 theme.
 
+**Why `[data-theme]` and not CSS `light-dark()`.** This is a deliberate,
+closed decision, not an oversight: `light-dark()` only switches *color*
+values based on `color-scheme`, but FastBlocks UI themes also vary
+non-color tokens (spacing, border width, radius) between light and dark in
+some recipes, which `light-dark()` cannot express. The `[data-theme]`
+attribute switch also gives the application an explicit, JS-free toggle
+independent of the OS `prefers-color-scheme` setting — `light-dark()` is
+tied to `color-scheme`, so decoupling "what the OS prefers" from "what the
+user chose in this app" would require extra plumbing anyway. If a future
+component's palette is ever *pure* color tokens with no non-color
+variation, `light-dark()` could be considered there specifically — but it
+is not the default mechanism for this package.
+
 ## Accessible States
 
 Make the state tokens obvious enough to read at a glance:
@@ -92,6 +105,7 @@ per-component tuning.
 ## What Not To Override
 
 - Do not replace helper output with custom wrapper markup.
-- Do not rely on `fast-*` compatibility layers.
+- Do not reintroduce a `--fast-*`-style compatibility layer; the `--ui-*`
+  namespace is the only supported token surface.
 - Do not restyle state using hidden client-side memory.
 - Do not use shadow DOM to solve ordinary theme changes.

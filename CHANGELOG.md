@@ -5,6 +5,187 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-07-26
+
+### Contract changes (CSS classes / manifest / asset paths)
+
+- **Removed** the legacy `--fast-*` bridge CSS custom properties from
+  `tokens.css`/`theme.css` (and the two related, always-unused
+  `--accent-fill-rest`/`--control-height` tokens) — no live consumers
+  depended on them, so they were removed outright rather than deprecated.
+  Anyone reading these variables directly (rather than through `ui-*`/`is-*`
+  classes, the supported public surface) needs to switch to the
+  corresponding `--ui-color-*`/`--ui-radius-*` tokens in `tokens.css`. Per
+  the SemVer policy in `docs/roadmap.md` §1.4, this is a breaking change to
+  the CSS surface — hence the minor bump on a pre-1.0 package.
+
+### Added
+
+- `data-ui-dialog` (function-path/non-`<ui-dialog>`) markup now dispatches
+  the same cancelable `ui-dialog-open`/`ui-dialog-close` and follow-up
+  `ui-dialog-opened`/`ui-dialog-closed` events as `<ui-dialog>`, and listens
+  for the dialog's native `close` event (e.g. a `<form method="dialog">`
+  submit) to resync `aria-hidden`/`aria-expanded` — previously only the
+  custom-element path had either behavior.
+- Test coverage for `container`/`section`/`footer`/`level`/`hero`/`title`/
+  `columns`/`column` (previously 0% statement coverage) and the
+  list/tuple/falsy-value branches of `validation_summary`.
+- **Opt-in container queries (WS-6):** a new `.is-container` modifier
+  (added to `manifest.json`'s `state_modifiers`) on `.ui-columns` (new
+  `.is-N-cq` fractional tier via `@container (min-width: 30rem)`),
+  `.ui-tiles` (full-width fallback below, fractional above the same
+  threshold), and `.ui-card` (more generous padding above a 24rem
+  threshold, applied to the card's own header/body/footer children — a
+  container query cannot restyle the container element itself). Purely
+  additive — existing viewport-based `.is-N` classes are unchanged for
+  anyone not opting in.
+- **`manifest.json` now carries per-component `params` and a `codegen` flag
+  (WS-4)**, derived by introspecting the real `fastblocks_ui.helpers`
+  signatures (`scripts/sync_manifest_params.py`, with a `--check` drift
+  gate) rather than hand-copied — catches signature-shape drift a
+  name-only manifest couldn't. Also added the previously-missing
+  `validation_summary` manifest entry. Purely additive (new JSON fields
+  and one new entry); no existing field changed shape or was removed.
+
+### Changed
+
+- `enhance.js`'s dialog open/close logic is now a single shared
+  implementation used by both `UiDialogElement` and the function-based
+  `enhanceDialogs()` path (previously duplicated with a real behavior gap
+  between them, not just duplicated code).
+
+### Fixed (found by independent multi-agent review, before release)
+
+- `.ui-card.is-container`'s `@container` rule targeted `.ui-card.is-container`
+  itself — CSS forbids a container from restyling itself via its own query
+  (only descendants), so the rule silently never matched and the card
+  padding feature was dead code. Retargeted to the card's
+  `.ui-card__header`/`__body`/`__footer` children, which are genuine
+  descendants of the containment box.
+- `layout.css`'s mobile stacking rule
+  (`.ui-columns:not(.is-desktop) > .ui-column { width: 100%; ... }`,
+  specificity (0,0,3,0)) silently overrode `.is-N-cq` (specificity (0,0,2,0))
+  at any viewport ≤768px, regardless of the *container's* own width —
+  defeating the "container width, not viewport" premise exactly where it
+  mattered most (a wide sidebar on a narrow page). Excluded `.is-container`
+  from the mobile rule's selector.
+
+### Fixed (found reviewing the generated demo page, before release)
+
+- **Cascade-layer ordering silently broke text color on every anchor-based
+  component** (pagination's current-page indicator, breadcrumb links, menu
+  items, link-buttons): `tools/build_css.py`'s `LAYER_ORDER` put `base`
+  (which resets `a { color: inherit; }`) at *higher* priority than
+  `components`, so that generic reset always won over
+  `.ui-pagination__item.is-current`'s `color:
+  var(--ui-color-primary-contrast)` regardless of selector specificity.
+  Reordered to standard ITCSS precedence (`base, tokens, theme, components,
+  utilities`).
+- `scripts/build_demo.py`'s tabs demo passed raw `<p>...</p>` strings as
+  panel content; `_render_fragment()` correctly HTML-escapes untrusted
+  strings by default, so the tags rendered as visible literal text instead
+  of markup. Wrapped in `_safe(...)`.
+- The Layout demo's "Action" toolbar button had no wired behavior at all.
+  Gave it demo-only click feedback (status text update), matching the
+  existing theme-toggle pattern.
+- The RTL demo used English/Latin text under `dir="rtl"` — this only flips
+  block-level layout (offsets, alignment), it does not reverse Latin
+  letters/word order, so it never visually read as right-to-left. Replaced
+  with genuine Arabic sample content.
+- **`.ui-level-left`/`.ui-level-right` had no `gap`** between multiple inline
+  children (e.g. a label plus a status span passed via `level(left=...)`) —
+  visually read as no space at all ("ToolbarAction clicked 1 time."). Added
+  `gap: var(--ui-space-3)`, the logical equivalent of Bulma's non-last-child
+  spacing between level items; fixes every `level()` usage, not just the
+  demo.
+- The Theme toggle in both demo pages was a bare `<div>` sitting outside any
+  card, inconsistent with every other demo section (Layout, Menu, Dialog,
+  etc. are each their own titled card). Wrapped it in its own
+  `demo_section("Theme", ...)`. Its lead text also contained a literal,
+  unescaped `<html>` (rendered as a broken tag rather than visible text,
+  since `demo_section()`'s `lead` isn't HTML-escaped) — reworded to avoid
+  angle brackets entirely.
+- The Layout demo bundled an unrelated `level()` toolbar into the same card
+  as the 12-column grid demo, inconsistent with every other section being
+  single-purpose. Split into separate `demo_section("Layout", ...)` and
+  `demo_section("Toolbar", ...)` cards.
+- **`.ui-menu` had no `position`, so opening a dropdown pushed all following
+  page content downward** instead of overlaying it like a real dropdown.
+  Added `position: absolute` (plus `z-index`/`margin-top`) — `menu()`'s new
+  docstring and a code comment document that the element wrapping the
+  trigger + menu together needs `position: relative` for correct anchoring
+  (the demo's `.demo-panel` wrapper already has this now).
+- **The Component manifest demo section's `fetch('./manifest.json')` is
+  blocked by browsers under `file://`** (a same-origin/CORS restriction, not
+  a bug in `manifest.js`), so it always showed "Component manifest could not
+  be loaded" when either demo page was opened as a bare local file — this
+  was a known, documented limitation, not previously actually fixed.
+  `manifest.js` now has a `loadManifestData()` helper that prefers manifest
+  data embedded directly in the page (a
+  `<script type="application/json" id="fastblocks-ui-manifest-data">`
+  sibling) when present, falling back to the network `fetch()` for real
+  server-hosted deployments where that inline tag won't exist. `demo/demo.html`
+  now embeds `fastblocks_ui/manifest.json`'s content inline for exactly this
+  reason.
+
+### Changed
+
+- **Button hover/active redesign.** Replaced the `transform:
+  translateY(-1px)` hover "lift" with a single, uniform mechanism applied to
+  every variant: hover/active always move to that color's own
+  already-defined next step along its token ramp (`--ui-color-surface-muted`
+  → `--ui-color-surface-raised` for the neutral button; each color's own
+  `--ui-color-*-strong` token for filled variants). No runtime color math
+  (rejected a `filter: brightness()` approach after computing WCAG contrast
+  ratios both ways: brightening a saturated fill pushes its background
+  luminance *toward* the white button text's own luminance, measurably
+  reducing contrast on `is-primary`/`is-success`/`is-danger`, whereas
+  darkening toward the existing `-strong` tokens improves it). Pressed
+  feedback is now a `box-shadow: inset` depth cue rather than a second color
+  mechanism. Mirrors Bulma's actual approach of one consistent
+  darken-by-a-fixed-amount rule per color, rather than mixing techniques.
+- **Fixed the pre-existing WCAG contrast failures surfaced above**, plus two
+  more found while verifying the fix (dark theme's `danger` and `primary`
+  weren't covered by the original check). All are genuine Tailwind default
+  hex values, not one-off colors -- see `tokens.css`/`theme.css` comments for
+  the exact before/after ratios:
+  - Light theme: `--ui-color-info`/`-strong` moved cyan-500/600 ->
+    cyan-700/800 (2.43:1/3.68:1 -> 5.36:1/7.27:1); `--ui-color-success`/
+    `-strong` moved green-500/600 -> green-700/800 (2.28:1/3.30:1 ->
+    5.02:1/7.13:1); `--ui-color-danger` moved red-500 -> red-600 (3.76:1 ->
+    4.83:1; `-strong` was already red-700 and already passed).
+  - Dark theme: `--ui-color-danger-contrast` flipped from white to black
+    (2.77:1/1.90:1 -> 7.59:1/11.06:1) -- info/success/warning already got
+    this same black-text treatment in dark mode; danger was the one
+    inconsistent holdout. `--ui-color-primary`/`-strong` moved indigo-400/300
+    -> indigo-600/700 (2.98:1/1.99:1 -> 6.29:1/7.90:1) -- black text wasn't a
+    good option here (indigo reads muddy with black at any shade still
+    "dark-mode-native"), so dark mode's primary button/hero is now the same
+    color as light mode's, which is an intentional, acceptable side effect.
+  - New `tests/test_fastblocks_ui.py::TestColorTokenContrastRegression`
+    parses the built CSS bundle's actual `:root`/`[data-theme="dark"]` custom
+    -property blocks and asserts >= 4.5:1 for every color/`-strong` pair
+    against its own theme's `-contrast` token, so this class of bug can't
+    silently ship again.
+
+- **Demo consolidation:** retired the hand-written `fastblocks_ui/demo.html`
+  in favor of two demos living together under `demo/`: `demo/demo.html`
+  (hand-written reference, still e2e/axe-core-tested) and `demo/index.html`
+  (generated by `scripts/build_demo.py` through the real helpers, self
+  -contained). New `tests/test_demo_parity.py` calls the real helpers with
+  the same inputs used in both files and asserts the output appears
+  verbatim in `demo/demo.html`, so the two can no longer silently drift
+  apart — if a helper's markup shape ever changes, this fails immediately.
+  `demo/manifest.json` is a symlink to `fastblocks_ui/manifest.json` (single
+  source of truth, `manifest.js`'s relative fetch still resolves).
+  `scripts/build_demo.py`'s `dialog_demo()`/`menu_demo()` now call the real
+  `dialog()`/`menu()` helpers instead of hand-typed raw HTML. Added a
+  `--check` drift gate to `build_demo.py` mirroring `build_css.py`'s.
+  `playwright.config.js` now serves the repo root; the 4 e2e specs updated
+  their `goto()` path and (for `smoke.spec.js`) two tab-panel-id selectors
+  to match the real `tabs()` helper's actual ids (`#demo-overview-panel`,
+  not the old hand-picked `#demo-overview`).
+
 ## [0.5.0] - 2026-05-10
 
 ### Added

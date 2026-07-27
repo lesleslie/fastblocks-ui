@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.describe('Dialog focus management', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo.html');
+    await page.goto('/demo/demo.html');
     await page.waitForLoadState('networkidle');
   });
 

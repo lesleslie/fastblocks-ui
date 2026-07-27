@@ -317,13 +317,151 @@ class UiTabsElement extends HTMLElement {
   }
 }
 
+// Shared dialog open/close core (used by both the custom-element
+// (`UiDialogElement`) and the function-based (`enhanceDialogs()`) paths).
+// Consolidated so both markup styles get the same behavior: cancelable
+// `ui-dialog-open`/`ui-dialog-close` events, follow-up `ui-dialog-opened`/
+// `ui-dialog-closed` events, and a listener on the dialog's native `close`
+// event (so a `<form method="dialog">` submit, or any other native close,
+// still resyncs `aria-hidden`/`aria-expanded`) -- previously only the
+// custom-element path had any of this.
+//
+// Per-dialog state (whether it was opened via `showModal()`, its current
+// trigger, and whether the native-close listener is already attached) is
+// tracked in a WeakMap keyed by the `<dialog>`/`[data-ui-dialog]` element
+// itself, rather than expando properties on that element or instance
+// fields on a wrapper -- the same state shape works whether or not a
+// `<ui-dialog>` wrapper element exists.
+const dialogState = new WeakMap();
+
+function getDialogState(dialog) {
+  let state = dialogState.get(dialog);
+  if (!state) {
+    state = { modal: false, trigger: null, closeListenerAttached: false };
+    dialogState.set(dialog, state);
+  }
+  return state;
+}
+
+function isDialogModal(dialog) {
+  return Boolean(dialogState.get(dialog)?.modal);
+}
+
+// Resyncs aria state (and, for the custom-element path, the wrapper's own
+// `open`/`aria-hidden`) when a dialog closes through any means other than
+// our own `closeDialogShared()` call -- e.g. a `<form method="dialog">`
+// submit, or the browser's own Escape handling on a modal `<dialog>`.
+// Deliberately does not dispatch `ui-dialog-closed`: that event means
+// "closed via this library's API", which this path isn't.
+function onNativeDialogClose(dialog, wrapper) {
+  const state = getDialogState(dialog);
+  dialog.setAttribute('aria-hidden', 'true');
+  wrapper?.removeAttribute('open');
+  wrapper?.setAttribute('aria-hidden', 'true');
+  const trigger = state.trigger;
+  if (trigger) {
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+  state.trigger = null;
+}
+
+function attachDialogCloseListener(dialog, wrapper) {
+  if (!dialog) {
+    return;
+  }
+  const state = getDialogState(dialog);
+  if (state.closeListenerAttached) {
+    return;
+  }
+  dialog.addEventListener('close', () => onNativeDialogClose(dialog, wrapper));
+  state.closeListenerAttached = true;
+}
+
+// Returns true if the dialog was actually opened (i.e. the cancelable
+// `ui-dialog-open` event wasn't prevented), so callers with their own extra
+// wrapper state (the custom-element path's `open`/`aria-hidden` on itself)
+// know whether to apply it.
+function openDialogShared(dialog, trigger, dispatchTarget) {
+  if (!dialog) {
+    return false;
+  }
+
+  const allowed = dispatchCustomEvent(
+    dispatchTarget,
+    'ui-dialog-open',
+    { dialog, trigger },
+    { cancelable: true },
+  );
+  if (!allowed) {
+    return false;
+  }
+
+  const state = getDialogState(dialog);
+
+  if (typeof dialog.showModal === 'function' && !dialog.open) {
+    dialog.showModal();
+    state.modal = true;
+  } else {
+    dialog.setAttribute('open', '');
+    state.modal = false;
+  }
+
+  dialog.setAttribute('aria-hidden', 'false');
+  trigger?.setAttribute('aria-expanded', 'true');
+  state.trigger = trigger || null;
+
+  const focusTarget = dialog.querySelector(
+    '[autofocus], [data-ui-dialog-close], button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+  );
+  focusTarget?.focus({ preventScroll: true });
+
+  dispatchCustomEvent(dispatchTarget, 'ui-dialog-opened', { dialog, trigger });
+  return true;
+}
+
+// Returns true if the dialog was actually closed (the cancelable
+// `ui-dialog-close` event wasn't prevented) -- see `openDialogShared`.
+function closeDialogShared(dialog, dispatchTarget) {
+  if (!dialog) {
+    return false;
+  }
+
+  const state = getDialogState(dialog);
+
+  const allowed = dispatchCustomEvent(
+    dispatchTarget,
+    'ui-dialog-close',
+    { dialog, trigger: state.trigger || null },
+    { cancelable: true },
+  );
+  if (!allowed) {
+    return false;
+  }
+
+  if (typeof dialog.close === 'function' && dialog.open) {
+    dialog.close();
+  } else {
+    dialog.removeAttribute('open');
+  }
+
+  dialog.setAttribute('aria-hidden', 'true');
+
+  const trigger = state.trigger;
+  if (trigger && typeof trigger.focus === 'function') {
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.focus({ preventScroll: true });
+  }
+
+  state.trigger = null;
+  dispatchCustomEvent(dispatchTarget, 'ui-dialog-closed', { dialog, trigger: trigger || null });
+  return true;
+}
+
 class UiDialogElement extends HTMLElement {
   constructor() {
     super();
     this.onClick = this.onClick.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
-    this.onDialogClose = this.onDialogClose.bind(this);
-    this._observer = new MutationObserver(() => this.syncFromMarkup());
   }
 
   connectedCallback() {
@@ -334,14 +472,13 @@ class UiDialogElement extends HTMLElement {
     this._connected = true;
     this.addEventListener('click', this.onClick);
     this.addEventListener('keydown', this.onKeyDown);
+    this._observer = new MutationObserver(() => this.syncFromMarkup());
     this._observer.observe(this, { childList: true, subtree: true });
     this.syncFromMarkup();
   }
 
   disconnectedCallback() {
-    const dialog = this._dialog;
-    dialog?.removeEventListener('close', this.onDialogClose);
-    this._observer.disconnect();
+    this._observer?.disconnect();
     this.removeEventListener('click', this.onClick);
     this.removeEventListener('keydown', this.onKeyDown);
     this._connected = false;
@@ -368,9 +505,8 @@ class UiDialogElement extends HTMLElement {
     }
 
     if (this._dialog !== dialog) {
-      this._dialog?.removeEventListener('close', this.onDialogClose);
       this._dialog = dialog;
-      dialog.addEventListener('close', this.onDialogClose);
+      attachDialogCloseListener(dialog, this);
     }
 
     this.toggleAttribute('open', dialog.hasAttribute('open'));
@@ -380,91 +516,20 @@ class UiDialogElement extends HTMLElement {
 
   openDialog(trigger) {
     const dialog = this.getDialog();
-    if (!dialog) {
+    if (!openDialogShared(dialog, trigger, this)) {
       return;
     }
-
-    const allowed = dispatchCustomEvent(
-      this,
-      'ui-dialog-open',
-      { dialog, trigger },
-      { cancelable: true },
-    );
-    if (!allowed) {
-      return;
-    }
-
-    if (typeof dialog.showModal === 'function' && !dialog.open) {
-      dialog.showModal();
-      this._modal = true;
-    } else {
-      dialog.setAttribute('open', '');
-      this._modal = false;
-    }
-
-    dialog.setAttribute('aria-hidden', 'false');
     this.setAttribute('open', '');
     this.setAttribute('aria-hidden', 'false');
-    trigger?.setAttribute('aria-expanded', 'true');
-    this._trigger = trigger || null;
-
-    const focusTarget = dialog.querySelector(
-      '[autofocus], [data-ui-dialog-close], button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
-    focusTarget?.focus({ preventScroll: true });
-
-    dispatchCustomEvent(this, 'ui-dialog-opened', { dialog, trigger });
   }
 
   closeDialog() {
     const dialog = this.getDialog();
-    if (!dialog) {
+    if (!closeDialogShared(dialog, this)) {
       return;
     }
-
-    const allowed = dispatchCustomEvent(
-      this,
-      'ui-dialog-close',
-      { dialog, trigger: this._trigger || null },
-      { cancelable: true },
-    );
-    if (!allowed) {
-      return;
-    }
-
-    if (typeof dialog.close === 'function' && dialog.open) {
-      dialog.close();
-    } else {
-      dialog.removeAttribute('open');
-    }
-
-    dialog.setAttribute('aria-hidden', 'true');
     this.removeAttribute('open');
     this.setAttribute('aria-hidden', 'true');
-
-    const trigger = this._trigger;
-    if (trigger && typeof trigger.focus === 'function') {
-      trigger.setAttribute('aria-expanded', 'false');
-      trigger.focus({ preventScroll: true });
-    }
-
-    this._trigger = null;
-    dispatchCustomEvent(this, 'ui-dialog-closed', { dialog, trigger: trigger || null });
-  }
-
-  onDialogClose() {
-    const dialog = this.getDialog();
-    if (!dialog) {
-      return;
-    }
-
-    dialog.setAttribute('aria-hidden', 'true');
-    this.removeAttribute('open');
-    this.setAttribute('aria-hidden', 'true');
-    const trigger = this._trigger || this.querySelector(DIALOG_TRIGGER_SELECTOR);
-    if (trigger) {
-      trigger.setAttribute('aria-expanded', 'false');
-    }
   }
 
   onClick(event) {
@@ -492,7 +557,7 @@ class UiDialogElement extends HTMLElement {
     }
 
     // Native modal dialogs trap Tab themselves; back the non-modal fallback.
-    if (event.key === 'Tab' && dialog?.hasAttribute('open') && !this._modal) {
+    if (event.key === 'Tab' && dialog?.hasAttribute('open') && !isDialogModal(dialog)) {
       trapTabFocus(event, dialog);
     }
   }
@@ -722,58 +787,35 @@ export function enhanceTabs(root = document) {
   };
 }
 
-function showDialog(dialog, trigger) {
-  if (!dialog) {
-    return;
-  }
-
-  if (typeof dialog.showModal === 'function' && !dialog.open) {
-    dialog.showModal();
-    dialog.__uiModal = true;
-  } else {
-    dialog.setAttribute('open', '');
-    dialog.__uiModal = false;
-  }
-
-  dialog.setAttribute('open', '');
-  dialog.setAttribute('aria-hidden', 'false');
-  trigger?.setAttribute('aria-expanded', 'true');
-  dialog.__uiTrigger = trigger || null;
-
-  const focusTarget = dialog.querySelector('[autofocus], [data-ui-dialog-close], button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-  focusTarget?.focus({ preventScroll: true });
-}
-
-function closeDialog(dialog) {
-  if (!dialog) {
-    return;
-  }
-
-  if (typeof dialog.close === 'function' && dialog.open) {
-    dialog.close();
-  } else {
-    dialog.removeAttribute('open');
-  }
-
-  dialog.setAttribute('aria-hidden', 'true');
-
-  const trigger = dialog.__uiTrigger;
-  if (trigger && typeof trigger.focus === 'function') {
-    trigger.setAttribute('aria-expanded', 'false');
-    trigger.focus({ preventScroll: true });
-  }
-
-  dialog.__uiTrigger = null;
-}
-
+// Function-path dialogs (plain `data-ui-dialog` markup, no `<ui-dialog>`
+// wrapper) dispatch their `ui-dialog-*` events directly on the
+// `<dialog>`/`[data-ui-dialog]` element itself, since there's no wrapper
+// element to dispatch on -- the custom-element path dispatches on the
+// `<ui-dialog>` wrapper instead (see `UiDialogElement.openDialog`/
+// `closeDialog`), but both now go through the same `openDialogShared`/
+// `closeDialogShared`/`attachDialogCloseListener` core, so both markup
+// styles are otherwise behaviorally identical: events, focus handling,
+// modal-vs-attribute toggling, and native-close resync all match.
 export function enhanceDialogs(root = document) {
+  // Attach the native-close listener up front for any dialog already in the
+  // DOM (including ones server-rendered already `open`), not just ones this
+  // code goes on to open itself -- matches the custom-element path, which
+  // attaches its listener from `syncFromMarkup()` on connect.
+  Array.from(root.querySelectorAll('dialog,[data-ui-dialog]')).forEach((dialog) => {
+    if (isCustomElementHost(dialog, 'ui-dialog') || dialog.closest('ui-dialog')) {
+      return;
+    }
+    attachDialogCloseListener(dialog, null);
+  });
+
   const onClick = (event) => {
     const openTrigger = event.target.closest(DIALOG_TRIGGER_SELECTOR);
     if (openTrigger && isWithinRoot(root, openTrigger) && !openTrigger.closest('ui-dialog')) {
       event.preventDefault();
       const selector = openTrigger.getAttribute('aria-controls') || openTrigger.getAttribute('data-ui-dialog-target');
       const dialog = getTargetElement(root, selector);
-      showDialog(dialog, openTrigger);
+      attachDialogCloseListener(dialog, null);
+      openDialogShared(dialog, openTrigger, dialog);
       return;
     }
 
@@ -781,7 +823,7 @@ export function enhanceDialogs(root = document) {
     if (closeTrigger && isWithinRoot(root, closeTrigger) && !closeTrigger.closest('ui-dialog')) {
       event.preventDefault();
       const dialog = closeTrigger.closest('dialog,[data-ui-dialog]');
-      closeDialog(dialog);
+      closeDialogShared(dialog, dialog);
     }
   };
 
@@ -796,12 +838,12 @@ export function enhanceDialogs(root = document) {
     }
 
     if (event.key === 'Escape') {
-      closeDialog(openDialog);
+      closeDialogShared(openDialog, openDialog);
       return;
     }
 
     // Native modal dialogs trap Tab themselves; back the non-modal fallback.
-    if (event.key === 'Tab' && !openDialog.__uiModal) {
+    if (event.key === 'Tab' && !isDialogModal(openDialog)) {
       trapTabFocus(event, openDialog);
     }
   };

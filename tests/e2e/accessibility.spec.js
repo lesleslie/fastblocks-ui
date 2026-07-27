@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 test.describe('FastBlocks UI accessibility', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo.html');
+    await page.goto('/demo/demo.html');
     await page.waitForLoadState('networkidle');
   });
 

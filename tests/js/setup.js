@@ -9,42 +9,31 @@ import { vi, beforeEach, afterEach, expect } from 'vitest';
 import '@fastblocks-ui/css/fastblocks-ui.css';
 
 const lightCSSVariables = {
-  '--fast-primary': '#4f46e5',
-  '--fast-primary-light': '#e0e7ff',
-  '--fast-primary-dark': '#4338ca',
-  '--fast-info': '#06b6d4',
-  '--fast-info-light': '#cffafe',
-  '--fast-info-dark': '#0891b2',
-  '--fast-success': '#22c55e',
-  '--fast-success-light': '#dcfce7',
-  '--fast-success-dark': '#16a34a',
-  '--fast-warning': '#eab308',
-  '--fast-danger': '#ef4444',
-  '--fast-danger-light': '#fee2e2',
-  '--fast-danger-dark': '#dc2626',
-  '--fast-grey': '#6b7280',
-  '--fast-grey-light': '#f3f4f6',
-  '--fast-grey-lighter': '#f9fafb',
-  '--fast-grey-dark': '#374151',
-  '--fast-grey-darker': '#111827',
-  '--fast-background': '#ffffff',
-  '--fast-text': '#374151',
-  '--fast-size-small': '0.875rem',
-  '--fast-size-normal': '1rem',
-  '--fast-size-medium': '1.125rem',
-  '--fast-size-large': '1.25rem',
-  '--fast-radius-small': '4px',
-  '--fast-radius': '6px',
-  '--fast-radius-large': '8px',
-  '--fast-radius-rounded': '9999px',
-  '--accent-fill-rest': '#4f46e5',
-  '--control-height': '2.5em',
+  '--ui-color-primary': '#4f46e5',
+  '--ui-color-primary-subtle': '#e0e7ff',
+  '--ui-color-primary-strong': '#4338ca',
+  '--ui-color-info': '#06b6d4',
+  '--ui-color-info-subtle': '#cffafe',
+  '--ui-color-info-strong': '#0891b2',
+  '--ui-color-success': '#22c55e',
+  '--ui-color-success-subtle': '#dcfce7',
+  '--ui-color-success-strong': '#16a34a',
+  '--ui-color-warning': '#eab308',
+  '--ui-color-danger': '#ef4444',
+  '--ui-color-danger-subtle': '#fee2e2',
+  '--ui-color-danger-strong': '#b91c1c',
+  '--ui-color-surface': '#ffffff',
+  '--ui-color-text': '#374151',
+  '--ui-radius-sm': '4px',
+  '--ui-radius-md': '6px',
+  '--ui-radius-lg': '8px',
+  '--ui-radius-pill': '9999px',
 };
 
 const darkCSSVariables = {
-  '--fast-primary': '#818cf8',
-  '--fast-background': '#0f172a',
-  '--fast-text': '#cbd5e1',
+  '--ui-color-primary': '#818cf8',
+  '--ui-color-surface': '#0f172a',
+  '--ui-color-text': '#cbd5e1',
 };
 
 // Mock console methods to reduce noise in tests (optional)
@@ -128,9 +117,7 @@ afterEach(() => {
 
   // Reset CSS variables on document element
   const computedStyle = getComputedStyle(document.documentElement);
-  const variables = Array.from(computedStyle).filter((prop) =>
-    prop.startsWith('--fast-') || prop.startsWith('--ui-')
-  );
+  const variables = Array.from(computedStyle).filter((prop) => prop.startsWith('--ui-'));
 
   variables.forEach((variable) => {
     document.documentElement.style.removeProperty(variable);

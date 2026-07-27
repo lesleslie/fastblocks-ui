@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.describe('FastBlocks UI smoke', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/demo.html');
+    await page.goto('/demo/demo.html');
     await page.waitForLoadState('networkidle');
   });
 
@@ -11,7 +11,7 @@ test.describe('FastBlocks UI smoke', () => {
     await expect(page.getByText('HTML/CSS-first components, semantic tokens, htmx-safe fragments, and optional enhancement JavaScript.')).toBeVisible();
     await expect(page.getByText('Source of truth:')).toBeVisible();
     const manifest = await page.evaluate(() =>
-      fetch('/manifest.json').then((response) => response.json()),
+      fetch('/fastblocks_ui/manifest.json').then((response) => response.json()),
     );
     await expect(page.locator('[data-ui-component-list] .ui-badge')).toHaveCount(
       manifest.components.length,
@@ -39,12 +39,15 @@ test.describe('FastBlocks UI smoke', () => {
   });
 
   test('switches tabs and updates visible panels', async ({ page }) => {
-    await expect(page.locator('#demo-overview')).toBeVisible();
-    await expect(page.locator('#demo-details')).toBeHidden();
+    // Panel ids are the real tabs() helper's output (id-panel), not the old
+    // hand-picked #demo-overview/#demo-details scheme -- see demo/demo.html and
+    // tests/test_demo_parity.py.
+    await expect(page.locator('#demo-overview-panel')).toBeVisible();
+    await expect(page.locator('#demo-details-panel')).toBeHidden();
 
     await page.getByRole('tab', { name: 'Details' }).click();
 
-    await expect(page.locator('#demo-overview')).toBeHidden();
-    await expect(page.locator('#demo-details')).toBeVisible();
+    await expect(page.locator('#demo-overview-panel')).toBeHidden();
+    await expect(page.locator('#demo-details-panel')).toBeVisible();
   });
 });

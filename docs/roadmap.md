@@ -1,7 +1,7 @@
 # FastBlocks UI — Roadmap
 
-Status: Active (v2 — incorporates multi-agent review)
-Last updated: 2026-06-02
+Status: Remediation pass complete (WS-0 through WS-18 landed; see §7 below)
+Last updated: 2026-07-26
 Supersedes (archived under `docs/archive/superseded-plans/`):
 `implementation-plan.md`, `new-package-next-steps.md`, `remaining-items.md`
 
@@ -267,17 +267,25 @@ optimization pass.
 
 ### WS-4 — Manifest as contract
 
-- [ ] **[rev] Extend the manifest schema** beyond `name/class_name/helper/description`
-  to include per-component props and allowed variants/sizes (leverage existing
-  `scripts/generate-*.py`).
+- [x] **[done] Extended the manifest schema** beyond `name/class_name/helper/description`
+  to a `params` array per component (name/kind/type/required-or-default) plus a
+  `codegen: bool` flag, both derived by introspection
+  (`scripts/sync_manifest_params.py`, not hand-copied) from the real
+  `fastblocks_ui.helpers` signatures — re-running the script after a signature
+  change shows the exact diff; a `--check` drift gate
+  (`TestManifestParamsSync`) fails the build if it's stale. Also added the
+  previously-missing `validation_summary` manifest entry.
 - [x] **Contract tests added** (`TestManifestContract`): every manifest component's
   helper is exported & callable, its `class_name` is styled in the shipped bundle, and
   it is documented in `docs/components.md`. These immediately caught real drift —
   `navbar`/`breadcrumb`/`progress`/`table`/`pagination` were missing from the docs;
   now added and guarded.
-- [ ] **[rev] Document the limitation:** a Python-side manifest catches existence and
-  (now) declared-variant drift, but NOT signature/return-type parity between string
-  helpers and htmy — that is covered by the §1.2 parity tests, not the manifest.
+- [x] **[done] Documented the limitation:** the manifest's `params` now catches
+  signature-shape drift (a param added/removed/retyped), but the actual
+  byte-identical HTML parity between string helpers and htmy wrappers is still
+  covered by the parity tests (§1.2, extended in WS-16), not the manifest —
+  the manifest can't know whether two independent implementations render the
+  same markup, only whether their declared shape matches.
 
 ### WS-5 — Dependency & supply-chain hygiene **[rev — new workstream]**
 
@@ -311,14 +319,31 @@ commit `f3b7755`).**
   `asset_urls` (per §1.5), and `template_globals` (components + helpers + asset URLs)
   for a FastBlocks `[[ ]]` environment. (Live framework wiring is documented; the
   registration surface is in place.)
-- [x] Import-time fastblocks-ui version-range check (`>=0.5,<0.6`) + hard pyproject
-  pin (§1.3).
+- [x] Import-time fastblocks-ui version-range check (bumped alongside each
+  fastblocks-ui release; currently `>=0.6,<0.7`) + hard pyproject pin (§1.3).
 - [x] Pinned `htmy>=0.11`. Verified the bridge renders via `HTMY().render(...)`.
 - [x] **Parity test** asserts the htmy Button output is byte-identical to the
   fastblocks-ui helper (§1.2) — the anti-drift guarantee.
-- [ ] *(carryover)* Generate htmy stubs from the manifest + CSS-token presence CI
-  (§1.3); add htmx-pattern components (DataTable, Modal); extend parity tests to all
-  components.
+- [x] **[done, WS-16] Generated htmy stubs from the manifest.** All 27
+  `fastblocks-ui` manifest components now have a typed htmy wrapper.
+  `scripts/generate_components.py` reads the manifest's `params`/`codegen`
+  fields (WS-4) and emits `fastblocks_htmy/{ui,layout}/_generated.py` for the
+  16 components whose helper signature is a flat, keyword-friendly shape (a
+  `--check` drift gate, `test_generated_components_are_in_sync_with_manifest`,
+  fails the build if either file is stale or hand-edited). The 7 components
+  whose signature isn't mechanically translatable (`Columns` — variadic
+  positional children; `Select`/`Tabs`/`Menu`/`Navbar`/`Breadcrumb` —
+  `list[tuple[...]]`-shaped args; `ValidationSummary` — a real three-way
+  union) are hand-written instead, each documenting why in its own module
+  docstring. `Button`/`Container`/`Field`/`Table` predate WS-16 and stay
+  hand-written rather than being duplicated into the generated modules.
+  Byte-identical parity tests cover both the generated and hand-written sets
+  (`TestGeneratedComponentParity`, `TestHandWrittenCarveOutParity`), and
+  `trusted_components()`/`template_globals()` now expose every component.
+  **Not done in this pass:** CSS-token presence CI (asserting each
+  component's emitted `ui-*`/`is-*` classes exist in the installed
+  `fastblocks-ui` bundle) and the htmx-pattern components (DataTable, Modal)
+  remain carryover.
 
 > **Cross-repo testing gotcha (informs §1.3):** with both packages at `0.5.0`, `uv`'s
 > cache conflated the local fastblocks-ui build with PyPI's same-version wheel. A
@@ -354,8 +379,29 @@ ______________________________________________________________________
    container queries, `color-mix()`) behind a documented browser baseline emitted by
    lightningcss.
 1. Three implementations must not become three behaviors — parity tests enforce it.
-1. **[rev / CONSIDER] RTL via logical properties** — migrate physical
-   `margin-left`/`padding-left` to `margin-inline`/`padding-inline`.
+1. **[done, WS-7] RTL via logical properties** — `layout.css`'s physical
+   `margin-left`/`-right`, `padding-left`/`-right`, and `text-align: left`
+   migrated to `margin-inline`/`padding-inline`/`text-align: start`, with
+   one documented exception (`.ui-media-left`/`.ui-media-right`, which name
+   a physical position on purpose). Guarded by a grep-based drift-gate test
+   (`TestLogicalPropertiesDriftGate`) and a `dir="rtl"` demo section.
+1. **[done, WS-6] Container queries** — opt-in `.is-container` modifier added
+   to `.ui-columns` (new `.is-N-cq` fractional tier via `@container
+   (min-width: 30rem)`), `.ui-tiles` (full-width fallback below the same
+   30rem threshold, fractional above it), and `.ui-card` (more generous
+   padding above a 24rem threshold). Existing viewport-based `.is-N` /
+   `.is-N-tablet` / etc. classes are untouched; this is a new, additive
+   tier, not a replacement. Covered by `TestContainerQueries` (bundle
+   content), a demo section in both `demo/index.html` and
+   `demo/demo.html` showing two fixed-width wrappers side by side
+   in one viewport, and a Playwright spec
+   (`tests/e2e/container-queries.spec.js`) asserting computed padding and
+   column-width ratios differ between the narrow/wide wrappers and are
+   unaffected by viewport resize. **Caveat:** the Playwright spec could not
+   be executed in this environment (no browser binaries installed, no
+   network access to fetch them) — it has been reviewed but not run; the
+   existing Vitest suite (jsdom) and Python bundle-content tests were run
+   and pass, but neither can evaluate real `@container` layout.
 1. **[rev / CONSIDER] Print styles** — low priority, cheap.
 
 ______________________________________________________________________
@@ -371,3 +417,81 @@ change emitted markup (`progress`, `pagination`)** — not at the WS-0/WS-1 boun
 Cutting earlier hands htmy the already-diverged bundle and soon-to-change markup. If
 adapter plumbing must start sooner, scope an early pre-release as
 adapter-wiring-only with assets pinned to the post-WS-1/WS-2 release.
+
+______________________________________________________________________
+
+## 7. WS-18 — Final cross-repo reconciliation (closing phase)
+
+The remediation pass across all three repos (`fastblocks-ui`, `fastblocks-htmy`,
+`fastblocks`) is complete as of this phase. Summary of what shipped, repo by repo:
+
+**`fastblocks-ui` (this repo), now `0.6.0`:**
+
+- WS-15/WS-11 (Phase 1): integration test proving the two documented FastBlocks
+  template paths actually work; docstring fix.
+- WS-17 (Phase 2, landed in `fastblocks`): the first real, tested style adapter
+  wiring `config.app.style` to per-style Jinja globals.
+- WS-12/WS-14/WS-13 (Phase 3): unified dialog open/close implementation across
+  both markup styles; helper branch-coverage 68% → 91%+; removed the dead
+  `--fast-*` token bridge (the release's one breaking CSS change, hence the
+  `0.6.0` bump).
+- WS-7/WS-9/WS-10 (Phase 4): RTL via logical properties (one documented,
+  guarded exception); a concrete, enforced CSS bundle-size budget; documented
+  the `light-dark()` non-adoption decision.
+- WS-6 (Phase 5): opt-in `.is-container` container queries on
+  columns/tiles/cards — purely additive.
+- WS-4/WS-16 (Phase 6, manifest half): `manifest.json` now carries per-component
+  `params`/`codegen` derived by introspection, plus the previously-missing
+  `validation_summary` entry — purely additive.
+
+**`fastblocks-htmy`, now `0.3.0`:**
+
+- WS-16 (Phase 6, htmy half): all 27 manifest components have a typed htmy
+  wrapper — 16 generated from the manifest
+  (`scripts/generate_components.py`, with a `--check` drift gate), 7
+  hand-written carve-outs where the helper signature isn't mechanically
+  translatable, plus the 4 that predate WS-16. `trusted_components()` and
+  `template_globals()` now cover every component, not just the original four.
+- WS-18 (this phase): fixed a real version-pin drift bug —
+  `fastblocks_htmy.__init__`'s `_UI_MIN`/`_UI_MAX` runtime compatibility
+  constants had fallen out of sync with the actual `pyproject.toml` pin (the
+  pin moved to `fastblocks-ui>=0.6,<0.7` in `0.2.0`; the constants were still
+  `(0, 5)`/`(0, 6)`, meaning installing exactly the pinned version would have
+  spuriously warned). Corrected, with a new regression test
+  (`test_ui_compat_range_matches_pyproject_pin`) that parses the pin directly
+  out of `pyproject.toml` so the two can't silently diverge again.
+
+**`fastblocks`:**
+
+- WS-17: `fastblocks/core/style_registry.py` + `fastblocks/adapters/style/fastblocks_ui.py`
+  — the first working style adapter, using the project's real, documented
+  conventions (`get_resolver()`/`register_candidate()`/plain
+  `env.globals[name] = func` assignment) rather than the ad hoc, broken
+  patterns in the pre-existing `kelp.py`/`webawesome.py` (both documented,
+  not fixed, as tech debt in that repo's `CLAUDE.md`).
+- Confirmed the `dependency-groups.fastblocks_ui` pin
+  (`fastblocks-ui>=0.6,<0.7`) is already consistent with the current
+  `fastblocks-ui` release — no change needed here.
+
+**Verification note (sandbox limitation, consistent across every phase):** this
+environment runs Python 3.10 with no path to a working Python 3.13 interpreter or
+network access to install one, and `fastblocks`/`oneiric`'s real dependency chain
+(`pydantic_core`) ships as a `cp313`-only compiled binary that cannot load here at
+all. Every `fastblocks-ui`/`fastblocks-htmy` change in this pass was verified by
+actually running that repo's real test suite (81 + 47 passing in `fastblocks-ui`,
+41 passing in `fastblocks-htmy`, both via a real `htmy` install and a `PYTHONPATH`
+pointing at the sibling checkout). Changes touching `fastblocks` itself
+(WS-17's adapter, and this phase's shape-compatibility check against the updated
+manifest) were verified by direct reasoning over the real source plus targeted
+non-framework checks (e.g. confirming `fastblocks_ui.component_manifest()`'s
+new fields don't break the adapter's existing dict access), not by running
+`fastblocks`'s own test suite end-to-end — that remains unverified in this
+sandbox, as flagged throughout every earlier phase (WS-17, Phase 3.5). The
+Playwright e2e spec added in WS-6 has the same caveat (reviewed, not executed;
+no browser binaries available).
+
+Deferred/out of scope for this pass (unchanged from the phases where they were
+first flagged): WS-8 (CI gate — explicitly deferred by the user), CSS-token
+presence CI for the htmy components, htmx-pattern components (DataTable, Modal),
+and fixing the pre-existing `kelp.py`/`webawesome.py` bugs documented in
+`fastblocks`'s `CLAUDE.md`.

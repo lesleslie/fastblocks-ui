@@ -6,22 +6,31 @@
     --ui-color-primary-subtle: #e0e7ff;
     --ui-color-primary-strong: #4338ca;
 
-    --ui-color-info: #06b6d4;
+    /* Fixed 2026-07-26: info/success's Tailwind 500/600 shades (#06b6d4/#0891b2
+       and #22c55e/#16a34a) failed WCAG AA's 4.5:1 text-contrast threshold
+       against white (2.43:1/3.68:1 and 2.28:1/3.30:1) -- a real, rendered
+       issue wherever these tokens pair with `-contrast` white text (e.g.
+       `.ui-hero.is-info/.is-success`, `.ui-button.is-success`). Moved to
+       Tailwind's 700/800 shades of the same hues, which pass comfortably
+       (5.36:1/7.27:1 and 5.02:1/7.13:1) -- still genuine Tailwind default
+       palette values, just two steps darker, not a different color. Danger
+       only needed one step (500 -> 600) since it started closer (3.76:1). */
+    --ui-color-info: #0e7490;
     --ui-color-info-contrast: #ffffff;
     --ui-color-info-subtle: #cffafe;
-    --ui-color-info-strong: #0891b2;
+    --ui-color-info-strong: #155e75;
 
-    --ui-color-success: #22c55e;
+    --ui-color-success: #15803d;
     --ui-color-success-contrast: #ffffff;
     --ui-color-success-subtle: #dcfce7;
-    --ui-color-success-strong: #16a34a;
+    --ui-color-success-strong: #166534;
 
     --ui-color-warning: #eab308;
     --ui-color-warning-contrast: #000000;
     --ui-color-warning-subtle: #fef9c3;
     --ui-color-warning-strong: #ca8a04;
 
-    --ui-color-danger: #ef4444;
+    --ui-color-danger: #dc2626;
     --ui-color-danger-contrast: #ffffff;
     --ui-color-danger-subtle: #fee2e2;
     --ui-color-danger-strong: #b91c1c;
@@ -64,52 +73,5 @@
     --ui-line-height-base: 1.5;
 
     --ui-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ui-color-focus) 24%, transparent);
-
-    /* Legacy bridge tokens. */
-    --fast-primary: #4f46e5;
-    --fast-primary-invert: #ffffff;
-    --fast-primary-light: #e0e7ff;
-    --fast-primary-dark: #4338ca;
-    --fast-info: #06b6d4;
-    --fast-info-invert: #ffffff;
-    --fast-info-light: #cffafe;
-    --fast-info-dark: #0891b2;
-    --fast-success: #22c55e;
-    --fast-success-invert: #ffffff;
-    --fast-success-light: #dcfce7;
-    --fast-success-dark: #16a34a;
-    --fast-warning: #eab308;
-    --fast-warning-invert: #000000;
-    --fast-warning-light: #fef9c3;
-    --fast-warning-dark: #ca8a04;
-    --fast-danger: #ef4444;
-    --fast-danger-invert: #ffffff;
-    --fast-danger-light: #fee2e2;
-    --fast-danger-dark: #dc2626;
-    --fast-grey: #6b7280;
-    --fast-grey-light: #f3f4f6;
-    --fast-grey-lighter: #f9fafb;
-    --fast-grey-dark: #374151;
-    --fast-grey-darker: #111827;
-    --fast-white: #ffffff;
-    --fast-black: #000000;
-    --fast-background: #ffffff;
-    --fast-text: #374151;
-    --fast-radius-small: 4px;
-    --fast-radius: 6px;
-    --fast-radius-large: 8px;
-    --fast-radius-rounded: 9999px;
-    --fast-size-small: 0.875rem;
-    --fast-size-normal: 1rem;
-    --fast-size-medium: 1.125rem;
-    --fast-size-large: 1.25rem;
-    --fast-family-primary: var(--ui-font-sans);
-    --fast-family-secondary: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-    --fast-family-monospace: var(--ui-font-mono);
-    --fast-focus-color: #4f46e5;
-    --fast-focus-width: 2px;
-
-    --accent-fill-rest: var(--fast-primary);
-    --control-height: 2.5em;
   }
 }

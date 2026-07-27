@@ -1,4 +1,15 @@
-"""FastBlocks integration helpers built on top of the shared HTML renderer."""
+"""Generic fragment/id helpers for htmx-style server-rendered swaps.
+
+NOT a FastBlocks framework adapter. These are plain, framework-agnostic
+helpers (stable DOM ids, fragment/block wrapper markup) usable from any
+Jinja-based stack. They do not register template globals, mount static
+assets, or otherwise wire into an actual FastBlocks application.
+
+For typed components, template-global registration, and asset mounting
+inside a real FastBlocks app (ACB ``[[ ]]`` delimiters), see the sibling
+package ``fastblocks-htmy``, which is the FastBlocks-native integration
+layer built on top of this package.
+"""
 
 from __future__ import annotations
 

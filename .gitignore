@@ -68,3 +68,7 @@ mypy_cache/
 /.backup/
 .backups/
 .backup/
+
+# Vite/Vitest transient config artifacts
+vitest.config.js.timestamp-*.mjs
+vite.config.js.timestamp-*.mjs

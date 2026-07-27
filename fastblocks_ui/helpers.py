@@ -486,6 +486,16 @@ def menu(
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
+    """Render a dropdown menu (`<nav class="ui-menu">`).
+
+    `.ui-menu` is `position: absolute` (components.css) so opening it
+    overlays the page instead of pushing following content downward. That
+    means the element wrapping this helper's output *and* its trigger button
+    together needs `position: relative` (or any other positioned value) so
+    the menu anchors to that local wrapper -- otherwise it walks up to
+    whatever positioned ancestor happens to exist further up the page. See
+    `demo/demo.html`'s `.demo-panel` wrapper for a minimal example.
+    """
     classes = _flatten_classes("ui-menu", class_)
     attr_html = _render_attrs(class_=classes, data_ui_menu=True, **attrs)
     links = [

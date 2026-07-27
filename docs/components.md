@@ -37,6 +37,7 @@ This page is generated from `fastblocks_ui/manifest.json`. Keep the manifest and
 | progress | `ui-progress` | `progress()` | Progress bar with value and variants. |
 | table | `ui-table` | `table()` | Styled table with optional striping and hover. |
 | pagination | `ui-pagination` | `pagination()` | Pagination links with current page indicator. |
+| validation_summary | `ui-validation-summary` | `validation_summary()` | Aggregated form-error summary linking to individual fields. |
 
 ## State Modifiers
 
