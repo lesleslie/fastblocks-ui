@@ -48,7 +48,7 @@ from fastblocks_ui import (
 )
 from fastblocks_ui import input as ui_input
 from fastblocks_ui import select as ui_select
-from fastblocks_ui.helpers import _safe
+from fastblocks_ui.helpers import Size, _safe
 
 ROOT = Path(__file__).resolve().parents[1]
 DEMO_HTML = (ROOT / "demo" / "demo.html").read_text(encoding="utf-8")
@@ -96,7 +96,7 @@ class TestDemoParity(unittest.TestCase):
     appears verbatim in the file -- see the HTML comments in demo/demo.html directly
     above each fragment for the exact call being mirrored here."""
 
-    def assertFragmentInDemo(self, fragment: str) -> None:
+    def assertFragmentInDemo(self, fragment: str) -> None:  # noqa: N802
         self.assertIn(
             fragment,
             DEMO_HTML,
@@ -118,8 +118,23 @@ class TestDemoParity(unittest.TestCase):
         self.assertFragmentInDemo(html)
 
     def test_container(self) -> None:
-        def box(label: str, **kwargs: object) -> str:
-            return _bordered(str(container(_safe(f"<code>{label}</code>"), **kwargs)))
+        def box(
+            label: str,
+            *,
+            fluid: bool = False,
+            widescreen: bool = False,
+            fullhd: bool = False,
+        ) -> str:
+            return _bordered(
+                str(
+                    container(
+                        _safe(f"<code>{label}</code>"),
+                        fluid=fluid,
+                        widescreen=widescreen,
+                        fullhd=fullhd,
+                    )
+                )
+            )
 
         self.assertFragmentInDemo(box("Default container -- max-width 1200px."))
         self.assertFragmentInDemo(
@@ -136,8 +151,8 @@ class TestDemoParity(unittest.TestCase):
         )
 
     def test_section(self) -> None:
-        def box(label: str, **kwargs: object) -> str:
-            return _bordered(str(section(_safe(f"<code>{label}</code>"), **kwargs)))
+        def box(label: str, *, size: Size | None = None) -> str:
+            return _bordered(str(section(_safe(f"<code>{label}</code>"), size=size)))
 
         self.assertFragmentInDemo(box("Default section padding."))
         self.assertFragmentInDemo(box("is-medium section padding.", size="medium"))
@@ -312,15 +327,11 @@ class TestDemoParity(unittest.TestCase):
 
     def test_checkbox_standalone(self) -> None:
         self.assertFragmentInDemo(str(checkbox(label="Unchecked option")))
-        self.assertFragmentInDemo(
-            str(checkbox(label="Checked option", checked=True))
-        )
+        self.assertFragmentInDemo(str(checkbox(label="Checked option", checked=True)))
 
     def test_switch_standalone(self) -> None:
         self.assertFragmentInDemo(str(switch(label="Off by default")))
-        self.assertFragmentInDemo(
-            str(switch(label="On by default", checked=True))
-        )
+        self.assertFragmentInDemo(str(switch(label="On by default", checked=True)))
 
     def test_validation_summary_standalone(self) -> None:
         html = str(
@@ -329,13 +340,9 @@ class TestDemoParity(unittest.TestCase):
         self.assertFragmentInDemo(html)
 
     def test_button_sizes(self) -> None:
-        self.assertFragmentInDemo(
-            str(button("Small", variant="primary", size="small"))
-        )
+        self.assertFragmentInDemo(str(button("Small", variant="primary", size="small")))
         self.assertFragmentInDemo(str(button("Default size", variant="primary")))
-        self.assertFragmentInDemo(
-            str(button("Large", variant="primary", size="large"))
-        )
+        self.assertFragmentInDemo(str(button("Large", variant="primary", size="large")))
 
     def test_card(self) -> None:
         html = str(
@@ -366,11 +373,15 @@ class TestDemoParity(unittest.TestCase):
         the reference table. Anchor ids match manifest component `name`s
         verbatim (see scripts/build_demo.py's build_categories())."""
         names = [c["name"] for c in COMPONENT_MANIFEST["components"]]
-        self.assertEqual(len(names), 27, "expected manifest to still have 27 components")
+        self.assertEqual(
+            len(names), 27, "expected manifest to still have 27 components"
+        )
         missing = [
             name
             for name in names
-            if not re.search(rf'<section id="{re.escape(name)}" class="demo-section"', DEMO_HTML)
+            if not re.search(
+                rf'<section id="{re.escape(name)}" class="demo-section"', DEMO_HTML
+            )
         ]
         self.assertEqual(
             missing,
@@ -455,7 +466,9 @@ class TestDemoParity(unittest.TestCase):
                 card(body=_safe("<strong>8 cols</strong><p>Main content area.</p>")),
                 size="8",
             ),
-            column(card(body=_safe("<strong>4 cols</strong><p>Sidebar.</p>")), size="4"),
+            column(
+                card(body=_safe("<strong>4 cols</strong><p>Sidebar.</p>")), size="4"
+            ),
         )
         self.assertFragmentInDemo(str(grid))
 
@@ -473,7 +486,9 @@ class TestDemoParity(unittest.TestCase):
 
     def test_rtl(self) -> None:
         grid = columns(
-            column(card(body=_safe("<strong>عمود مُزاح</strong>")), size="4", offset="4"),
+            column(
+                card(body=_safe("<strong>عمود مُزاح</strong>")), size="4", offset="4"
+            ),
         )
         tbl = table(
             headers=["الاسم", "الوظيفة"],
@@ -600,7 +615,11 @@ class TestDemoParity(unittest.TestCase):
     def test_container_query_narrow_panel(self) -> None:
         self.assertFragmentInDemo(
             _cq_panel(
-                "15rem", "Narrow wrapper", "cq-narrow", "cq-narrow-column", "cq-narrow-card"
+                "15rem",
+                "Narrow wrapper",
+                "cq-narrow",
+                "cq-narrow-column",
+                "cq-narrow-card",
             )
         )
 

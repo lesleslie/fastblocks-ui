@@ -40,8 +40,8 @@ dev = [
     "pytest>=8.0.0",
     "pytest-cov>=6.0.0",
     "pytest-xdist>=3.6.0",
-    # Type checking
-    "pyright>=1.1.300",
+    # Type checking (crackerjack runs `ty`, not pyright)
+    "ty>=0.0.55",
     # Security
     "bandit[toml]>=1.7.10",
     # Dependencies
@@ -70,6 +70,27 @@ fastblocks_ui = ["py.typed", "manifest.json", "static/**/*"]
 # ============================================================================
 # Crackerjack Quality Tools Configuration
 # ============================================================================
+
+[tool.ty.environment]
+# `fastblocks_ui` is a top-level package at the repo root, so the root is
+# where first-party module resolution starts. `python-version` is left
+# unset on purpose: ty falls back to the minimum of
+# `project.requires-python`, which is the version this package actually
+# claims to support, and duplicating it here would let the two drift.
+root = ["."]
+
+[tool.ty.src]
+# `respect-ignore-files` defaults to true, so everything in .gitignore
+# (build/, dist/, htmlcov/, node_modules/, .venv/) is already skipped --
+# no exclude list needed for those. `fastbulma/` is a separate legacy
+# package that is tracked but is not part of this distribution, and
+# `scripts/`+`tools/` are first-party and deliberately checked.
+include = ["fastblocks_ui", "scripts", "tools", "tests"]
+
+[tool.ty.terminal]
+# Warnings fail the run. There are none today, and the cheapest time to
+# keep it that way is now.
+error-on-warning = true
 
 [tool.ruff]
 line-length = 88

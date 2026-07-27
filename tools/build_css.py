@@ -80,7 +80,7 @@ def _auto_dark_block(theme_css: str) -> str:
     body = match.group(1).strip("\n")
     return (
         "\n@layer theme {\n"
-        "  /* GENERATED from [data-theme=\"dark\"]: OS dark-mode default. */\n"
+        '  /* GENERATED from [data-theme="dark"]: OS dark-mode default. */\n'
         "  @media (prefers-color-scheme: dark) {\n"
         "    :root:not([data-theme]) {\n"
         f"{body}\n"

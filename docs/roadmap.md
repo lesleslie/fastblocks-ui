@@ -135,6 +135,7 @@ WS-1..WS-5 run in parallel after WS-0.
   `fastblocks_ui/__init__.py:3` with:
   ```python
   from importlib.metadata import version, PackageNotFoundError
+
   try:
       __version__ = version("fastblocks-ui")
   except PackageNotFoundError:  # running from a source checkout

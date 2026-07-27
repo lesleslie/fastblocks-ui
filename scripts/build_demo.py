@@ -52,7 +52,7 @@ from fastblocks_ui import (
 )
 from fastblocks_ui import input as ui_input
 from fastblocks_ui import select as ui_select
-from fastblocks_ui.helpers import SafeHTML, _safe
+from fastblocks_ui.helpers import SafeHTML, Size, _safe
 
 ROOT = Path(__file__).resolve().parents[1]
 CSS = ROOT / "fastblocks_ui" / "static" / "css" / "fastblocks-ui.css"
@@ -319,12 +319,24 @@ def _bordered(html: object) -> str:
 # Layout
 # ---------------------------------------------------------------------------
 def container_demo() -> SafeHTML:
-    def box(label: str, **kwargs: object) -> str:
+    # Named keywords rather than `**kwargs: object`. Splatting an `object`
+    # mapping into `container()`'s `bool` parameters is unsound and the type
+    # checker rejects it -- and it also loses the only thing worth having
+    # here, which is being told when a modifier name is wrong.
+    def box(
+        label: str,
+        *,
+        fluid: bool = False,
+        widescreen: bool = False,
+        fullhd: bool = False,
+    ) -> str:
         return _bordered(
             str(
                 container(
                     _safe(f"<code>{label}</code>"),
-                    **kwargs,
+                    fluid=fluid,
+                    widescreen=widescreen,
+                    fullhd=fullhd,
                 )
             )
         )
@@ -341,8 +353,8 @@ def container_demo() -> SafeHTML:
 
 
 def section_demo() -> SafeHTML:
-    def box(label: str, **kwargs: object) -> str:
-        return _bordered(str(section(_safe(f"<code>{label}</code>"), **kwargs)))
+    def box(label: str, *, size: Size | None = None) -> str:
+        return _bordered(str(section(_safe(f"<code>{label}</code>"), size=size)))
 
     return _safe(
         box("Default section padding.")
@@ -356,12 +368,19 @@ def hero_demo() -> SafeHTML:
     # the remaining color and size variants.
     colors = compose(
         *(
-            hero(v.capitalize(), subtitle=f"is-{v} hero variant.", variant=v, size="small")
+            hero(
+                v.capitalize(),
+                subtitle=f"is-{v} hero variant.",
+                variant=v,
+                size="small",
+            )
             for v in ("info", "success", "warning", "danger", "light", "dark")
         )
     )
     sizes = compose(
-        hero("Medium hero", subtitle="is-medium size.", variant="primary", size="medium"),
+        hero(
+            "Medium hero", subtitle="is-medium size.", variant="primary", size="medium"
+        ),
         hero("Large hero", subtitle="is-large size.", variant="primary", size="large"),
     )
     return _safe(str(colors) + str(sizes))
@@ -421,7 +440,8 @@ def level_demo() -> SafeHTML:
 def columns_demo() -> SafeHTML:
     return columns(
         column(
-            card(body=_safe("<strong>8 cols</strong><p>Main content area.</p>")), size="8"
+            card(body=_safe("<strong>8 cols</strong><p>Main content area.</p>")),
+            size="8",
         ),
         column(card(body=_safe("<strong>4 cols</strong><p>Sidebar.</p>")), size="4"),
     )
@@ -430,7 +450,9 @@ def columns_demo() -> SafeHTML:
 def column_demo() -> SafeHTML:
     offsets = columns(
         column(card(body=_safe('<code>size="4"</code>')), size="4"),
-        column(card(body=_safe('<code>size="4" offset="4"</code>')), size="4", offset="4"),
+        column(
+            card(body=_safe('<code>size="4" offset="4"</code>')), size="4", offset="4"
+        ),
     )
     narrow = columns(
         column(card(body=_safe("<code>narrow</code>")), narrow=True),
@@ -647,8 +669,7 @@ def button_demo() -> SafeHTML:
         separator=" ",
     )
     return _safe(
-        f'<div class="ui-cluster">{variants}</div>'
-        f'<div class="ui-cluster">{sizes}</div>'
+        f'<div class="ui-cluster">{variants}</div><div class="ui-cluster">{sizes}</div>'
     )
 
 
@@ -799,7 +820,9 @@ def palette_css() -> str:
 
 
 def palette_demo() -> SafeHTML:
-    def swatch(token: str, label: str, *, on_color: bool = False, family: str = "") -> str:
+    def swatch(
+        token: str, label: str, *, on_color: bool = False, family: str = ""
+    ) -> str:
         # Only colored swatches get an overlaid label, painted with their
         # family's `-contrast` token so it is legible on the fill.
         #
@@ -881,7 +904,9 @@ def rtl_demo() -> SafeHTML:
         headers=["الاسم", "الوظيفة"],  # "Name", "Role"
         rows=[["أحمد", "مهندس"], ["فاطمة", "طبيبة"]],  # Ahmed/Engineer, Fatima/Doctor
     )
-    return _safe(f'<div dir="rtl" class="ui-cluster demo-panel">{compose(grid, tbl)}</div>')
+    return _safe(
+        f'<div dir="rtl" class="ui-cluster demo-panel">{compose(grid, tbl)}</div>'
+    )
 
 
 def container_query_demo() -> SafeHTML:
@@ -899,7 +924,9 @@ def container_query_demo() -> SafeHTML:
     #     card body gets at the 72rem `.demo-layout` cap. The previous
     #     18rem/40rem pair needed 928px and so ALWAYS wrapped -- even at a
     #     1600px viewport -- silently defeating the comparison.
-    def panel(width: str, label: str, wrapper_id: str, column_id: str, card_id: str) -> str:
+    def panel(
+        width: str, label: str, wrapper_id: str, column_id: str, card_id: str
+    ) -> str:
         grid = columns(
             column(
                 _safe(f'<div id="{column_id}" class="ui-card">is-6-cq column</div>'),
@@ -927,7 +954,9 @@ def container_query_demo() -> SafeHTML:
 
     return _safe(
         '<div class="cq-compare">'
-        + panel("15rem", "Narrow wrapper", "cq-narrow", "cq-narrow-column", "cq-narrow-card")
+        + panel(
+            "15rem", "Narrow wrapper", "cq-narrow", "cq-narrow-column", "cq-narrow-card"
+        )
         + panel("31rem", "Wide wrapper", "cq-wide", "cq-wide-column", "cq-wide-card")
         + "</div>"
     )
@@ -953,7 +982,9 @@ def manifest_demo() -> SafeHTML:
 # coverage can be checked mechanically (see
 # tests/test_demo_parity.py::test_every_manifest_component_has_a_demo_section).
 # ---------------------------------------------------------------------------
-def build_categories() -> list[tuple[str, str, list[tuple[str, str, str | None, SafeHTML]]]]:
+def build_categories() -> list[
+    tuple[str, str, list[tuple[str, str, str | None, SafeHTML]]]
+]:
     return [
         (
             "layout",
@@ -983,8 +1014,7 @@ def build_categories() -> list[tuple[str, str, list[tuple[str, str, str | None, 
                 (
                     "title",
                     "Title",
-                    "Typography title element, sizes 1 (largest) through 6 "
-                    "(smallest).",
+                    "Typography title element, sizes 1 (largest) through 6 (smallest).",
                     title_demo(),
                 ),
                 (
@@ -1000,7 +1030,12 @@ def build_categories() -> list[tuple[str, str, list[tuple[str, str, str | None, 
                     "nested layouts.",
                     tile_demo(),
                 ),
-                ("footer", "Footer", "Page footer with centered content.", footer_demo()),
+                (
+                    "footer",
+                    "Footer",
+                    "Page footer with centered content.",
+                    footer_demo(),
+                ),
                 (
                     "level",
                     "Level",
@@ -1025,15 +1060,13 @@ def build_categories() -> list[tuple[str, str, list[tuple[str, str, str | None, 
                 (
                     "navbar",
                     "Navbar",
-                    "Navigation bar with brand, start/end slots, and color "
-                    "variants.",
+                    "Navigation bar with brand, start/end slots, and color variants.",
                     navbar_demo(),
                 ),
                 (
                     "breadcrumb",
                     "Breadcrumb",
-                    "Navigation trail with the current page marked "
-                    "non-interactive.",
+                    "Navigation trail with the current page marked non-interactive.",
                     breadcrumb_demo(),
                 ),
                 (
@@ -1062,7 +1095,12 @@ def build_categories() -> list[tuple[str, str, list[tuple[str, str, str | None, 
             "forms",
             "Forms",
             [
-                ("field", "Field", "Label, help text, and control grouping.", field_demo()),
+                (
+                    "field",
+                    "Field",
+                    "Label, help text, and control grouping.",
+                    field_demo(),
+                ),
                 (
                     "input",
                     "Input",
@@ -1085,8 +1123,7 @@ def build_categories() -> list[tuple[str, str, list[tuple[str, str, str | None, 
                 (
                     "validation_summary",
                     "Validation Summary",
-                    "Aggregated form-error summary linking to individual "
-                    "fields.",
+                    "Aggregated form-error summary linking to individual fields.",
                     validation_summary_demo(),
                 ),
             ],
@@ -1095,7 +1132,12 @@ def build_categories() -> list[tuple[str, str, list[tuple[str, str, str | None, 
             "feedback",
             "Feedback & actions",
             [
-                ("button", "Button", "Variants, sizes, and link buttons.", button_demo()),
+                (
+                    "button",
+                    "Button",
+                    "Variants, sizes, and link buttons.",
+                    button_demo(),
+                ),
                 (
                     "alert",
                     "Alert",
@@ -1111,8 +1153,7 @@ def build_categories() -> list[tuple[str, str, list[tuple[str, str, str | None, 
                 (
                     "dialog",
                     "Dialog",
-                    "Native <dialog> with enhancement-only open/close "
-                    "behavior.",
+                    "Native <dialog> with enhancement-only open/close behavior.",
                     dialog_demo(),
                 ),
             ],
@@ -1124,8 +1165,7 @@ def build_categories() -> list[tuple[str, str, list[tuple[str, str, str | None, 
                 (
                     "card",
                     "Card",
-                    "Content container with optional header/body/footer "
-                    "slots.",
+                    "Content container with optional header/body/footer slots.",
                     card_demo(),
                 ),
                 (
@@ -1189,8 +1229,7 @@ def build_categories() -> list[tuple[str, str, list[tuple[str, str, str | None, 
                 (
                     "manifest",
                     "Component manifest",
-                    "Rendered from manifest.json -- the single source of "
-                    "truth.",
+                    "Rendered from manifest.json -- the single source of truth.",
                     manifest_demo(),
                 ),
             ],

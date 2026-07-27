@@ -307,7 +307,11 @@ class TestManifestParamsSync(unittest.TestCase):
     def test_manifest_params_are_in_sync_with_helper_signatures(self):
         repo_root = Path(__file__).resolve().parents[1]
         result = subprocess.run(
-            [sys.executable, str(repo_root / "scripts" / "sync_manifest_params.py"), "--check"],
+            [
+                sys.executable,
+                str(repo_root / "scripts" / "sync_manifest_params.py"),
+                "--check",
+            ],
             capture_output=True,
             text=True,
         )
@@ -489,17 +493,19 @@ class TestLogicalPropertiesDriftGate(unittest.TestCase):
 
 
 def _hex_to_rgb(value: str) -> tuple[int, int, int]:
+    # Unpacked rather than `tuple(genexp)`, which types as `tuple[int, ...]`
+    # and needed a `type: ignore` to pass. This is the same code without the
+    # escape hatch.
     value = value.lstrip("#")
-    return tuple(int(value[i : i + 2], 16) for i in (0, 2, 4))  # type: ignore[return-value]
+    red, green, blue = (int(value[i : i + 2], 16) for i in (0, 2, 4))
+    return red, green, blue
 
 
 def _relative_luminance(rgb: tuple[int, int, int]) -> float:
     def channel(c: int) -> float:
         c_srgb = c / 255
         return (
-            c_srgb / 12.92
-            if c_srgb <= 0.03928
-            else ((c_srgb + 0.055) / 1.055) ** 2.4
+            c_srgb / 12.92 if c_srgb <= 0.03928 else ((c_srgb + 0.055) / 1.055) ** 2.4
         )
 
     r, g, b = rgb
@@ -890,7 +896,9 @@ class TestLayoutHelpers(unittest.TestCase):
         self.assertNotIn("ui-subtitle", markup)
 
     def test_hero_with_subtitle_variant_and_size(self):
-        markup = hero("Welcome", subtitle="Get started", variant="primary", size="large")
+        markup = hero(
+            "Welcome", subtitle="Get started", variant="primary", size="large"
+        )
         self.assertIn('class="ui-subtitle">Get started</p>', markup)
         self.assertIn("is-primary", markup)
         self.assertIn("is-large", markup)
