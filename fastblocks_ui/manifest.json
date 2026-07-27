@@ -350,6 +350,12 @@
           "kind": "keyword_only",
           "type": "Size | None",
           "default": null
+        },
+        {
+          "name": "heading_level",
+          "kind": "keyword_only",
+          "type": "HeadingLevel | None",
+          "default": null
         }
       ],
       "codegen": true
@@ -775,6 +781,12 @@
           "name": "size",
           "kind": "keyword_only",
           "type": "Size | None",
+          "default": null
+        },
+        {
+          "name": "heading_level",
+          "kind": "keyword_only",
+          "type": "HeadingLevel | None",
           "default": null
         }
       ],

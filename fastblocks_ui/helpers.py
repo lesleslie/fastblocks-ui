@@ -11,6 +11,9 @@ from typing import Literal
 # type-check — the library is extensible by design (autocomplete, not enforcement).
 Variant = Literal["primary", "info", "success", "warning", "danger"] | str
 Size = Literal["small", "medium", "large"] | str
+# Closed on purpose, unlike Variant/Size: HTML defines exactly h1-h6, so there
+# is no caller-supplied value to leave room for.
+HeadingLevel = Literal[1, 2, 3, 4, 5, 6]
 
 __all__ = [
     "SafeHTML",
@@ -650,22 +653,52 @@ def level(
     )
 
 
+def _heading_tag(level: HeadingLevel | None) -> str:
+    """Resolve an optional heading level to the tag `.ui-title` renders as.
+
+    Returns ``p`` when no level is given. That default is deliberate: a hero
+    or title is a *typographic* element, and a page may legitimately contain
+    several (this library's own demo renders nine heroes). Emitting a heading
+    unconditionally would manufacture a broken outline -- nine ``<h1>``s --
+    which is a worse accessibility defect than the one it fixes. Callers opt
+    in per instance, where they alone know the surrounding document
+    structure.
+    """
+    if level is None:
+        return "p"
+    if level not in (1, 2, 3, 4, 5, 6):
+        msg = f"heading level must be an int 1-6, got {level!r}"
+        raise ValueError(msg)
+    return f"h{level}"
+
+
 def hero(
     title: object,
     *,
     subtitle: object | None = None,
     variant: Variant | None = None,
     size: Size | None = None,
+    heading_level: HeadingLevel | None = None,
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
-    """Create a hero section with title and optional subtitle."""
+    """Create a hero section with title and optional subtitle.
+
+    Args:
+        heading_level: Render the title as ``<h1>``..``<h6>`` instead of the
+            default ``<p>``. Set this on the hero that acts as the page's
+            banner so its title joins the heading outline -- assistive
+            technology navigates by headings, and a page whose most prominent
+            text is a ``<p>`` is invisible to that. Leave unset for decorative
+            or repeated heroes.
+    """
     variant_class = f"is-{variant}" if variant else None
     size_class = f"is-{size}" if size else None
     hero_classes = _flatten_classes("ui-hero", variant_class, size_class, class_)
     hero_attr_html = _render_attrs(class_=hero_classes, **attrs)
 
-    title_html = f'<p class="ui-title">{_render_fragment(title)}</p>'
+    tag = _heading_tag(heading_level)
+    title_html = f'<{tag} class="ui-title">{_render_fragment(title)}</{tag}>'
     subtitle_html = (
         f'<p class="ui-subtitle">{_render_fragment(subtitle)}</p>' if subtitle else ""
     )
@@ -684,14 +717,25 @@ def title(
     content: object,
     *,
     size: Size | None = None,
+    heading_level: HeadingLevel | None = None,
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
-    """Typography title element."""
+    """Typography title element.
+
+    Args:
+        size: Visual size, 1 (largest) to 6. Purely typographic.
+        heading_level: Render as ``<h1>``..``<h6>`` instead of the default
+            ``<p>``. Kept independent of ``size`` on purpose -- visual weight
+            and document structure are separate concerns, and conflating them
+            is how heading outlines end up chosen by how big the text should
+            look. A small ``is-6`` title can still be an ``<h2>``.
+    """
     size_class = f"is-{size}" if size else None
     classes = _flatten_classes("ui-title", size_class, class_)
     attr_html = _render_attrs(class_=classes, **attrs)
-    return _safe(f"<p{attr_html}>{_render_fragment(content)}</p>")
+    tag = _heading_tag(heading_level)
+    return _safe(f"<{tag}{attr_html}>{_render_fragment(content)}</{tag}>")
 
 
 def media(

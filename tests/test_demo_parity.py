@@ -107,12 +107,16 @@ class TestDemoParity(unittest.TestCase):
         )
 
     def test_hero(self) -> None:
+        # heading_level=1 -- this is the page banner, so its title is the
+        # document's h1. The variant/size heroes in test_hero_variants stay
+        # <p>: they are component samples, not document sections.
         html = str(
             hero(
                 "FastBlocks UI",
                 subtitle="HTML/CSS-first components, semantic tokens, htmx-safe "
                 "fragments, and optional enhancement JavaScript.",
                 variant="primary",
+                heading_level=1,
             )
         )
         self.assertFragmentInDemo(html)

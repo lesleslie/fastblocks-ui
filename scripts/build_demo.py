@@ -1277,11 +1277,16 @@ def render_page() -> str:
     categories = build_categories()
     sidebar = build_sidebar(categories)
     content = build_content(categories)
+    # heading_level=1: this hero is the page banner, so its title is the
+    # document's h1. The nine heroes inside the Hero showcase section below
+    # deliberately stay <p> -- they are samples of a component, not sections
+    # of this document, and promoting them would put nine h1s in the outline.
     page_hero = hero(
         "FastBlocks UI",
         subtitle="HTML/CSS-first components, semantic tokens, htmx-safe "
         "fragments, and optional enhancement JavaScript.",
         variant="primary",
+        heading_level=1,
     )
 
     css = CSS.read_text(encoding="utf-8")

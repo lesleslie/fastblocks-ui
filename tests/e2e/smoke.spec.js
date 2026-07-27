@@ -19,7 +19,14 @@ test.describe('FastBlocks UI smoke', () => {
     await expect(page.getByRole('heading', { name: 'Validation' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Display name must be at least 3 characters.' })).toBeVisible();
     await expect(page.locator('#demo-display-name-error')).toBeVisible();
-    await expect(page.getByText('Please correct the errors below.')).toBeVisible();
+    // Scoped to the section. The demo renders validation_summary() twice on
+    // purpose -- once standalone in the Validation Summary section, once
+    // wired to a real field in Complete form example -- so an unscoped
+    // getByText matches both and trips strict mode. The two assertions above
+    // are about the live form, so this one belongs to the same section.
+    await expect(
+      page.getByLabel('Complete form example').getByText('Please correct the errors below.'),
+    ).toBeVisible();
   });
 
   test('opens and closes the dialog', async ({ page }) => {
