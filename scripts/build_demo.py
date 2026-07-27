@@ -800,14 +800,23 @@ def palette_css() -> str:
 
 def palette_demo() -> SafeHTML:
     def swatch(token: str, label: str, *, on_color: bool = False, family: str = "") -> str:
-        # Colored swatches carry their family's `-contrast` token so the label
-        # is legible on the fill; neutral swatches inherit page text.
+        # Only colored swatches get an overlaid label, painted with their
+        # family's `-contrast` token so it is legible on the fill.
+        #
+        # Neutral swatches deliberately carry no overlay. There is no
+        # "contrast" token for a neutral, so the label would inherit page
+        # text -- and for the `text`/`text-strong` swatches that is the
+        # exact color of the fill behind it (measured 1.0:1, i.e. invisible).
+        # The `<code>` token name below each swatch already identifies it, so
+        # the overlay was redundant as well as unreadable.
         cls = "demo-swatch"
+        inner = ""
         if on_color:
             cls += f" demo-swatch-on-{family}"
+            inner = f"<span>{_esc(label)}</span>"
         return (
             f'<div class="demo-swatch-cell">'
-            f'<div class="{cls}" data-token="{token}"><span>{_esc(label)}</span></div>'
+            f'<div class="{cls}" data-token="{token}">{inner}</div>'
             f'<code class="demo-swatch-name">--ui-color-{token}</code>'
             f"</div>"
         )

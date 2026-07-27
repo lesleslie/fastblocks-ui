@@ -10,53 +10,57 @@
   [data-theme="dark"] {
     color-scheme: dark;
 
-    --ui-color-surface: #0f172a;
-    --ui-color-surface-raised: #111827;
-    --ui-color-surface-muted: #1e293b;
-    --ui-color-surface-subtle: #1e1b4b;
-    --ui-color-text: #cbd5e1;
-    --ui-color-text-strong: #f8fafc;
-    --ui-color-text-muted: #94a3b8;
-    --ui-color-border: #334155;
-    --ui-color-border-strong: #64748b;
+    /* Dark ramp, Tailwind v4. Neutrals use `slate` rather than `gray` --
+       slate's slight blue cast reads as intentional in dark mode where
+       gray reads as washed out. Shade names are recorded per token so an
+       upstream bump is a lookup. See tokens.css for why these are oklch()
+       and for the WCAG-over-sRGB caveat. */
+    --ui-color-surface: oklch(20.8% 0.042 265.755); /* slate-900 */
+    --ui-color-surface-raised: oklch(21% 0.034 264.665); /* gray-900 */
+    --ui-color-surface-muted: oklch(27.9% 0.041 260.031); /* slate-800 */
+    --ui-color-surface-subtle: oklch(25.7% 0.09 281.288); /* indigo-950 */
+    --ui-color-text: oklch(86.9% 0.022 252.894); /* slate-300 */
+    --ui-color-text-strong: oklch(98.4% 0.003 247.858); /* slate-50 */
+    --ui-color-text-muted: oklch(70.4% 0.04 256.788); /* slate-400 */
+    --ui-color-border: oklch(37.2% 0.044 257.287); /* slate-700 */
+    --ui-color-border-strong: oklch(55.4% 0.046 257.417); /* slate-500 */
 
-    /* Fixed 2026-07-26: indigo-400/-300 (#818cf8/#a5b4fc) against white text
-       only reached 2.98:1/1.99:1 (hover), both failing WCAG AA's 4.5:1.
-       Unlike info/success/danger above, flipping `-contrast` to black isn't
-       a good option here -- indigo reads muddy with black text at any
-       shade light enough to still look "dark-mode-native". Darkened to
-       indigo-600/-700 instead (6.29:1/7.90:1) -- the same two shades light
-       mode already uses for `--ui-color-primary`/`-strong`, so the primary
-       button/hero is now the same color in both themes; still a real,
-       intentional Tailwind indigo shade, not an arbitrary one-off. */
-    --ui-color-primary: #4f46e5;
+    /* Primary deliberately does NOT lighten in dark mode. The obvious
+       choice, indigo-400/-300, reaches only 2.98:1/1.99:1 against white
+       text -- both failing AA. Flipping `-contrast` to black (the trick
+       used for info/success/warning/danger below) doesn't rescue it
+       either: indigo reads muddy under black text at any shade light
+       enough to still feel dark-mode-native. So primary stays at
+       indigo-600/-700, the same pair light mode uses, and the primary
+       button/hero is intentionally one colour in both themes (6.29:1). */
+    --ui-color-primary: oklch(51.1% 0.262 276.966); /* indigo-600 */
     --ui-color-primary-contrast: #ffffff;
-    --ui-color-primary-subtle: #312e81;
-    --ui-color-primary-strong: #4338ca;
+    --ui-color-primary-subtle: oklch(35.9% 0.144 278.697); /* indigo-900 */
+    --ui-color-primary-strong: oklch(45.7% 0.24 277.023); /* indigo-700 */
 
-    --ui-color-info: #22d3ee;
+    /* info/success/warning/danger all take the 400 shade with BLACK
+       `-contrast` text. A pastel fill under white text fails AA every
+       time (danger at #f87171 managed only 2.77:1); inverting the text
+       instead of darkening the fill keeps dark mode looking like dark
+       mode. Keep the pairing if you re-bump: light fill + black text. */
+    --ui-color-info: oklch(78.9% 0.154 211.53); /* cyan-400 */
     --ui-color-info-contrast: #000000;
-    --ui-color-info-subtle: #164e63;
-    --ui-color-info-strong: #67e8f9;
+    --ui-color-info-subtle: oklch(39.8% 0.07 227.392); /* cyan-900 */
+    --ui-color-info-strong: oklch(86.5% 0.127 207.078); /* cyan-300 */
 
-    --ui-color-success: #4ade80;
+    --ui-color-success: oklch(79.2% 0.209 151.711); /* green-400 */
     --ui-color-success-contrast: #000000;
-    --ui-color-success-subtle: #14532d;
-    --ui-color-success-strong: #86efac;
+    --ui-color-success-subtle: oklch(39.3% 0.095 152.535); /* green-900 */
+    --ui-color-success-strong: oklch(87.1% 0.15 154.449); /* green-300 */
 
-    --ui-color-warning: #facc15;
+    --ui-color-warning: oklch(85.2% 0.199 91.936); /* yellow-400 */
     --ui-color-warning-contrast: #000000;
-    --ui-color-warning-subtle: #713f12;
-    --ui-color-warning-strong: #fde047;
+    --ui-color-warning-subtle: oklch(42.1% 0.095 57.708); /* yellow-900 */
+    --ui-color-warning-strong: oklch(90.5% 0.182 98.111); /* yellow-300 */
 
-    /* Fixed 2026-07-26: unlike info/success/warning above, danger's
-       dark-mode contrast text was never flipped to black -- the pastel
-       #f87171 fill only reaches 2.77:1/1.90:1 (hover) against white text,
-       both failing WCAG AA. Flipping to black (matching the same pattern
-       already used for info/success/warning) fixes it: 7.59:1/11.06:1. */
-    --ui-color-danger: #f87171;
+    --ui-color-danger: oklch(70.4% 0.191 22.216); /* red-400 */
     --ui-color-danger-contrast: #000000;
-    --ui-color-danger-subtle: #7f1d1d;
-    --ui-color-danger-strong: #fca5a5;
+    --ui-color-danger-subtle: oklch(39.6% 0.141 25.723); /* red-900 */
+    --ui-color-danger-strong: oklch(80.8% 0.114 19.571); /* red-300 */
   }
 }

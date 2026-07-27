@@ -395,9 +395,16 @@
     text-align: center;
   }
 
+  /* `--ui-color-text`, not `-text-muted`. Muted text on a muted surface is
+     a pairing that fails by construction: both tokens step toward the
+     middle of the ramp, so they meet around 4.4:1 -- just under AA's
+     4.5:1, and it measured exactly that under both the v3 and v4
+     palettes. The footer already reads as secondary from its own
+     background, border and centred layout; it does not need the text
+     colour to also step down. */
   .ui-footer p {
     margin: 0;
-    color: var(--ui-color-text-muted);
+    color: var(--ui-color-text);
   }
 
   .ui-footer a {
