@@ -5,6 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-07-27
+
+### Added
+
+- **BREAKING:** tokens: Migrate the palette from Tailwind v3 to v4 (oklch)
+- Add comprehensive implementation summary
+- Add self-contained component demo generated from the helpers
+- demo: Add a live semantic color palette section
+- Finalize fastblocks ui docs and checks
+- Initial commit: Add project files
+- Rename fastbulma to fastblocks ui
+- ws-1: OS dark-mode default via prefers-color-scheme (single source)
+- ws-2: Type variant/size params; make py.typed sound
+- ws-3: A11y CSS guardrails + docs/branding honesty
+- ws-3: Dialog focus trap on the non-modal fallback path
+- ws-3: Menu keyboard navigation (WAI-ARIA menu pattern)
+
+### Changed
+
+- quality: Refurb FURB cleanup; nosemgrep for non-security sha1 ID
+- Replace Bulma colors with Tailwind CSS default colors
+- Update config, core
+- ws-1: Single-source CSS via generated bundle + drift gate
+
+### Fixed
+
+- **BREAKING:** a11y: Let hero/title opt into a heading level
+- Fix broken crackerjack documentation link
+- Fix PyPI metadata: license and classifiers
+- Implement Phase 3 JavaScript optimizations (specialist recommendations)
+- Implement Phase 4: Testing and Validation infrastructure
+- Implement specialist-recommended fixes (CSS, Web Components, Accessibility)
+- ui: Make tiles fill their ancestor and pin the demo sidebar
+- ui: Repair mobile overflow, hero subtitle contrast, and demo tracking
+- ws-1: Progress() -> native <progress> for CSP-safe rendering
+- ws-2: Harden pagination() and progress() helpers
+
+### Documentation
+
+- Add BSD-3-Clause license and update project documentation
+- Comprehensive-hooks implementation plan
+- Implement Phase 4.5: Performance Optimization and Phase 5: Documentation
+- links: Fix or drop broken htmx and archive refs
+- Mark fastblocks-htmy scaffold complete in roadmap
+- spec,plan: Wrap get_manifest_path() in Path() in code listings
+- spec: Comprehensive-hooks-failing design
+- Update config, core, docs
+- Update core, docs
+
+### Testing
+
+- ws-3: Retire string-split legacy-runtime guard tests
+- ws-4: Manifest contract checks (caught real doc drift)
+
+### Internal
+
+- Bump version to 0.2.0
+- Bump version to 0.3.0
+- Bump version to 0.4.0
+- Bump version to 0.4.1
+- Bump version to 0.5.0
+- Finalize fastblocks ui cleanup
+- Fix zuban config + clean type-checker findings
+- gitignore: Add backup file patterns to silence checkpoint tool artifacts
+- infra: Pyscn/creosote wrappers and .cache/ for betterleaks
+- Land WS-0..WS-7 workstream (v0.6.0)
+- types: Switch type checking from pyright to ty
+- ws-0: Single-source version, ship py.typed, untrack artifacts
+- ws-5: Supply-chain hygiene — reconcile pins, enforce zero deps
+
 ## [0.6.0] - 2026-07-26
 
 ### Contract changes (CSS classes / manifest / asset paths)
