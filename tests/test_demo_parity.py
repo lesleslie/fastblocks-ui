@@ -678,3 +678,29 @@ class TestEmbeddedManifestFreshness(unittest.TestCase):
             "demo/demo.html's embedded manifest has drifted from "
             "fastblocks_ui/manifest.json -- re-embed it.",
         )
+
+
+class TestInlinedBundleFreshness(unittest.TestCase):
+    """`demo/demo.html` inlines the CSS bundle; it must not go stale.
+
+    Caught in the browser: an RTL switch fix was present in the bundle and in
+    `demo/index.html`, but the hand-maintained `<style>` block in demo.html
+    still held a pre-fix copy, so the rule silently did not apply on the page
+    the e2e suite actually loads. A stale inlined bundle means every visual
+    and accessibility assertion here is made against outdated CSS.
+    """
+
+    def test_inlined_css_matches_the_built_bundle(self) -> None:
+        import fastblocks_ui
+
+        match = re.search(r"<style[^>]*>(.*?)</style>", DEMO_HTML, re.S)
+        self.assertIsNotNone(match, "demo.html no longer inlines a stylesheet")
+        assert match is not None
+
+        bundle = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
+        self.assertEqual(
+            match.group(1).strip(),
+            bundle.strip(),
+            "demo/demo.html's inlined CSS has drifted from the built bundle -- "
+            "re-inline it after running tools/build_css.py.",
+        )

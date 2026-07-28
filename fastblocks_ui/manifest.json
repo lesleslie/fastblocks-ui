@@ -509,6 +509,12 @@
           "kind": "keyword_only",
           "type": "Variant | None",
           "default": null
+        },
+        {
+          "name": "label",
+          "kind": "keyword_only",
+          "type": "str",
+          "default": "main navigation"
         }
       ],
       "codegen": false

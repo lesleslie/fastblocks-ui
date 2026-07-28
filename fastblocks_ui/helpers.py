@@ -946,6 +946,7 @@ def navbar(
     start: object = None,
     end: object = None,
     variant: Variant | None = None,
+    label: str = "main navigation",
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
@@ -958,8 +959,19 @@ def navbar(
         start: Optional content rendered in the start slot
         end: Optional content rendered in the end slot
         variant: "primary", "dark" for color variants
+        label: Accessible name for the navigation landmark. Override it when
+            a page renders more than one navbar, so the landmarks stay
+            distinguishable.
     """
     classes = _flatten_classes("ui-navbar", variant and f"is-{variant}", class_)
+    # The landmark name is caller-overridable and rendered through
+    # `_render_attrs`, not hardcoded into the f-string below. It was fixed at
+    # "main navigation" with no way to change it, so a page with two navbars
+    # (a primary bar and a utility bar, say) exposed two navigation landmarks
+    # with an identical accessible name -- ambiguous for landmark navigation
+    # and flagged by axe's `landmark-unique`.
+    if "aria_label" not in attrs and "aria-label" not in attrs:
+        attrs["aria_label"] = label
     attr_html = _render_attrs(class_=classes, **attrs)
 
     def _render_navbar_slot(value: object) -> str:
@@ -1005,9 +1017,7 @@ def navbar(
         )
 
     return _safe(
-        f'<nav{attr_html} aria-label="main navigation">'
-        f"{brand_html}{''.join(menu_parts)}"
-        f"</nav>"
+        f"<nav{attr_html}>{brand_html}{''.join(menu_parts)}</nav>"
     )
 
 
