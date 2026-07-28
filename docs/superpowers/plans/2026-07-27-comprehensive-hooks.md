@@ -237,7 +237,7 @@ def copy_assets(dest_dir: str) -> None:
         shutil.copytree(js_src, js_dest, dirs_exist_ok=True)
 
     # Copy manifest
-    manifest_src = fastblocks_ui.get_manifest_path()
+    manifest_src = Path(fastblocks_ui.get_manifest_path())
     manifest_dest = static_dest / "manifest.json"
     if manifest_src.exists():
         shutil.copy2(manifest_src, manifest_dest)

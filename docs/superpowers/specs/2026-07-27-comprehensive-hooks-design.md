@@ -185,7 +185,7 @@ SHA1 callsites get a documented `# nosemgrep` exemption that semantically
 +        shutil.copytree(js_src, js_dest, dirs_exist_ok=True)
 
      # Copy manifest
-     manifest_src = fastblocks_ui.get_manifest_path()
+     manifest_src = Path(fastblocks_ui.get_manifest_path())
 -    manifest_dest = os.path.join(static_dest, "manifest.json")
 -    if os.path.exists(manifest_src):
 -        shutil.copy2(manifest_src, manifest_dest)
