@@ -1,10 +1,13 @@
 import gzip
+import math
 import os
+import re
 import subprocess
 import sys
 import tempfile
 import tomllib
 import unittest
+from collections.abc import Callable
 from importlib.resources import files
 from pathlib import Path
 from unittest.mock import patch
@@ -501,6 +504,64 @@ def _hex_to_rgb(value: str) -> tuple[int, int, int]:
     return red, green, blue
 
 
+_OKLCH_RE = re.compile(
+    r"oklch\(\s*([0-9.]+)%?\s+([0-9.]+)\s+([0-9.]+)\s*\)", re.IGNORECASE
+)
+
+
+def _oklch_to_rgb(
+    lightness: float, chroma: float, hue_deg: float
+) -> tuple[int, int, int]:
+    """Convert an ``oklch()`` triple to 8-bit sRGB (Ottosson's transform).
+
+    WCAG 2.x contrast is defined over sRGB, so wide-gamut values are clamped
+    into the sRGB box -- the same projection a browser reports from
+    ``getComputedStyle`` on a non-P3 display, and what tokens.css's own comment
+    says the recorded ratios are computed against.
+    """
+    hue = math.radians(hue_deg)
+    a = chroma * math.cos(hue)
+    b = chroma * math.sin(hue)
+
+    l_ = lightness + 0.3963377774 * a + 0.2158037573 * b
+    m_ = lightness - 0.1055613458 * a - 0.0638541728 * b
+    s_ = lightness - 0.0894841775 * a - 1.2914855480 * b
+    long_, med, short = l_**3, m_**3, s_**3
+
+    linear = (
+        4.0767416621 * long_ - 3.3077115913 * med + 0.2309699292 * short,
+        -1.2684380046 * long_ + 2.6097574011 * med - 0.3413193965 * short,
+        -0.0041960863 * long_ - 0.7034186147 * med + 1.7076147010 * short,
+    )
+
+    def encode(channel: float) -> int:
+        channel = min(1.0, max(0.0, channel))
+        srgb = (
+            12.92 * channel
+            if channel <= 0.0031308
+            else 1.055 * channel ** (1 / 2.4) - 0.055
+        )
+        return round(min(1.0, max(0.0, srgb)) * 255)
+
+    red, green, blue = (encode(c) for c in linear)
+    return red, green, blue
+
+
+def _css_color_to_rgb(value: str) -> tuple[int, int, int]:
+    """Parse the CSS colour forms the token bundle actually uses."""
+    value = value.strip()
+    if value.startswith("#"):
+        return _hex_to_rgb(value)
+    match = _OKLCH_RE.match(value)
+    if match:
+        lightness = float(match.group(1))
+        if "%" in value or lightness > 1:
+            lightness /= 100
+        return _oklch_to_rgb(lightness, float(match.group(2)), float(match.group(3)))
+    msg = f"unsupported CSS colour form: {value!r}"
+    raise ValueError(msg)
+
+
 def _relative_luminance(rgb: tuple[int, int, int]) -> float:
     def channel(c: int) -> float:
         c_srgb = c / 255
@@ -512,9 +573,10 @@ def _relative_luminance(rgb: tuple[int, int, int]) -> float:
     return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
 
 
-def _contrast_ratio(hex_a: str, hex_b: str) -> float:
-    l1 = _relative_luminance(_hex_to_rgb(hex_a))
-    l2 = _relative_luminance(_hex_to_rgb(hex_b))
+def _contrast_ratio(color_a: str, color_b: str) -> float:
+    """WCAG contrast ratio between two CSS colours (hex or ``oklch()``)."""
+    l1 = _relative_luminance(_css_color_to_rgb(color_a))
+    l2 = _relative_luminance(_css_color_to_rgb(color_b))
     lighter, darker = max(l1, l2), min(l1, l2)
     return (lighter + 0.05) / (darker + 0.05)
 
@@ -560,9 +622,14 @@ class TestColorTokenContrastRegression(unittest.TestCase):
 
     @classmethod
     def _tokens(cls, block: str) -> dict[str, str]:
-        import re
-
-        return dict(re.findall(r"(--ui-color-[\w-]+):\s*(#[0-9a-fA-F]{6})", block))
+        # Must match `oklch()` as well as hex: the palette migrated to
+        # `oklch()`, and a hex-only pattern matched no base fill at all,
+        # leaving `_assert_all_pass` with nothing to compare.
+        return dict(
+            re.findall(
+                r"(--ui-color-[\w-]+):\s*(#[0-9a-fA-F]{6}|oklch\([^)]*\))", block
+            )
+        )
 
     def test_light_theme_fill_contrast(self):
         css = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
@@ -738,7 +805,10 @@ class TestHelpers(unittest.TestCase):
         self.assertIn('class="ui-checkbox is-inline"', checkbox_markup)
         self.assertIn('class="ui-switch"', switch_markup)
         self.assertIn('role="switch"', switch_markup)
-        self.assertIn('aria-checked="true"', switch_markup)
+        # State comes from the native `checked` attribute, not a server-rendered
+        # `aria-checked` nothing keeps in sync -- see TestSwitchAriaState.
+        self.assertIn("checked", switch_markup)
+        self.assertNotIn("aria-checked", switch_markup)
         self.assertIn('class="ui-alert is-success"', alert_markup)
         self.assertIn('<dialog class="ui-dialog" open', dialog_markup)
         self.assertIn('class="ui-menu"', menu_markup)
@@ -1105,3 +1175,218 @@ class TestCLI(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestContrastGateActuallyRuns(unittest.TestCase):
+    """Guard the guard: `TestColorTokenContrastRegression` must do real work.
+
+    Its token parser matched `#rrggbb` only. When the palette moved to
+    `oklch()` every base fill stopped matching, so `_assert_all_pass` hit
+    `if fill is None: continue` every iteration and both tests asserted
+    `[] == []` -- zero contrast comparisons. The gate was silently inert from
+    the exact commit whose message cited it as evidence nothing regressed.
+    """
+
+    def test_parser_finds_base_fills_in_both_themes(self) -> None:
+        css = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
+        for selector, label in ((":root {", "light"), ('[data-theme="dark"] {', "dark")):
+            block = TestColorTokenContrastRegression._extract_block(css, selector)
+            tokens = TestColorTokenContrastRegression._tokens(block)
+            missing = [
+                f"--ui-color-{name}"
+                for name in TestColorTokenContrastRegression.COLOR_NAMES
+                if f"--ui-color-{name}" not in tokens
+            ]
+            self.assertEqual(
+                missing,
+                [],
+                f"{label}: the contrast gate's parser found no value for {missing} "
+                "-- it cannot compare what it cannot parse, so the gate passes "
+                "vacuously.",
+            )
+
+    def test_gate_would_catch_a_real_regression(self) -> None:
+        gate = TestColorTokenContrastRegression("test_light_theme_fill_contrast")
+        with self.assertRaises(AssertionError):
+            gate._assert_all_pass(
+                {
+                    "--ui-color-primary": "#fefefe",
+                    "--ui-color-primary-contrast": "#ffffff",
+                },
+                "synthetic",
+            )
+
+    def test_oklch_conversion_matches_browser(self) -> None:
+        """Cross-check against values measured in Chrome on the rendered demo."""
+        self.assertEqual(_oklch_to_rgb(0.511, 0.262, 276.966), (79, 57, 246))
+        self.assertAlmostEqual(
+            _contrast_ratio("oklch(51.1% 0.262 276.966)", "#ffffff"), 6.46, places=2
+        )
+        # tokens.css documents danger + white as the tightest pair at 4.77:1.
+        self.assertAlmostEqual(
+            _contrast_ratio("oklch(57.7% 0.245 27.325)", "#ffffff"), 4.77, places=2
+        )
+
+
+class TestFocusIndicatorContrast(unittest.TestCase):
+    """WCAG 2.1 AA 1.4.11 (non-text contrast) for the focus indicator.
+
+    Measured in Chrome against the rendered demo, the shipped ring managed
+    1.47:1 light and 1.20:1 dark: `--ui-focus-ring` mixed the focus colour to
+    24% alpha, and dark mode inherited light mode's indigo-600, only 2.76:1 on
+    the dark surface even at full opacity. axe-core does not evaluate
+    focus-indicator contrast, so the Playwright a11y run passed throughout.
+    """
+
+    AA_NON_TEXT = 3.0
+
+    @staticmethod
+    def _tokens_for(selector: str) -> dict[str, str]:
+        css = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
+        block = TestColorTokenContrastRegression._extract_block(css, selector)
+        return TestColorTokenContrastRegression._tokens(block)
+
+    def test_focus_ring_is_not_transparent(self) -> None:
+        css = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
+        match = re.search(r"--ui-focus-ring:\s*([^;]+);", css)
+        if match is None:
+            self.fail("--ui-focus-ring is not defined")
+        value = match.group(1)
+        self.assertNotIn(
+            "transparent",
+            value,
+            "the focus ring blends toward transparent, dropping it far below "
+            f"the {self.AA_NON_TEXT}:1 non-text contrast floor: {value!r}",
+        )
+
+    def test_focus_colour_meets_non_text_contrast_in_both_themes(self) -> None:
+        light = self._tokens_for(":root {")
+        dark = {**light, **self._tokens_for('[data-theme="dark"] {')}
+
+        failures: list[str] = []
+        for label, tokens in (("light", light), ("dark", dark)):
+            focus = tokens.get("--ui-color-focus")
+            surface = tokens.get("--ui-color-surface")
+            if focus is None:
+                self.fail(f"{label}: --ui-color-focus missing")
+            if surface is None:
+                self.fail(f"{label}: --ui-color-surface missing")
+            ratio = _contrast_ratio(focus, surface)
+            if ratio < self.AA_NON_TEXT:
+                failures.append(
+                    f"{label}: focus {focus} on surface {surface} -> {ratio:.2f}:1 "
+                    f"(needs >= {self.AA_NON_TEXT}:1)"
+                )
+
+        self.assertEqual(
+            failures, [], "focus indicator fails WCAG 1.4.11:\n" + "\n".join(failures)
+        )
+
+
+class TestHelperCorrectnessRegressions(unittest.TestCase):
+    """Defects found by executing the helpers during the 2026-07-27 audit."""
+
+    def test_tabs_unmatched_active_id_still_activates_a_tab(self) -> None:
+        html = str(tabs([("a", "A", "1"), ("b", "B", "2")], active_id="does-not-exist"))
+        self.assertEqual(
+            re.findall(r'aria-selected="(\w+)"', html).count("true"),
+            1,
+            "no tab is selected, so the panel content is unreachable",
+        )
+        self.assertEqual(
+            re.findall(r'tabindex="(-?\d+)"', html).count("0"),
+            1,
+            "no tab is keyboard-reachable: every tab has tabindex=-1",
+        )
+
+    def test_heading_level_rejects_bool(self) -> None:
+        # Dispatched through a loosely-typed callable on purpose: `ty` already
+        # rejects a literal `heading_level=True` statically, and that static
+        # check works. This covers the dynamic callers a type checker never
+        # sees -- values from JSON, a form, or a template context -- which
+        # silently rendered `<hTrue>` because `True == 1`.
+        dynamic_helpers: list[tuple[str, Callable[..., object]]] = [
+            ("title", title),
+            ("hero", hero),
+        ]
+        for name, helper in dynamic_helpers:
+            with self.assertRaises(ValueError, msg=f"{name}() accepted True"):
+                helper("X", heading_level=True)
+
+    def test_field_without_control_id_generates_unique_ids(self) -> None:
+        first = str(field(label="Email", help_text="a", control_html=ui_input()))
+        second = str(field(label="Name", help_text="b", control_html=ui_input()))
+        ids = re.findall(r'id="([^"]+)"', first) + re.findall(r'id="([^"]+)"', second)
+        self.assertEqual(
+            len(ids), len(set(ids)), f"duplicate DOM ids across two fields: {ids}"
+        )
+
+    def test_field_label_is_associated_with_its_control(self) -> None:
+        html = str(field(label="Email", control_html=ui_input()))
+        for_match = re.search(r'<label[^>]*\bfor="([^"]+)"', html)
+        self.assertIsNotNone(
+            for_match, "label has no for= attribute, so it labels nothing"
+        )
+        assert for_match is not None
+        self.assertIn(
+            f'id="{for_match.group(1)}"',
+            html,
+            "label points at an id that does not exist in the field",
+        )
+
+    def test_attribute_names_cannot_inject_markup(self) -> None:
+        # Raise rather than silently drop: a malformed attribute name is a
+        # programming error or an injection attempt, and both deserve to be
+        # loud. Previously this spliced a live `onclick` handler into the tag.
+        with self.assertRaises(ValueError):
+            button("X", **{"onclick=alert(1) data-x": "y"})
+
+    def test_ordinary_attribute_names_still_work(self) -> None:
+        html = str(button("X", data_testid="save", aria_label="Save", hx_post="/x"))
+        self.assertIn('data-testid="save"', html)
+        self.assertIn('aria-label="Save"', html)
+        self.assertIn('hx-post="/x"', html)
+
+    def test_javascript_urls_are_neutralised(self) -> None:
+        cases = {
+            "button": str(button("X", href="javascript:alert(1)")),
+            "breadcrumb": str(breadcrumb([("Home", "javascript:alert(1)")])),
+            "navbar": str(navbar("B", brand_url="javascript:alert(1)")),
+            "menu": str(menu([("Home", "javascript:alert(1)")])),
+        }
+        for name, html in cases.items():
+            self.assertNotIn(
+                "javascript:", html, f"{name}() emitted a javascript: URL: {html}"
+            )
+
+    def test_ordinary_urls_still_work(self) -> None:
+        self.assertIn('href="/dashboard"', str(button("X", href="/dashboard")))
+        self.assertIn(
+            'href="https://example.com"', str(button("X", href="https://example.com"))
+        )
+        self.assertIn('href="mailto:a@b.co"', str(button("X", href="mailto:a@b.co")))
+
+
+class TestSwitchAriaState(unittest.TestCase):
+    """`switch()` must not server-render a state that goes stale on click.
+
+    Measured in Chrome: after clicking, the control read `checked == True`
+    while the attribute still said `aria-checked="false"`, so assistive
+    technology announced "off" for a switch that was on. Nothing in
+    `enhance.js` ever updated it (there is no switch handler at all).
+    """
+
+    def test_switch_does_not_emit_static_aria_checked(self) -> None:
+        for checked in (True, False):
+            html = str(switch(label="Notify", checked=checked))
+            self.assertNotIn(
+                "aria-checked",
+                html,
+                "server-rendered aria-checked goes stale the moment the user "
+                f"toggles the control: {html}",
+            )
+
+    def test_switch_still_conveys_state_natively(self) -> None:
+        self.assertIn("checked", str(switch(label="N", checked=True)))
+        self.assertNotIn("checked", str(switch(label="N", checked=False)))
+        self.assertIn('role="switch"', str(switch(label="N")))

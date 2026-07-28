@@ -5,36 +5,57 @@
  */
 
 // Import testing utilities
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 import { vi, beforeEach, afterEach, expect } from 'vitest';
 import '@fastblocks-ui/css/fastblocks-ui.css';
 
-const lightCSSVariables = {
-  '--ui-color-primary': '#4f46e5',
-  '--ui-color-primary-subtle': '#e0e7ff',
-  '--ui-color-primary-strong': '#4338ca',
-  '--ui-color-info': '#06b6d4',
-  '--ui-color-info-subtle': '#cffafe',
-  '--ui-color-info-strong': '#0891b2',
-  '--ui-color-success': '#22c55e',
-  '--ui-color-success-subtle': '#dcfce7',
-  '--ui-color-success-strong': '#16a34a',
-  '--ui-color-warning': '#eab308',
-  '--ui-color-danger': '#ef4444',
-  '--ui-color-danger-subtle': '#fee2e2',
-  '--ui-color-danger-strong': '#b91c1c',
-  '--ui-color-surface': '#ffffff',
-  '--ui-color-text': '#374151',
-  '--ui-radius-sm': '4px',
-  '--ui-radius-md': '6px',
-  '--ui-radius-lg': '8px',
-  '--ui-radius-pill': '9999px',
-};
+// Token values are PARSED FROM THE SHIPPED BUNDLE, never hand-written here.
+//
+// jsdom does not apply an imported stylesheet's custom properties to
+// `getComputedStyle`, so `getCSSVariable` needs a fallback. That fallback used
+// to be a hardcoded table of Tailwind *v3* hex values. After the palette
+// migrated to v4 `oklch()`, every colour assertion in css-variables.test.js was
+// validating a table that no longer matched anything the library ships --
+// including `--ui-color-info: #06b6d4` and `--ui-color-success: #22c55e`,
+// precisely the two values tokens.css documents as failing WCAG AA and having
+// been deliberately replaced. Reading the real bundle means these tests cannot
+// silently drift from the shipped tokens again.
+const CSS_PATH = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../fastblocks_ui/static/css/fastblocks-ui.css',
+);
 
-const darkCSSVariables = {
-  '--ui-color-primary': '#818cf8',
-  '--ui-color-surface': '#0f172a',
-  '--ui-color-text': '#cbd5e1',
-};
+function extractBlock(css, selector) {
+  const start = css.indexOf(selector);
+  if (start === -1) return '';
+  const open = css.indexOf('{', start);
+  let depth = 1;
+  let i = open + 1;
+  while (depth > 0 && i < css.length) {
+    if (css[i] === '{') depth += 1;
+    else if (css[i] === '}') depth -= 1;
+    i += 1;
+  }
+  return css.slice(open, i);
+}
+
+function parseTokens(block) {
+  const tokens = {};
+  const re = /(--ui-[\w-]+):\s*([^;]+);/g;
+  let match;
+  while ((match = re.exec(block)) !== null) {
+    tokens[match[1]] = match[2].trim();
+  }
+  return tokens;
+}
+
+const bundleCSS = readFileSync(CSS_PATH, 'utf8');
+const lightCSSVariables = parseTokens(extractBlock(bundleCSS, ':root {'));
+const darkCSSVariables = parseTokens(
+  extractBlock(bundleCSS, '[data-theme="dark"] {'),
+);
 
 // Mock console methods to reduce noise in tests (optional)
 global.console = {
