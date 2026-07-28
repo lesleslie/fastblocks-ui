@@ -104,7 +104,7 @@ def _render_attrs(**attrs: object) -> str:
 
         attr_name = name.rstrip("_").replace("_", "-")
         if value is True:
-            if attr_name.startswith("data-") or attr_name.startswith("aria-"):
+            if attr_name.startswith(("data-", "aria-")):
                 rendered.append(f'{attr_name}="true"')
                 continue
             rendered.append(attr_name)
@@ -160,13 +160,19 @@ def _normalize_dom_id(value: object, *, prefix: str = "ui") -> str:
     candidate = str(value).strip()
     if candidate and _DOM_ID_PATTERN.match(candidate):
         return candidate
+    # NB: SHA1 is intentional here. We use a 10-character hex prefix
+    # purely as a *non-cryptographic* deterministic ID for fragment-stable
+    # DOM ids; there is no adversarial model here and collisions in 10
+    # chars are statistically irrelevant. Using SHA256/SHA3 would change
+    # the external 10-char IDs and break tests that assert specific values.
+    # nosemgrep: python.lang.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1
     digest = sha1(candidate.encode("utf-8")).hexdigest()[:10] if candidate else "0"
     return f"{prefix}-{digest}"
 
 
 def _format_number(value: float) -> str:
     """Render a number without a spurious trailing ``.0`` for integral values."""
-    return str(int(value)) if float(value).is_integer() else str(value)
+    return str(int(value)) if value.is_integer() else str(value)
 
 
 def button(
@@ -255,7 +261,7 @@ def field(
     if label is not None:
         label_attrs = _render_attrs(
             class_="ui-field__label",
-            for_=resolved_control_id if resolved_control_id else None,
+            for_=resolved_control_id or None,
         )
         parts.append(f"<label{label_attrs}>{_render_fragment(label)}</label>")
 
@@ -358,7 +364,7 @@ def switch(
     input_attrs = _render_attrs(
         type="checkbox",
         role="switch",
-        aria_checked=str(bool(checked)).lower(),
+        aria_checked=str(checked).lower(),
         checked=checked or None,
         **attrs,
     )
@@ -400,7 +406,7 @@ def validation_summary(
             if error_value is None or error_value is False:
                 continue
             items.append(
-                f'<li><a href="#{escape(str(field_name), quote=True)}">{_render_fragment(error_value)}</a></li>'
+                f'<li><a href="#{escape(field_name, quote=True)}">{_render_fragment(error_value)}</a></li>'
             )
     else:
         for _index, error_value in enumerate(errors):
@@ -433,8 +439,7 @@ def dialog(
     parts = [f"<dialog{attr_html}>", '<div class="ui-dialog__surface">']
     if title is not None:
         parts.append(f"<h2>{_render_fragment(title)}</h2>")
-    parts.append(_render_fragment(content))
-    parts.append("</div></dialog>")
+    parts.extend((_render_fragment(content), "</div></dialog>"))
     dialog_markup = "".join(parts)
     if custom_element:
         host_attr_html = _render_attrs(

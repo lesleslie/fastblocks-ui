@@ -30,6 +30,9 @@ def stable_id(*parts: object, prefix: str = "fb") -> str:
     normalized = "::".join(
         str(part).strip().lower() for part in parts if part is not None
     )
+    # NB: SHA1 is intentional. 10-char hex prefix is a *non-cryptographic*
+    # stable id helper; no adversarial model here. See helpers.py for context.
+    # nosemgrep: python.lang.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1
     digest = sha1(normalized.encode("utf-8")).hexdigest()[:10]
     return f"{prefix}-{digest}" if prefix else digest
 

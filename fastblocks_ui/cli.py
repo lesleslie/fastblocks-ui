@@ -1,7 +1,7 @@
 """FastBlocks UI CLI tools."""
 
 import argparse
-import os
+from pathlib import Path
 import shutil
 
 
@@ -10,30 +10,29 @@ def copy_assets(dest_dir: str) -> None:
     import fastblocks_ui
 
     static_src = fastblocks_ui.get_static_path()
-    static_dest = os.path.join(dest_dir, "fastblocks-ui")
-
-    os.makedirs(static_dest, exist_ok=True)
+    static_dest = Path(dest_dir) / "fastblocks-ui"
+    static_dest.mkdir(parents=True, exist_ok=True)
 
     # Copy only the built CSS bundle, not the source modules. Shipping the module
     # files would let the (canonical) modules and the generated bundle drift apart
     # in consumer projects.
-    css_src = os.path.join(static_src, "css")
-    css_dest = os.path.join(static_dest, "css")
-    bundle_src = os.path.join(css_src, "fastblocks-ui.css")
-    if os.path.exists(bundle_src):
-        os.makedirs(css_dest, exist_ok=True)
-        shutil.copy2(bundle_src, os.path.join(css_dest, "fastblocks-ui.css"))
+    css_src = Path(static_src) / "css"
+    css_dest = static_dest / "css"
+    bundle_src = css_src / "fastblocks-ui.css"
+    if bundle_src.exists():
+        css_dest.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(bundle_src, css_dest / "fastblocks-ui.css")
 
     # Copy JS
-    js_src = os.path.join(static_src, "js")
-    js_dest = os.path.join(static_dest, "js")
-    if os.path.exists(js_src):
+    js_src = Path(static_src) / "js"
+    js_dest = static_dest / "js"
+    if js_src.exists():
         shutil.copytree(js_src, js_dest, dirs_exist_ok=True)
 
     # Copy manifest
-    manifest_src = fastblocks_ui.get_manifest_path()
-    manifest_dest = os.path.join(static_dest, "manifest.json")
-    if os.path.exists(manifest_src):
+    manifest_src = Path(fastblocks_ui.get_manifest_path())
+    manifest_dest = static_dest / "manifest.json"
+    if manifest_src.exists():
         shutil.copy2(manifest_src, manifest_dest)
 
     print(f"FastBlocks UI assets copied to {static_dest}")
