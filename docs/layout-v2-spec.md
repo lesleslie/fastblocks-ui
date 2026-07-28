@@ -481,7 +481,7 @@ def table(
 
 ### htmx Datatable Pattern
 
-**Reference:** [htmx data tables example](https://htmx.org/examples/data-tables/)
+**Reference:** the htmx docs' data-tables example (original URL returned 404 at last check)
 
 **FastBlocks UI approach:**
 

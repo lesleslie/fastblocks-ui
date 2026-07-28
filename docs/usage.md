@@ -434,7 +434,7 @@ Swap just the `<tbody>` on column header click:
 </div>
 ```
 
-Reference: [htmx data tables example](https://htmx.org/examples/data-tables/)
+Reference: see the htmx docs for the data-tables example pattern.
 
 ### Pagination with htmx
 
