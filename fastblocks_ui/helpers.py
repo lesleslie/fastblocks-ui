@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from hashlib import sha1
+from hashlib import sha1, sha256
 from html import escape
 from typing import Literal
 
@@ -89,6 +89,35 @@ def _flatten_classes(*values: object) -> str:
     return " ".join(dict.fromkeys(classes))
 
 
+# An attribute *name* is interpolated into the tag unescaped -- escaping it
+# would corrupt legitimate names -- so it must be validated instead. Without
+# this, `**{"onclick=alert(1) data-x": "y"}` splices a live event handler into
+# the opening tag, which is a real XSS vector wherever a caller forwards an
+# attribute dict built from untrusted keys.
+_ATTR_NAME_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_.:-]*$")
+
+# Schemes that execute rather than navigate. HTML-escaping does not neutralise
+# these (there is nothing to escape in `javascript:alert(1)`), so they have to
+# be rejected by scheme. Control characters are stripped first because browsers
+# ignore them when resolving a scheme, making `java\tscript:` equivalent.
+_DANGEROUS_URL_SCHEME = re.compile(r"^(javascript|vbscript|data):", re.IGNORECASE)
+_URL_CONTROL_CHARS = re.compile(r"[\x00-\x20\x7f]")
+
+
+def _safe_url(value: object) -> str:
+    """Neutralise URLs whose scheme executes script.
+
+    Returns ``"#"`` for a rejected URL rather than raising: a link is usually
+    rendering user- or CMS-supplied data, where dropping the destination beats
+    a 500 -- and beats shipping a script-executing link. Relative URLs,
+    ``http(s):``, ``mailto:`` and ``tel:`` are unaffected.
+    """
+    text = str(value)
+    if _DANGEROUS_URL_SCHEME.match(_URL_CONTROL_CHARS.sub("", text)):
+        return "#"
+    return text
+
+
 def _render_attrs(**attrs: object) -> str:
     rendered: list[str] = []
 
@@ -103,6 +132,13 @@ def _render_attrs(**attrs: object) -> str:
             continue
 
         attr_name = name.rstrip("_").replace("_", "-")
+        if not _ATTR_NAME_PATTERN.match(attr_name):
+            msg = (
+                f"invalid HTML attribute name {name!r}: attribute names are "
+                "written into the tag verbatim, so only "
+                "[A-Za-z_][A-Za-z0-9_.:-]* is accepted"
+            )
+            raise ValueError(msg)
         if value is True:
             if attr_name.startswith(("data-", "aria-")):
                 rendered.append(f'{attr_name}="true"')
@@ -193,7 +229,7 @@ def button(
     )
     attr_html = _render_attrs(
         class_=classes,
-        href=href,
+        href=_safe_url(href) if href is not None else None,
         type=type if href is None else None,
         **attrs,
     )
@@ -247,6 +283,28 @@ def field(
         if id_match:
             resolved_control_id = id_match.group(1)
     control_has_id = bool(re.search(r'\bid="([^"]+)"', control_markup_source))
+
+    # Derive an id when the caller gave neither `control_id` nor an `id` in the
+    # control markup. Two defects came from not doing this: the help/error
+    # elements fell back to the FIXED ids `ui-field-help`/`ui-field-error`, so
+    # two fields on one page emitted duplicate DOM ids and both controls'
+    # `aria-describedby` pointed at the first field's text; and the `<label>`
+    # got no `for`, and since it does not wrap the control it labelled nothing
+    # at all -- in the component whose whole job is labelling.
+    #
+    # The id hashes the field's own content, so it is stable across re-renders
+    # (htmx swaps keep working) rather than a render counter. Only generated
+    # when the control has an opening tag to receive it, so the label can never
+    # point at an id that was never injected.
+    if resolved_control_id is None and re.match(
+        r"^\s*<[A-Za-z]", control_markup_source
+    ):
+        # sha256, not the sha1 used above: purely an opaque DOM id, but no
+        # reason to add a new sha1 call site and trip security scanners.
+        digest = sha256(
+            f"{_render_fragment(label)}::{control_markup_source}".encode()
+        ).hexdigest()[:10]
+        resolved_control_id = f"ui-field-{digest}"
 
     describedby_ids: list[str] = []
     if help_text is not None:
@@ -364,7 +422,12 @@ def switch(
     input_attrs = _render_attrs(
         type="checkbox",
         role="switch",
-        aria_checked=str(checked).lower(),
+        # No `aria-checked`: it was rendered once server-side and nothing ever
+        # updated it, so the first toggle desynchronised the exposed state --
+        # measured in Chrome, a switch turned on still reported
+        # `aria-checked="false"`. A native checkbox already exposes its checked
+        # state correctly, ARIA-in-HTML says not to duplicate it, and the CSS
+        # styles from `:checked`.
         checked=checked or None,
         **attrs,
     )
@@ -466,10 +529,20 @@ def tabs(
     tab_buttons: list[str] = []
     panels: list[str] = []
 
+    # Fall back to the first tab when `active_id` matches nothing. Previously
+    # an `active_id` matching no item (a stale query param, a renamed tab) left
+    # every tab `aria-selected="false"` with `tabindex="-1"` and every panel
+    # hidden: no content visible and no tab reachable by keyboard.
+    resolved_active_id = (
+        active_id if any(tab_id == active_id for tab_id, _, _ in items) else None
+    )
+
     for tab_id, tab_label, panel_html in items:
         tab_dom_id = _normalize_dom_id(tab_id, prefix="ui-tab")
         panel_dom_id = f"{tab_dom_id}-panel"
-        is_active = tab_id == active_id or (active_id is None and not tab_buttons)
+        is_active = tab_id == resolved_active_id or (
+            resolved_active_id is None and not tab_buttons
+        )
         tab_buttons.append(
             f'<button class="ui-tabs__tab" type="button" role="tab" id="{escape(tab_dom_id, quote=True)}" data-ui-tab-target="#{escape(panel_dom_id, quote=True)}" aria-controls="{escape(panel_dom_id, quote=True)}" aria-selected="{str(is_active).lower()}" tabindex="{0 if is_active else -1}">{_render_fragment(tab_label)}</button>'
         )
@@ -507,7 +580,7 @@ def menu(
     classes = _flatten_classes("ui-menu", class_)
     attr_html = _render_attrs(class_=classes, data_ui_menu=True, **attrs)
     links = [
-        f'<a class="ui-menu__item" href="{escape(str(href), quote=True)}">{_render_fragment(text)}</a>'
+        f'<a class="ui-menu__item" href="{escape(_safe_url(href), quote=True)}">{_render_fragment(text)}</a>'
         for text, href in (items or [])
     ]
     menu_markup = f'<nav{attr_html} aria-label="{escape(label, quote=True)}">{"".join(links)}</nav>'
@@ -671,7 +744,10 @@ def _heading_tag(level: HeadingLevel | None) -> str:
     """
     if level is None:
         return "p"
-    if level not in (1, 2, 3, 4, 5, 6):
+    # `isinstance(level, bool)` first: `True == 1` and `True in (1, ..., 6)`
+    # are both true in Python, so a bare membership test accepted `True` and
+    # emitted the invalid tag `<hTrue>`.
+    if isinstance(level, bool) or level not in (1, 2, 3, 4, 5, 6):
         msg = f"heading level must be an int 1-6, got {level!r}"
         raise ValueError(msg)
     return f"h{level}"
@@ -831,7 +907,7 @@ def navbar(
                 if isinstance(item, (list, tuple)) and len(item) == 2:
                     label, href = item
                     rendered.append(
-                        f'<a class="ui-navbar-item" href="{escape(str(href), quote=True)}">'
+                        f'<a class="ui-navbar-item" href="{escape(_safe_url(href), quote=True)}">'
                         f"{_render_fragment(label)}</a>"
                     )
                 else:
@@ -846,7 +922,7 @@ def navbar(
             brand_html = f'<span class="ui-navbar-brand">{brand_markup}</span>'
         else:
             brand_html = (
-                f'<a class="ui-navbar-brand" href="{escape(str(brand_url), quote=True)}">'
+                f'<a class="ui-navbar-brand" href="{escape(_safe_url(brand_url), quote=True)}">'
                 f"{brand_markup}</a>"
             )
 
@@ -894,7 +970,7 @@ def breadcrumb(
         if url:
             parts.append(
                 f'<span class="ui-breadcrumb__item">'
-                f'<a class="ui-breadcrumb__link" href="{escape(str(url), quote=True)}">'
+                f'<a class="ui-breadcrumb__link" href="{escape(_safe_url(url), quote=True)}">'
                 f"{_render_fragment(label)}</a>"
                 f"</span>"
             )
@@ -1031,7 +1107,7 @@ def pagination(
         # Use a literal substitution rather than str.format() so a caller-supplied
         # url_pattern cannot trigger format-string injection (e.g. "{page.__class__}")
         # or crash on unrelated braces (e.g. "/items/{category}?page={page}").
-        url = url_pattern.replace("{page}", str(page))
+        url = _safe_url(url_pattern.replace("{page}", str(page)))
         is_current = page == current
         cls = "ui-pagination__item" + (" is-current" if is_current else "")
         attrs_str = f'class="{cls}" href="{escape(url, quote=True)}"'

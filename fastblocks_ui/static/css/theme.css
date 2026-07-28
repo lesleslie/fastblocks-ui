@@ -25,6 +25,15 @@
     --ui-color-border: oklch(37.2% 0.044 257.287); /* slate-700 */
     --ui-color-border-strong: oklch(55.4% 0.046 257.417); /* slate-500 */
 
+    /* Dark mode needs its own focus colour. Unlike `--ui-color-primary` (which
+       deliberately stays indigo-600 in both themes so its white text keeps
+       working), the focus ring is judged against the *surface* behind it, and
+       indigo-600 on slate-900 is only 2.76:1 -- under WCAG 1.4.11's 3:1 floor.
+       indigo-400 reaches 5.70:1 against the surface and 4.67:1 against
+       surface-muted, clearing the bar on both backgrounds a focused control
+       can sit on. */
+    --ui-color-focus: oklch(67.3% 0.182 276.935); /* indigo-400 */
+
     /* Primary deliberately does NOT lighten in dark mode. The obvious
        choice, indigo-400/-300, reaches only 2.98:1/1.99:1 against white
        text -- both failing AA. Flipping `-contrast` to black (the trick

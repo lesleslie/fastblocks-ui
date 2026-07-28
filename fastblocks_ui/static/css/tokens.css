@@ -90,6 +90,19 @@
     --ui-line-height-tight: 1.2;
     --ui-line-height-base: 1.5;
 
-    --ui-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ui-color-focus) 24%, transparent);
+    /* Two opaque layers, not one translucent one (WCAG 2.1 AA 1.4.11,
+       non-text contrast, 3:1).
+
+       This was `color-mix(in srgb, var(--ui-color-focus) 24%, transparent)`.
+       At 24% alpha the ring composited to 1.47:1 against the light surface and
+       1.20:1 against the dark one -- measured in Chrome on the rendered demo,
+       not estimated. A focus indicator that faint is effectively invisible to
+       the keyboard users who depend on it, and axe-core does not check
+       focus-ring contrast, so nothing flagged it.
+
+       The inner surface-coloured layer separates the ring from the control it
+       wraps, so it keeps contrast even against a filled button; the outer layer
+       carries the focus colour at full opacity. */
+    --ui-focus-ring: 0 0 0 2px var(--ui-color-surface), 0 0 0 4px var(--ui-color-focus);
   }
 }
