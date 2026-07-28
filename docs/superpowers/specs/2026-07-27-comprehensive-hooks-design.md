@@ -1,0 +1,369 @@
+# Design Spec: Fix Comprehensive Hooks in fastblocks-ui
+
+**Date**: 2026-07-27
+**Repository**: `/Users/les/Projects/fastblocks-ui`
+**Branch**: `fix/comprehensive-hooks-failing` (offshoot of `main`)
+**Merge policy**: fast-forward into `main`. No PR — per user's explicit instruction
+"merge directly into main - no pr" and consistent with the project's
+pre-1.0 merge policy.
+
+## Context
+
+The project's comprehensive quality hook runner (run by `crackerjack`) is
+failing on six categories. The failures are mechanical, disjoint across
+files, and behavior-preserving: this is a hygiene pass, not a feature or
+bug-fix.
+
+### Failing hooks (verbatim from the user's hook output)
+
+| # | Hook | Failure | Surface |
+|---|------|---------|---------|
+| 1 | pyscn | `[Errno 2] No such file or directory: '/Users/les/Projects/fastblocks-ui/.venv/bin/pyscn'` | entry-point wrapper |
+| 2 | creosote | `[Errno 2] No such file or directory: '/Users/les/Projects/fastblocks-ui/.venv/bin/creosote'` | entry-point wrapper |
+| 3 | refurb | 8 FURB violations | `cli.py:15,23,24,30,36`, `helpers.py:107,169,258,361,403,436` |
+| 4 | betterleaks | `open .cache/betterleaks-report.json: no such file or directory` | missing report dir |
+| 5 | lychee | 5 broken links (1 htmx.org 404, 4 missing `file://` paths) | `docs/usage.md:437`, `docs/layout-v2-spec.md:484`, `docs/archive/superseded-plans/implementation-plan.md` (lines 4, 7, 23) |
+| 6 | semgrep | 2 SHA1 false-positives | `fastblocks.py:33` (`stable_id`), `helpers.py:163` (`_normalize_dom_id`) |
+
+#### Why the pyscn/creosote `[Errno 2]` is misleading
+
+The two wrapper files ARE present at the cited paths
+(`ls -la .venv/bin/pyscn` shows a 325-byte executable), but they were
+generated when the project lived at `/Users/les/Projects/fastbulma/`.
+Their shebangs still point at the old path:
+
+```python
+#!/Users/les/Projects/fastbulma/.venv/bin/python3
+```
+
+When the project was renamed to `fastblocks-ui`, pip didn't re-emit the
+entry-point scripts. The `[Errno 2]` therefore fires when the kernel
+tries to read that nonexistent interpreter. Reinstalling the packages
+regenerates the wrappers with the correct shebang — this is the canonical
+fix; manual shebang patching is a fragile workaround.
+
+#### Why the SHA1 warnings are false positives
+
+`stable_id` and `_normalize_dom_id` use SHA1 to derive a 10-character
+hex prefix for stable DOM ids. There is no adversarial model: collisions
+in 10 hex chars are statistically irrelevant for non-cryptographic ID
+generation, and there is no cryptographic signature need. semgrep flags
+sha1 by class, not by context. The semgrep `insecure-hash-algorithms`
+rule is wrong here; the right answer is a documented `# nosemgrep`
+exemption, not an algorithm swap (which would change the externally
+visible 10-char IDs and break any tests / snapshots asserting specific
+values).
+
+## Goal
+
+After this design lands:
+
+- All six hook categories exit green in `crackerjack run`.
+- No exported function signatures change.
+- No externally observable behavior changes — DOM-id hex prefixes are
+  bit-identical, HTML output is byte-identical, public-API behavior is
+  the same.
+
+## Branch and commit model
+
+```text
+main ─┐
+      └─ fix/comprehensive-hooks-failing ─┐
+                                          ├─ c0 docs(spec): this design
+                                          ├─ c1 chore(infra): hook scaffolding
+                                          ├─ c2 style(quality): refurb + nosemgrep
+                                          └─ c3 docs(links): lychee fixes
+                                          ┘
+      git checkout main
+      git merge --ff-only fix/comprehensive-hooks-failing
+```
+
+Each commit is independently revertable via `git revert <sha>`. Note:
+the working tree at the time of branching is dirty with ~12 unrelated
+edits from prior work (CHANGELOG.md, demo files, css bundles, test
+files, uv.lock). All four commits MUST use explicit `git add <pathspec>`
+so unrelated edits are never bundled into this fix.
+
+## Commit 1 — `chore(infra): pyscn/creosote wrappers and report cache dir`
+
+**Goal**: pyscn and creosote wrappers resolve correctly; betterleaks has
+a writable report directory.
+
+### Steps
+
+1. **Reinstall pyscn and creosote**:
+
+   ```bash
+   cd /Users/les/Projects/fastblocks-ui
+   uv pip install --force-reinstall pyscn creosote
+   ```
+
+   This regenerates `.venv/bin/pyscn` and `.venv/bin/creosote` with the
+   correct shebang (`#!/Users/les/Projects/fastblocks-ui/.venv/bin/python3`).
+
+2. **Verify wrappers resolve and run**:
+
+   ```bash
+   .venv/bin/pyscn --version
+   .venv/bin/creosote --version
+   ```
+
+3. **Add `.cache/` to `.gitignore`** (verified absent from current
+   `.gitignore` — see gitignore fragment below). betterleaks writes
+   `.cache/betterleaks-report.json` at run-time.
+
+### Files touched
+
+| File | Committed? | Action |
+|------|-----------|--------|
+| `.venv/bin/pyscn` | No (gitignored) | regenerated by reinstall |
+| `.venv/bin/creosote` | No (gitignored) | regenerated by reinstall |
+| `.gitignore` | Yes | append `.cache/` (and `.cache/*` if a more specific exclude is desired) |
+
+### `.gitignore` delta
+
+```gitignore
+# Tooling artifacts
+.cache/
+```
+
+## Commit 2 — `style(quality): refurb FURB cleanup; nosemgrep for non-security SHA1 ID`
+
+**Goal**: 8 FURB rewrites are pure-mechanical preservation of behavior;
+SHA1 callsites get a documented `# nosemgrep` exemption that semantically
+"re-classifies" them, while keeping the hex output bit-identical.
+
+### File 1: `fastblocks_ui/cli.py`
+
+#### Import swap
+
+```diff
+ import argparse
+-import os
++from pathlib import Path
+ import shutil
+```
+
+#### Body rewrites
+
+```diff
+ def copy_assets(dest_dir: str) -> None:
+     """Copy FastBlocks UI assets to destination directory."""
+     import fastblocks_ui
+
+     static_src = fastblocks_ui.get_static_path()
+-    static_dest = os.path.join(dest_dir, "fastblocks-ui")
+-
+-    os.makedirs(static_dest, exist_ok=True)
++    static_dest = Path(dest_dir) / "fastblocks-ui"
++    static_dest.mkdir(parents=True, exist_ok=True)
+
+     # Copy only the built CSS bundle, not the source modules. Shipping the module
+     # files would let the (canonical) modules and the generated bundle drift apart
+     # in consumer projects.
+-    css_src = os.path.join(static_src, "css")
+-    css_dest = os.path.join(static_dest, "css")
+-    bundle_src = os.path.join(css_src, "fastblocks-ui.css")
+-    if os.path.exists(bundle_src):
+-        os.makedirs(css_dest, exist_ok=True)
+-        shutil.copy2(bundle_src, os.path.join(css_dest, "fastblocks-ui.css"))
++    css_src = Path(static_src) / "css"
++    css_dest = static_dest / "css"
++    bundle_src = css_src / "fastblocks-ui.css"
++    if bundle_src.exists():
++        css_dest.mkdir(parents=True, exist_ok=True)
++        shutil.copy2(bundle_src, css_dest / "fastblocks-ui.css")
+
+     # Copy JS
+-    js_src = os.path.join(static_src, "js")
+-    js_dest = os.path.join(static_dest, "js")
+-    if os.path.exists(js_src):
+-        shutil.copytree(js_src, js_dest, dirs_exist_ok=True)
++    js_src = Path(static_src) / "js"
++    js_dest = static_dest / "js"
++    if js_src.exists():
++        shutil.copytree(js_src, js_dest, dirs_exist_ok=True)
+
+     # Copy manifest
+     manifest_src = fastblocks_ui.get_manifest_path()
+-    manifest_dest = os.path.join(static_dest, "manifest.json")
+-    if os.path.exists(manifest_src):
+-        shutil.copy2(manifest_src, manifest_dest)
++    manifest_dest = static_dest / "manifest.json"
++    if manifest_src.exists():
++        shutil.copy2(manifest_src, manifest_dest)
+```
+
+Verify `os` is no longer referenced after the rewrite:
+
+```bash
+grep -F 'os.' fastblocks_ui/cli.py   # expect no output
+```
+
+### File 2: `fastblocks_ui/helpers.py`
+
+| Line | Old | New | Rule |
+|------|-----|-----|------|
+| 107 | `if attr_name.startswith("data-") or attr_name.startswith("aria-"):` | `if attr_name.startswith(("data-", "aria-")):` | FURB102 |
+| 161 (just above `candidate` line) | (no comment, sha1 used for DOM-id digest) | Add `# NB:` docstring + `# nosemgrep: python.lang.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1` | semgrep |
+| 169 | `return str(int(value)) if float(value).is_integer() else str(value)` | `return str(int(value)) if value.is_integer() else str(value)` (`value: float`) | FURB123 |
+| 258 | `for_=resolved_control_id if resolved_control_id else None,` | `for_=resolved_control_id or None,` | FURB110 |
+| 361 | `aria_checked=str(bool(checked)).lower(),` | `aria_checked=str(checked).lower(),` | FURB123 |
+| 403 | `f'<li><a href="#{escape(str(field_name), quote=True)}">…'` | `f'<li><a href="#{escape(field_name, quote=True)}">…'` (`field_name: str` per `dict[str, object]`) | FURB123 |
+| 436-437 | `parts.append(_render_fragment(content))` then `parts.append("</div></dialog>")` | `parts.extend((_render_fragment(content), "</div></dialog>"))` | FURB113 |
+
+### File 3: `fastblocks_ui/fastblocks.py`
+
+| Line | Old | New | Rule |
+|------|-----|-----|------|
+| 32 (just above `digest =` line) | (no comment, sha1 used for stable_id digest) | Add `# NB:` docstring + `# nosemgrep: python.lang.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1` | semgrep |
+
+The `# nosemgrep` annotation is the documented semgrep directive for
+suppressing a single rule at a single line. Annotated lines must
+immediately precede the suppressed line.
+
+### SHA1 NB+nosemgrep snippet (canonical form)
+
+```python
+    # NB: SHA1 is intentional here. We use a 10-character hex prefix
+    # purely as a *non-cryptographic* deterministic ID for fragment-stable
+    # DOM ids; there is no adversarial model here and collisions in 10 chars
+    # are statistically irrelevant. Using SHA256/SHA3 would change the
+    # external 10-char IDs and break tests that assert specific values.
+    # nosemgrep: python.lang.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1
+    digest = sha1(...).hexdigest()[:10]
+```
+
+### Verify step for Commit 2
+
+```bash
+cd /Users/les/Projects/fastblocks-ui
+grep -E '^\s*import os$|os\.' fastblocks_ui/cli.py     # expect no output
+grep -F 'nosemgrep' fastblocks_ui/helpers.py fastblocks_ui/fastblocks.py
+pytest -q                                              # or the project's test runner
+```
+
+## Commit 3 — `docs(links): fix or drop broken htmx and archive refs`
+
+**Goal**: lychee link check exits green with no factual loss to docs.
+
+### File 1: `docs/usage.md:437`
+
+```diff
+-Reference: [htmx data tables example](https://htmx.org/examples/data-tables/)
++Reference: see the htmx docs for the data-tables example pattern.
+```
+
+### File 2: `docs/layout-v2-spec.md:484`
+
+The same URL is referenced here too. The text in this section reads
+naturally without the link:
+
+```diff
+-[htmx data tables example](https://htmx.org/examples/data-tables/)
++the htmx docs' data-tables example (original URL returned 404 at last check)
+```
+
+If the surrounding prose uses the link text meaningfully (e.g. for a
+caption or anchor target), the replacement wording above can be tuned
+to suit — but the URL must go.
+
+### File 3: `docs/archive/superseded-plans/implementation-plan.md`
+
+Three broken `file://` references — lychee rejects these. Replace
+with prose that keeps the audit trail without keeping the dead paths:
+
+```diff
+-See also:
+-- the prior spec at `docs/archive/superseded-plans/fastblocks-ui-implementation-plan.md`
+-- the bulma-era plan at `docs/archive/superseded-plans/archive/legacy/fastbulma-implementation-plan.md`
+-- the light-dom custom-elements spec at `docs/archive/superseded-plans/light-dom-custom-elements-spec.md`
++See also (formerly linked; these spec files have since been moved out of
++the docs tree and no longer exist at the cited paths):
++- `docs/archive/superseded-plans/fastblocks-ui-implementation-plan.md`
++- `docs/archive/superseded-plans/archive/legacy/fastbulma-implementation-plan.md`
++- `docs/archive/superseded-plans/light-dom-custom-elements-spec.md`
+```
+
+#### Alternative considered: deleting the lines
+
+Rejected. The "formerly linked" notes preserve context for anyone
+browsing git history (e.g. `git blame`) who wants to know what those
+references once were. The cost is five lines of doc text; the benefit
+is no future archaeology required.
+
+## Verify gate (after all commits)
+
+```bash
+cd /Users/les/Projects/fastblocks-ui
+
+# Commit 1-specific
+.venv/bin/pyscn --version
+.venv/bin/creosote --version
+
+# Commit 1-specific
+ls -d .cache || mkdir -p .cache   # betterleaks may not need this to exist beforehand
+
+# Final
+crackerjack run                    # or the project's hook entry point
+```
+
+The acceptance criterion is: the six hooks listed in the user's failure
+report all exit green. If any of them is still red after the four
+commits land, debug **before** ff-merging into `main`.
+
+## Rollback strategy
+
+- Each of c1, c2, c3 is a single self-contained commit; `git revert`
+  works at any boundary.
+- c0 (this spec) is documentation — if it must be reverted it can be
+  removed independently, but it carries no behavior so it is harmless
+  to leave in.
+
+## Risks
+
+1. **`os.path.join` vs `pathlib` semantics**: FURB rewrites preserve
+   I/O semantics for `str` paths on POSIX. fastblocks-ui is POSIX-only
+   and uses `str` paths. No regression expected.
+
+2. **SHA1 `# nosemgrep` rule identifier**: the annotation uses the
+   semgrep `python.lang.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1`
+   rule id. If the project pins a different id in `semgrep.yaml`, the
+   annotation won't suppress and Commit 2 will not turn the hook green.
+   **Mitigation**: run semgrep on the diff before Commit 2 lands; if the
+   rule id differs, copy-paste the actual id out of `semgrep` output
+   rather than the candidate id above.
+
+3. **Working-tree dirty**: ~12 unrelated files are modified at branch
+   time (CHANGELOG.md, demo/*.html, css bundles, test files, uv.lock).
+   Every `git add` in this fix MUST be a pathspec, not `-A` / `-u` /
+   `-am`, or else those edits will get bundled into this fix's
+   commits, causing a drift-bundle per project memory.
+
+4. **`uv pip install --force-reinstall` regenerating something else**:
+   `--force-reinstall` re-runs the package's setup; if the package has
+   data files that get re-copied into the venv, they are gitignored
+   anyway, so this is safe.
+
+## Non-goals
+
+- No new functional tests are added. The fix is hygiene, not behavior.
+  Every external ID prefix is bit-identical to before (because SHA1
+  output is unchanged), and every `os.*` rewrite preserves semantics.
+- The missing `light-dom-custom-elements-spec.md` archive file is
+  **not** regenerated. That is a separate doc-track project and out of
+  scope for a hook fix.
+- The prior wave's unrelated edits in the working tree (CHANGELOG.md,
+  css bundles, etc) are not addressed here.
+
+## Self-review pass (inline)
+
+- **Placeholder scan**: no TBD/TODO/incomplete sections.
+- **Internal consistency**: Commit 2's SHA1 table is consistent with
+  the `# NB:` + `# nosemgrep` pattern; `fastblocks.py:33` follows the
+  same pattern as `helpers.py:163`.
+- **Scope check**: focused on six hook categories. No out-of-scope
+  refactor or feature work included.
+- **Ambiguity check**: every "Replace X with Y" is concrete and
+  grounded in a line number from the live hook output or the source
+  file as read during design.
