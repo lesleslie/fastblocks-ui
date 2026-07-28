@@ -369,6 +369,22 @@
     border-color: transparent;
   }
 
+  /* `info` is a declared `Variant` and is styled for `.ui-alert`, `.ui-hero`
+     and `.ui-progress`, but `.ui-button.is-info` was missing -- so
+     `button("Details", variant="info")` type-checked, passed every test, and
+     rendered as a plain default button. The `-info` tokens already exist in
+     both themes; only the rule was absent. */
+  .ui-button.is-info {
+    background: var(--ui-color-info);
+    color: var(--ui-color-info-contrast);
+  }
+
+  .ui-button.is-info:hover,
+  .ui-button.is-info:active {
+    background: var(--ui-color-info-strong);
+    border-color: transparent;
+  }
+
   .ui-button.is-success {
     background: var(--ui-color-success);
     color: var(--ui-color-success-contrast);
@@ -617,6 +633,14 @@
 
   .ui-switch input:checked + .ui-switch__track .ui-switch__thumb {
     transform: translateX(1rem);
+  }
+
+  /* The thumb rests at `inset-inline-start` (logical) but moves with
+     `translateX` (physical), so under `dir="rtl"` it travelled the wrong way
+     and ended 14px outside its own track -- measured in Chrome. CSS has no
+     logical translate, so mirror the direction explicitly. */
+  [dir="rtl"] .ui-switch input:checked + .ui-switch__track .ui-switch__thumb {
+    transform: translateX(-1rem);
   }
 
   .ui-switch input:focus-visible + .ui-switch__track {

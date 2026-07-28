@@ -642,3 +642,39 @@ class TestDemoParity(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestEmbeddedManifestFreshness(unittest.TestCase):
+    """`demo/demo.html` embeds a copy of manifest.json; it must not drift.
+
+    The page inlines the manifest in a
+    `<script type="application/json" id="fastblocks-ui-manifest-data">` so it
+    still renders when opened as a bare `file://` document (browsers block
+    `fetch()` of a sibling local file). That copy is hand-maintained and had
+    fallen behind the real manifest, defeating the symlink-as-single-source
+    design. `demo/index.html` is unaffected -- `build_demo.py` reads
+    `COMPONENT_MANIFEST` live at build time.
+    """
+
+    def test_embedded_copy_matches_the_real_manifest(self) -> None:
+        import json
+
+        match = re.search(
+            r'<script type="application/json" id="fastblocks-ui-manifest-data">'
+            r"(.*?)</script>",
+            DEMO_HTML,
+            re.S,
+        )
+        self.assertIsNotNone(match, "demo.html no longer embeds the manifest")
+        assert match is not None
+
+        embedded = json.loads(match.group(1))
+        real = json.loads(
+            (ROOT / "fastblocks_ui" / "manifest.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            embedded,
+            real,
+            "demo/demo.html's embedded manifest has drifted from "
+            "fastblocks_ui/manifest.json -- re-embed it.",
+        )

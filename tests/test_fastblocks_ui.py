@@ -676,12 +676,20 @@ class TestColorTokenContrastRegression(unittest.TestCase):
 class TestManifestContract(unittest.TestCase):
     """The manifest is the single source of truth; every layer must agree with it."""
 
+    # `input` is importable (`from fastblocks_ui import input`) but is
+    # deliberately absent from `__all__`: it shadows the Python builtin, so
+    # `import *` used to clobber `input()`. `text_input` is the canonical
+    # export; the manifest keeps the HTML-native name for the component and
+    # its `ui-input` class. See TestPublicSurfaceNaming.
+    _HELPERS_NOT_IN_ALL = {"input"}
+
     def test_every_helper_is_exported_and_callable(self):
         for component in COMPONENT_MANIFEST["components"]:
             helper = component["helper"]
-            self.assertIn(
-                helper, fastblocks_ui.__all__, f"{helper!r} missing from __all__"
-            )
+            if helper not in self._HELPERS_NOT_IN_ALL:
+                self.assertIn(
+                    helper, fastblocks_ui.__all__, f"{helper!r} missing from __all__"
+                )
             self.assertTrue(
                 callable(getattr(fastblocks_ui, helper, None)),
                 f"{helper!r} is not an importable callable",
@@ -940,7 +948,12 @@ class TestLayoutHelpers(unittest.TestCase):
         markup = level(left="Left side", right="Right side")
         self.assertIn('class="ui-level-left">Left side</div>', markup)
         self.assertIn('class="ui-level-right">Right side</div>', markup)
-        self.assertIn('aria-label="main navigation"', markup)
+        # A plain <div>, not a navigation landmark: `level` is a layout
+        # primitive and previously emitted the same `aria-label="main
+        # navigation"` as `navbar()`, so a page with both had two identically
+        # named landmarks. See TestMediumTierRegressions.
+        self.assertTrue(markup.startswith('<div class="ui-level"'))
+        self.assertNotIn("<nav", markup)
 
     def test_level_left_only(self):
         markup = level(left="Only left")
@@ -1390,3 +1403,119 @@ class TestSwitchAriaState(unittest.TestCase):
         self.assertIn("checked", str(switch(label="N", checked=True)))
         self.assertNotIn("checked", str(switch(label="N", checked=False)))
         self.assertIn('role="switch"', str(switch(label="N")))
+
+
+class TestMediumTierRegressions(unittest.TestCase):
+    """Medium-tier defects from the 2026-07-27 audit."""
+
+    def test_tabs_and_menu_do_not_duplicate_aria_label(self) -> None:
+        """A caller-supplied aria_label must not produce two attributes."""
+        for name, html in (
+            ("tabs", str(tabs([("a", "A", "1")], aria_label="Custom"))),
+            ("menu", str(menu([("Home", "/")], aria_label="Custom"))),
+        ):
+            self.assertEqual(
+                html.count("aria-label="),
+                1,
+                f"{name}() emitted duplicate aria-label (invalid HTML): {html}",
+            )
+            self.assertIn('aria-label="Custom"', html, f"{name}() ignored the caller")
+
+    def test_tabs_and_menu_keep_their_default_label(self) -> None:
+        self.assertIn('aria-label="Tabs"', str(tabs([("a", "A", "1")])))
+        self.assertIn('aria-label="Menu"', str(menu([("Home", "/")])))
+
+    def test_level_is_not_a_navigation_landmark(self) -> None:
+        """`level()` is a layout primitive, not navigation.
+
+        It emitted `<nav aria-label="main navigation">`, identical to
+        `navbar()`. The demo rendered three navs sharing that name, which
+        makes landmark navigation ambiguous (axe's `landmark-unique`).
+        """
+        html = str(level("L", "R"))
+        self.assertNotIn(
+            'aria-label="main navigation"',
+            html,
+            f"level() duplicates navbar()'s landmark name: {html}",
+        )
+
+    def test_pagination_marks_the_current_page_for_assistive_tech(self) -> None:
+        html = str(pagination(5, 12))
+        self.assertIn(
+            'aria-current="page"',
+            html,
+            "current page is conveyed by CSS class only, so assistive "
+            f"technology cannot tell which page is active: {html}",
+        )
+        self.assertEqual(html.count('aria-current="page"'), 1)
+
+    def test_dialog_title_is_programmatically_linked(self) -> None:
+        html = str(dialog("Body", title="Settings"))
+        labelledby = re.search(r'aria-labelledby="([^"]+)"', html)
+        self.assertIsNotNone(
+            labelledby, f"dialog has a visible title but no accessible name: {html}"
+        )
+        assert labelledby is not None
+        self.assertIn(f'id="{labelledby.group(1)}"', html)
+
+    def test_button_is_info_variant_has_styling(self) -> None:
+        """`info` is a first-class Variant, so it must have a rule."""
+        css = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
+        self.assertIn(
+            ".ui-button.is-info",
+            css,
+            "button(variant='info') type-checks and emits `is-info` but renders "
+            "as a plain default button -- no CSS rule exists",
+        )
+
+    def test_switch_thumb_moves_toward_inline_end_in_rtl(self) -> None:
+        """The checked transform must be direction-aware.
+
+        The resting position uses logical `inset-inline-start` but the checked
+        state used a physical `translateX(1rem)`, so in RTL the thumb slid
+        14px outside its own track (measured in Chrome).
+        """
+        css = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
+        self.assertIn(
+            '[dir="rtl"]',
+            css,
+            "no RTL rule for the switch thumb: translateX(1rem) always moves "
+            "right, pushing the thumb out of the track under dir=rtl",
+        )
+
+
+class TestPublicSurfaceNaming(unittest.TestCase):
+    def test_text_input_is_the_canonical_export(self) -> None:
+        from fastblocks_ui import text_input
+
+        self.assertIn("text_input", fastblocks_ui.__all__)
+        self.assertIn("ui-input", str(text_input()))
+
+    def test_star_import_does_not_shadow_the_builtin(self) -> None:
+        """`input` must not be in `__all__`; it clobbers the builtin."""
+        self.assertNotIn("input", fastblocks_ui.__all__)
+
+    def test_input_alias_still_importable_for_existing_callers(self) -> None:
+        from fastblocks_ui import input as legacy_input
+
+        self.assertEqual(str(legacy_input()), str(fastblocks_ui.text_input()))
+
+
+class TestSelectOptionType(unittest.TestCase):
+    def test_option_namedtuple_is_unambiguous(self) -> None:
+        from fastblocks_ui import Option
+
+        html = str(ui_select([Option(label="One", value="1")]))
+        self.assertIn('<option value="1">One</option>', html)
+
+    def test_legacy_tuple_order_is_unchanged(self) -> None:
+        """Bare 2-tuples keep meaning `(value, label)` -- no silent breakage."""
+        html = str(ui_select([("1", "One")]))
+        self.assertIn('<option value="1">One</option>', html)
+
+    def test_option_and_legacy_forms_can_mix(self) -> None:
+        from fastblocks_ui import Option
+
+        html = str(ui_select([("1", "One"), Option(label="Two", value="2")], value="2"))
+        self.assertIn('<option value="1">One</option>', html)
+        self.assertIn('<option value="2" selected>Two</option>', html)

@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from hashlib import sha1, sha256
 from html import escape
-from typing import Literal
+from typing import Literal, NamedTuple
 
 # Public vocabulary hints. Unioned with ``str`` so custom CSS variants/sizes still
 # type-check — the library is extensible by design (autocomplete, not enforcement).
@@ -30,8 +30,8 @@ __all__ = [
     "dialog",
     "field",
     "footer",
+    "Option",
     "hero",
-    "input",
     "level",
     "media",
     "menu",
@@ -42,11 +42,27 @@ __all__ = [
     "select",
     "switch",
     "table",
+    "text_input",
     "tabs",
     "tile",
     "title",
     "validation_summary",
 ]
+
+
+class Option(NamedTuple):
+    """An explicit ``select()`` option.
+
+    ``select()`` historically took bare ``(value, label)`` tuples while
+    ``menu()``/``navbar()``/``breadcrumb()`` take ``(label, target)``. Swapping
+    the bare form would have been a *silent* breaking change -- existing calls
+    would keep working and just render label and value the wrong way round --
+    so the ambiguity is resolved at the type level instead. Prefer this;
+    bare 2-tuples keep their original ``(value, label)`` meaning indefinitely.
+    """
+
+    label: object
+    value: object
 
 
 class SafeHTML(str):
@@ -352,7 +368,7 @@ def field(
     return _safe("".join(parts))
 
 
-def input(
+def text_input(
     *,
     value: object | None = None,
     placeholder: object | None = None,
@@ -370,6 +386,13 @@ def input(
     return _safe(f"<input{attr_html}>")
 
 
+# Backwards-compatible alias. `input` shadows the Python builtin, so it is
+# deliberately NOT in `__all__` -- `from fastblocks_ui import *` no longer
+# clobbers `input()`. Explicit `from fastblocks_ui import input` still works,
+# and the manifest/CSS keep the HTML-native `input`/`ui-input` names.
+input = text_input
+
+
 def select(
     options: list[tuple[object, object]] | None = None,
     *,
@@ -378,7 +401,14 @@ def select(
     **attrs: object,
 ) -> SafeHTML:
     option_html: list[str] = []
-    for option_value, label in options or []:
+    for entry in options or []:
+        # `Option` is itself a tuple, so check it before unpacking: an
+        # `Option(label=..., value=...)` is field-addressed, while a bare
+        # 2-tuple keeps its legacy `(value, label)` order.
+        if isinstance(entry, Option):
+            option_value, label = entry.value, entry.label
+        else:
+            option_value, label = entry
         selected = (
             " selected" if value is not None and str(option_value) == str(value) else ""
         )
@@ -499,9 +529,23 @@ def dialog(
 ) -> SafeHTML:
     classes = _flatten_classes("ui-dialog", class_)
     attr_html = _render_attrs(class_=classes, open=open or None, **attrs)
+    # Link the visible title to the dialog. Previously the title rendered as a
+    # bare `<h2>` with no id and nothing referenced it, so the dialog had no
+    # accessible name at all -- screen readers announced an unnamed dialog.
+    title_id = None
+    if title is not None:
+        title_id = "ui-dialog-title-" + sha256(
+            _render_fragment(title).encode("utf-8")
+        ).hexdigest()[:10]
+        attrs.setdefault("aria_labelledby", title_id)
+        attr_html = _render_attrs(class_=classes, open=open or None, **attrs)
+
     parts = [f"<dialog{attr_html}>", '<div class="ui-dialog__surface">']
     if title is not None:
-        parts.append(f"<h2>{_render_fragment(title)}</h2>")
+        parts.append(
+            f'<h2 id="{escape(str(title_id), quote=True)}">'
+            f"{_render_fragment(title)}</h2>"
+        )
     parts.extend((_render_fragment(content), "</div></dialog>"))
     dialog_markup = "".join(parts)
     if custom_element:
@@ -525,6 +569,12 @@ def tabs(
     **attrs: object,
 ) -> SafeHTML:
     classes = _flatten_classes("ui-tabs", class_)
+    # Render the label through `_render_attrs` instead of appending it to the
+    # f-string below: appending produced a SECOND `aria-label` whenever a
+    # caller passed one, which is invalid HTML and silently ignored `label=`
+    # (browsers keep the first occurrence). Mirrors `breadcrumb()`'s guard.
+    if "aria_label" not in attrs and "aria-label" not in attrs:
+        attrs["aria_label"] = label
     attr_html = _render_attrs(class_=classes, data_ui_tabs=True, **attrs)
     tab_buttons: list[str] = []
     panels: list[str] = []
@@ -552,7 +602,7 @@ def tabs(
 
     outer_tag = "ui-tabs" if custom_element else "div"
     return _safe(
-        f'<{outer_tag}{attr_html} aria-label="{escape(label, quote=True)}">'
+        f"<{outer_tag}{attr_html}>"
         f'<div class="ui-tabs__list" role="tablist">{"".join(tab_buttons)}</div>'
         f"{''.join(panels)}"
         f"</{outer_tag}>"
@@ -578,18 +628,24 @@ def menu(
     `demo/demo.html`'s `.demo-panel` wrapper for a minimal example.
     """
     classes = _flatten_classes("ui-menu", class_)
+    # See tabs() above -- appending the label duplicated `aria-label`.
+    if "aria_label" not in attrs and "aria-label" not in attrs:
+        attrs["aria_label"] = label
     attr_html = _render_attrs(class_=classes, data_ui_menu=True, **attrs)
     links = [
         f'<a class="ui-menu__item" href="{escape(_safe_url(href), quote=True)}">{_render_fragment(text)}</a>'
         for text, href in (items or [])
     ]
-    menu_markup = f'<nav{attr_html} aria-label="{escape(label, quote=True)}">{"".join(links)}</nav>'
+    menu_markup = f'<nav{attr_html}>{"".join(links)}</nav>'
     if custom_element:
         host_attr_html = _render_attrs(
-            class_=classes, data_ui_menu=True, data_ui_state="closed"
+            class_=classes,
+            data_ui_menu=True,
+            data_ui_state="closed",
+            aria_label=attrs.get("aria_label", attrs.get("aria-label", label)),
         )
         return _safe(
-            f'<ui-menu{host_attr_html} aria-label="{escape(label, quote=True)}">{menu_markup}</ui-menu>'
+            f"<ui-menu{host_attr_html}>{menu_markup}</ui-menu>"
         )
     return _safe(menu_markup)
 
@@ -724,10 +780,16 @@ def level(
     if right is not None:
         right_content = f'<div class="ui-level-right">{_render_fragment(right)}</div>'
 
+    # A `<div>`, not a `<nav aria-label="main navigation">`. `level` is a
+    # layout primitive (the manifest calls it "horizontal layout with left and
+    # right sides"), but it emitted the exact landmark name `navbar()` uses --
+    # and level is the standard toolbar/header row, so any page with both
+    # exposed two navigation landmarks with an identical accessible name.
+    # That is ambiguous for landmark navigation and is what axe's
+    # `landmark-unique` rule flags. Callers who genuinely want navigation
+    # semantics can pass `role="navigation"` and their own `aria_label`.
     return _safe(
-        f'<nav{attr_html} aria-label="main navigation">'
-        f"{left_content}{right_content}"
-        f"</nav>"
+        f"<div{attr_html}>{left_content}{right_content}</div>"
     )
 
 
@@ -1110,7 +1172,11 @@ def pagination(
         url = _safe_url(url_pattern.replace("{page}", str(page)))
         is_current = page == current
         cls = "ui-pagination__item" + (" is-current" if is_current else "")
-        attrs_str = f'class="{cls}" href="{escape(url, quote=True)}"'
+        # `aria-current="page"` alongside the class: the class is a purely
+        # visual cue, so without this assistive technology cannot tell which
+        # page is active (WCAG 4.1.2).
+        current_attr = ' aria-current="page"' if is_current else ""
+        attrs_str = f'class="{cls}" href="{escape(url, quote=True)}"{current_attr}'
         return f"<a {attrs_str}>{_render_fragment(link_label)}</a>"
 
     def ellipsis() -> str:

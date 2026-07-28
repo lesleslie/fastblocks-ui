@@ -34,5 +34,5 @@
     "validate": "npm run lint && npm run test:run"
   },
   "type": "module",
-  "version": "0.4.2"
+  "version": "0.7.0"
 }

@@ -19,6 +19,22 @@ async function loadManifestData(root) {
   return response.json();
 }
 
+// Manifest values are interpolated into an HTML string, so they must be
+// escaped. `description` lands inside a quoted attribute (an unescaped `"`
+// alone breaks out of it) and `class_name` lands in text content. The bundled
+// manifest is trusted today, but `loadManifestData` will happily read a
+// `manifest.json` fetched from the host application, so the trust boundary is
+// not guaranteed.
+const _HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
+function escapeText(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (ch) => _HTML_ESCAPES[ch]);
+}
+
+function escapeAttr(value) {
+  return escapeText(value);
+}
+
 async function renderComponentManifest(root = document) {
   const container = root.querySelector?.('[data-ui-component-list]');
   if (!container) {
@@ -30,7 +46,8 @@ async function renderComponentManifest(root = document) {
     const items = manifest.components
       .map(
         (component) =>
-          `<li class="ui-badge" title="${component.description}">${component.class_name}</li>`,
+          `<li class="ui-badge" title="${escapeAttr(component.description)}">` +
+          `${escapeText(component.class_name)}</li>`,
       )
       .join('');
 
