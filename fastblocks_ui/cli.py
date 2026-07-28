@@ -1,8 +1,8 @@
 """FastBlocks UI CLI tools."""
 
 import argparse
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 
 def copy_assets(dest_dir: str) -> None:

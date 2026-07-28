@@ -485,7 +485,7 @@ class TestLogicalPropertiesDriftGate(unittest.TestCase):
         self.assertEqual(
             violations,
             [],
-            "New physical-direction CSS propert(y/ies) found outside the "
+            "New physical-direction CSS property(y/ies) found outside the "
             "documented ui-media-left/-right exception (WS-7). Prefer "
             "margin-inline-*/padding-inline-*/inset-inline-*/text-align: "
             "start|end. If this one is genuinely a physical exception "

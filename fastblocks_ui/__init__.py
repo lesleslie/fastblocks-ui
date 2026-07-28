@@ -30,7 +30,6 @@ from .helpers import (
     field,
     footer,
     hero,
-    input,
     level,
     media,
     menu,
@@ -46,6 +45,9 @@ from .helpers import (
     tile,
     title,
     validation_summary,
+)
+from .helpers import (
+    input as input,  # intentional back-compat re-export; see helpers.py:390
 )
 from .manifest import (
     COMPONENT_MANIFEST,

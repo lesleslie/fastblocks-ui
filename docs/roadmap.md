@@ -387,8 +387,7 @@ ______________________________________________________________________
    a physical position on purpose). Guarded by a grep-based drift-gate test
    (`TestLogicalPropertiesDriftGate`) and a `dir="rtl"` demo section.
 1. **[done, WS-6] Container queries** — opt-in `.is-container` modifier added
-   to `.ui-columns` (new `.is-N-cq` fractional tier via `@container
-   (min-width: 30rem)`), `.ui-tiles` (full-width fallback below the same
+   to `.ui-columns` (new `.is-N-cq` fractional tier via `@container (min-width: 30rem)`), `.ui-tiles` (full-width fallback below the same
    30rem threshold, fractional above it), and `.ui-card` (more generous
    padding above a 24rem threshold). Existing viewport-based `.is-N` /
    `.is-N-tablet` / etc. classes are untouched; this is a new, additive

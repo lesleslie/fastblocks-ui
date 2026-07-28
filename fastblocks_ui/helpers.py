@@ -534,9 +534,10 @@ def dialog(
     # accessible name at all -- screen readers announced an unnamed dialog.
     title_id = None
     if title is not None:
-        title_id = "ui-dialog-title-" + sha256(
-            _render_fragment(title).encode("utf-8")
-        ).hexdigest()[:10]
+        title_id = (
+            "ui-dialog-title-"
+            + sha256(_render_fragment(title).encode("utf-8")).hexdigest()[:10]
+        )
         attrs.setdefault("aria_labelledby", title_id)
         attr_html = _render_attrs(class_=classes, open=open or None, **attrs)
 
@@ -636,7 +637,7 @@ def menu(
         f'<a class="ui-menu__item" href="{escape(_safe_url(href), quote=True)}">{_render_fragment(text)}</a>'
         for text, href in (items or [])
     ]
-    menu_markup = f'<nav{attr_html}>{"".join(links)}</nav>'
+    menu_markup = f"<nav{attr_html}>{''.join(links)}</nav>"
     if custom_element:
         host_attr_html = _render_attrs(
             class_=classes,
@@ -644,9 +645,7 @@ def menu(
             data_ui_state="closed",
             aria_label=attrs.get("aria_label", attrs.get("aria-label", label)),
         )
-        return _safe(
-            f"<ui-menu{host_attr_html}>{menu_markup}</ui-menu>"
-        )
+        return _safe(f"<ui-menu{host_attr_html}>{menu_markup}</ui-menu>")
     return _safe(menu_markup)
 
 
@@ -788,9 +787,7 @@ def level(
     # That is ambiguous for landmark navigation and is what axe's
     # `landmark-unique` rule flags. Callers who genuinely want navigation
     # semantics can pass `role="navigation"` and their own `aria_label`.
-    return _safe(
-        f"<div{attr_html}>{left_content}{right_content}</div>"
-    )
+    return _safe(f"<div{attr_html}>{left_content}{right_content}</div>")
 
 
 def _heading_tag(level: HeadingLevel | None) -> str:
@@ -1016,9 +1013,7 @@ def navbar(
             f'<div class="ui-navbar-end">{_render_navbar_slot(end)}</div>'
         )
 
-    return _safe(
-        f"<nav{attr_html}>{brand_html}{''.join(menu_parts)}</nav>"
-    )
+    return _safe(f"<nav{attr_html}>{brand_html}{''.join(menu_parts)}</nav>")
 
 
 def breadcrumb(

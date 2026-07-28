@@ -101,14 +101,14 @@ a writable report directory.
    This regenerates `.venv/bin/pyscn` and `.venv/bin/creosote` with the
    correct shebang (`#!/Users/les/Projects/fastblocks-ui/.venv/bin/python3`).
 
-2. **Verify wrappers resolve and run**:
+1. **Verify wrappers resolve and run**:
 
    ```bash
    .venv/bin/pyscn --version
    .venv/bin/creosote --version
    ```
 
-3. **Add `.cache/` to `.gitignore`** (verified absent from current
+1. **Add `.cache/` to `.gitignore`** (verified absent from current
    `.gitignore` — see gitignore fragment below). betterleaks writes
    `.cache/betterleaks-report.json` at run-time.
 
@@ -326,7 +326,7 @@ commits land, debug **before** ff-merging into `main`.
    I/O semantics for `str` paths on POSIX. fastblocks-ui is POSIX-only
    and uses `str` paths. No regression expected.
 
-2. **SHA1 `# nosemgrep` rule identifier**: the annotation uses the
+1. **SHA1 `# nosemgrep` rule identifier**: the annotation uses the
    semgrep `python.lang.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1`
    rule id. If the project pins a different id in `semgrep.yaml`, the
    annotation won't suppress and Commit 2 will not turn the hook green.
@@ -334,13 +334,13 @@ commits land, debug **before** ff-merging into `main`.
    rule id differs, copy-paste the actual id out of `semgrep` output
    rather than the candidate id above.
 
-3. **Working-tree dirty**: ~12 unrelated files are modified at branch
-   time (CHANGELOG.md, demo/*.html, css bundles, test files, uv.lock).
+1. **Working-tree dirty**: ~12 unrelated files are modified at branch
+   time (CHANGELOG.md, demo/\*.html, css bundles, test files, uv.lock).
    Every `git add` in this fix MUST be a pathspec, not `-A` / `-u` /
    `-am`, or else those edits will get bundled into this fix's
    commits, causing a drift-bundle per project memory.
 
-4. **`uv pip install --force-reinstall` regenerating something else**:
+1. **`uv pip install --force-reinstall` regenerating something else**:
    `--force-reinstall` re-runs the package's setup; if the package has
    data files that get re-copied into the venv, they are gitignored
    anyway, so this is safe.

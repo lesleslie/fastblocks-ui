@@ -7,6 +7,7 @@
 **Architecture:** Three logical commits in a strict order (infra → code → docs), each ending in its own green-hook checkpoint. No new abstractions, no exported-API change. SHA1 stays in the codebase but is annotated as a non-security use because the alternative (algorithm swap) would change externally-visible DOM-id prefixes.
 
 **Tech Stack:**
+
 - Python 3.13 (`uv`-managed venv at `.venv/`)
 - `crackerjack>=0.50.1` as the umbrella hook runner (`crackerjack run`)
 - Direct tools invoked for targeted mid-task checks: `pyscn`, `creosote`, `refurb`, `semgrep`, `lychee`
@@ -14,7 +15,7 @@
 
 ## Global Constraints
 
-- Working tree at branch time is dirty with ~12 unrelated edits (CHANGELOG.md, demo/*.html, css bundles, tests, uv.lock). **Every `git add` MUST use explicit pathspec** — never `git add -A`, `-u`, or `git commit -a`. Drift-bundling risks polluting this fix's commits.
+- Working tree at branch time is dirty with ~12 unrelated edits (CHANGELOG.md, demo/\*.html, css bundles, tests, uv.lock). **Every `git add` MUST use explicit pathspec** — never `git add -A`, `-u`, or `git commit -a`. Drift-bundling risks polluting this fix's commits.
 - Branch: `fix/comprehensive-hooks-failing` (already created; HEAD = spec commit `8a1983f`).
 - Merge target: `main`. **No PR.** Fast-forward only (`git merge --ff-only`).
 - All commits authored with the standard project author (the `git config user.name`/`user.email` already set in this environment).
@@ -22,7 +23,7 @@
 - No new tests added. Every external observable (DOM-id prefixes, HTML output, public-API behavior) is bit-identical to before.
 - `crackerjack run` is the single source of truth for "hooks green." Per-tool invocations exist only for in-step spot checks.
 
----
+______________________________________________________________________
 
 ## File Structure
 
@@ -41,21 +42,25 @@ This fix touches **only** existing files. No new source files. No new test files
 | `docs/archive/superseded-plans/implementation-plan.md` | Archived plan | Task 3 (c3) |
 
 Pre-existing dirty tree (NOT touched by this plan):
+
 - `CHANGELOG.md`, `demo/demo.html`, `demo/index.html`, `docs/archive/test-artifacts/coverage__20260510-213743.json`, `docs/roadmap.md`, `fastblocks_ui/manifest.json`, `fastblocks_ui/static/css/fastblocks-ui.css`, `fastblocks_ui/static/css/theme.css`, `fastblocks_ui/static/css/tokens.css`, `tests/js/css-variables.test.js`, `tests/js/setup.js`, `tests/test_fastblocks_ui.py`, `uv.lock`
 - Untracked: `.lycheecache`, `docs/archive/test-artifacts/coverage__20260727-172000.json`, `playwright.audit.config.js`
 
 These were here before this fix; they remain untouched. Hooks run from the worktree will see them as still-present but unaffected by our commits.
 
----
+______________________________________________________________________
 
 ## Task 1: `chore(infra)` — pyscn/creosote wrappers + `.cache/` gitignore entry
 
 **Files:**
+
 - Modify: `/.gitignore` (append `.cache/` if absent)
 - Regenerate (no commit): `/.venv/bin/pyscn`, `/.venv/bin/creosote` (gitignored; verified by running)
 
 **Interfaces:**
+
 - Consumes: existing `.venv/` with stale-shebanged wrappers
+
 - Produces: working `pyscn` and `creosote` binaries that hook runner can invoke; `.cache/` excluded from future commits
 
 - [ ] **Step 1: Capture baseline failures**
@@ -159,17 +164,20 @@ Refs: docs/superpowers/specs/2026-07-27-comprehensive-hooks-design.md"
 
 **Task 1 ends with:** commit `chore(infra)` on branch `fix/comprehensive-hooks-failing`. The branch is now 1 fix-commit ahead of `main`.
 
----
+______________________________________________________________________
 
 ## Task 2: `style(quality)` — refurb FURB cleanup + `# nosemgrep` for non-security SHA1
 
 **Files:**
+
 - Modify: `/fastblocks_ui/cli.py` (5 FURB rewrites: 1 import, 4 body)
 - Modify: `/fastblocks_ui/helpers.py` (5 FURB rewrites + 1 SHA1 nosemgrep annotation)
 - Modify: `/fastblocks_ui/fastblocks.py` (1 SHA1 nosemgrep annotation)
 
 **Interfaces:**
+
 - Consumes: the `copy_assets(dest_dir)` function (cli.py) and helper functions in `helpers.py` / `fastblocks.py`
+
 - Produces: identical I/O behavior; identical external DOM-id hex prefixes; semantically-passing refurb + semgrep gates
 
 - [ ] **Step 1: Run refurb to capture baseline**
@@ -443,17 +451,20 @@ Refs: docs/superpowers/specs/2026-07-27-comprehensive-hooks-design.md"
 
 **Task 2 ends with:** commit `style(quality)` on `fix/comprehensive-hooks-failing`. Branch is now 2 fix-commits ahead of `main`.
 
----
+______________________________________________________________________
 
 ## Task 3: `docs(links)` — fix broken htmx and archive refs
 
 **Files:**
+
 - Modify: `/docs/usage.md` (line 437)
 - Modify: `/docs/layout-v2-spec.md` (line 484)
 - Modify: `/docs/archive/superseded-plans/implementation-plan.md` (lines 4, 7, 23)
 
 **Interfaces:**
+
 - Consumes: docs files containing broken URLs/paths
+
 - Produces: same prose, broken-link-free
 
 - [ ] **Step 1: Re-confirm lychee failures**
@@ -554,7 +565,7 @@ Refs: docs/superpowers/specs/2026-07-27-comprehensive-hooks-design.md"
 
 **Task 3 ends with:** commit `docs(links)` on `fix/comprehensive-hooks-failing`. Branch is now 3 fix-commits ahead of `main`.
 
----
+______________________________________________________________________
 
 ## Task 4: Final verify and fast-forward merge into `main`
 
@@ -666,7 +677,7 @@ Expected: branch deleted locally. (No `git push`, no remote dance.)
 
 **Task 4 ends with:** `main` contains four new commits, the comprehensive hook suite is green, and the topic branch is gone (or kept locally — both are valid).
 
----
+______________________________________________________________________
 
 ## Self-Review (run after writing the plan, before handoff)
 
@@ -676,8 +687,8 @@ Expected: branch deleted locally. (No `git push`, no remote dance.)
    - Verify-gate command in spec = Step 1 of Task 4. ✓
    - Rollback strategy in spec = `git revert` per-commit (each task's commit is revertable). ✓
    - Risk #4 (`uv pip install --force-reinstall`) handled implicitly by Step 2 — gitignored so no commit pollution. ✓
-2. **Placeholder scan:** Search the plan for "TBD", "TODO", "add appropriate error handling", "similar to Task N", etc. — none present. Every "Replace X with Y" is concrete with the literal replacement text.
-3. **Type consistency:** The function names referenced in Tasks 1-4 (`copy_assets`, `_format_number`, `_normalize_dom_id`, `stable_id`, `_render_attrs`, `field`, `dialog`, `switch`, `validation_summary`) all match the actual symbols in the source files as read during spec authoring.
-4. **DRY/YAGNI check:** No new abstractions introduced. No new tests added (per spec non-goals). No new docs. The plan is mechanical.
-5. **TDD discipline:** Each task has a baseline capture (red hook or red test) and a success capture (green hook or green test). Each task ends with one commit. Each commit uses explicit pathspec.
-6. **Frequent-commit discipline:** Three fix-commits + one spec precommit. Each is reviewable independently.
+1. **Placeholder scan:** Search the plan for "TBD", "TODO", "add appropriate error handling", "similar to Task N", etc. — none present. Every "Replace X with Y" is concrete with the literal replacement text.
+1. **Type consistency:** The function names referenced in Tasks 1-4 (`copy_assets`, `_format_number`, `_normalize_dom_id`, `stable_id`, `_render_attrs`, `field`, `dialog`, `switch`, `validation_summary`) all match the actual symbols in the source files as read during spec authoring.
+1. **DRY/YAGNI check:** No new abstractions introduced. No new tests added (per spec non-goals). No new docs. The plan is mechanical.
+1. **TDD discipline:** Each task has a baseline capture (red hook or red test) and a success capture (green hook or green test). Each task ends with one commit. Each commit uses explicit pathspec.
+1. **Frequent-commit discipline:** Three fix-commits + one spec precommit. Each is reviewable independently.

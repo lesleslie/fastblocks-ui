@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2026-07-28
+
+### Fixed
+
+- a11y,api: Medium/low-tier audit findings
+- a11y: Make navbar's landmark name overridable; gate inlined-CSS drift
+- security,a11y: URL/attribute injection, dead tabs, field labelling, focus ring
+
+### Testing
+
+- Revive the dead contrast gate and the fabricated CSS-variable tests
+
+### Internal
+
+- deps: Sync uv.lock with v0.7.0 release
+- legal: Align copyright with the sibling packages
+
 ## [0.7.0] - 2026-07-27
 
 ### Added
@@ -147,10 +164,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   items, link-buttons): `tools/build_css.py`'s `LAYER_ORDER` put `base`
   (which resets `a { color: inherit; }`) at *higher* priority than
   `components`, so that generic reset always won over
-  `.ui-pagination__item.is-current`'s `color:
-  var(--ui-color-primary-contrast)` regardless of selector specificity.
-  Reordered to standard ITCSS precedence (`base, tokens, theme, components,
-  utilities`).
+  `.ui-pagination__item.is-current`'s `color: var(--ui-color-primary-contrast)` regardless of selector specificity.
+  Reordered to standard ITCSS precedence (`base, tokens, theme, components, utilities`).
 - `scripts/build_demo.py`'s tabs demo passed raw `<p>...</p>` strings as
   panel content; `_render_fragment()` correctly HTML-escapes untrusted
   strings by default, so the tags rendered as visible literal text instead
@@ -200,8 +215,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Button hover/active redesign.** Replaced the `transform:
-  translateY(-1px)` hover "lift" with a single, uniform mechanism applied to
+- **Button hover/active redesign.** Replaced the `transform: translateY(-1px)` hover "lift" with a single, uniform mechanism applied to
   every variant: hover/active always move to that color's own
   already-defined next step along its token ramp (`--ui-color-surface-muted`
   → `--ui-color-surface-raised` for the neutral button; each color's own
@@ -214,11 +228,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   feedback is now a `box-shadow: inset` depth cue rather than a second color
   mechanism. Mirrors Bulma's actual approach of one consistent
   darken-by-a-fixed-amount rule per color, rather than mixing techniques.
+
 - **Fixed the pre-existing WCAG contrast failures surfaced above**, plus two
   more found while verifying the fix (dark theme's `danger` and `primary`
   weren't covered by the original check). All are genuine Tailwind default
   hex values, not one-off colors -- see `tokens.css`/`theme.css` comments for
   the exact before/after ratios:
+
   - Light theme: `--ui-color-info`/`-strong` moved cyan-500/600 ->
     cyan-700/800 (2.43:1/3.68:1 -> 5.36:1/7.27:1); `--ui-color-success`/
     `-strong` moved green-500/600 -> green-700/800 (2.28:1/3.30:1 ->
