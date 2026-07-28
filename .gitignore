@@ -72,3 +72,6 @@ mypy_cache/
 # Vite/Vitest transient config artifacts
 vitest.config.js.timestamp-*.mjs
 vite.config.js.timestamp-*.mjs
+
+# Tooling artifacts (betterleaks FTL report, etc.)
+.cache/
