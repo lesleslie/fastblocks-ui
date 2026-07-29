@@ -102,30 +102,48 @@ Then re-run Step 2 and confirm `1 passed`.
 
 - [ ] **Step 5: Add the version-parity guard**
 
-`package.json` is the one version field crackerjack does not manage, so it
-drifted from `pyproject.toml` between 0.7.0 and 0.7.1 with nothing to catch it.
-`fastblocks_ui.__version__` derives from dist metadata and cannot drift, so
-these two files are the whole surface.
+Three files carry the project version and crackerjack bumps only one of them.
+Between 0.7.0 and 0.7.1 both `package.json` and `uv.lock` were left behind with
+nothing to catch it. `fastblocks_ui.__version__` reads from dist metadata and
+cannot drift, so these three files are the whole surface.
 
 Add to `tests/test_fastblocks_ui.py`:
 
 ```python
 class TestVersionParity(unittest.TestCase):
-    """package.json is not managed by crackerjack, so nothing else checks it."""
+    """crackerjack bumps pyproject.toml only; nothing else checks the rest."""
 
-    def test_package_json_version_matches_pyproject(self) -> None:
+    def _expected(self) -> tuple[Path, str]:
         repo_root = Path(__file__).resolve().parents[1]
         pyproject = tomllib.loads(
             (repo_root / "pyproject.toml").read_text(encoding="utf-8")
         )
+        return repo_root, pyproject["project"]["version"]
+
+    def test_package_json_version_matches_pyproject(self) -> None:
+        repo_root, expected = self._expected()
         package_json = json.loads(
             (repo_root / "package.json").read_text(encoding="utf-8")
         )
         self.assertEqual(
             package_json["version"],
-            pyproject["project"]["version"],
-            "package.json and pyproject.toml versions have drifted; crackerjack "
-            "bumps only pyproject.toml, so package.json must be updated by hand.",
+            expected,
+            "package.json has drifted from pyproject.toml; crackerjack does not "
+            "manage it, so it must be bumped by hand.",
+        )
+
+    def test_uv_lock_version_matches_pyproject(self) -> None:
+        repo_root, expected = self._expected()
+        lock = tomllib.loads((repo_root / "uv.lock").read_text(encoding="utf-8"))
+        entry = next(
+            package
+            for package in lock["package"]
+            if package["name"] == "fastblocks-ui"
+        )
+        self.assertEqual(
+            entry["version"],
+            expected,
+            "uv.lock has drifted from pyproject.toml; run `uv lock`.",
         )
 ```
 
