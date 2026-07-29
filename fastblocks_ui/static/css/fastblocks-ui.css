@@ -980,23 +980,41 @@
     white-space: nowrap;
   }
 
-  /* aria-expanded is browser-maintained via the popovertarget invoker
-     relationship, so the open state needs no author JavaScript to track.
+  /* The open state is selected from the DRAWER's `:popover-open`, not from
+     `aria-expanded` on the button.
+
+     A `popovertarget` invoker does get an `expanded` state -- but it is
+     *implicit* ARIA, computed straight into the accessibility tree and never
+     reflected as a DOM content attribute. Measured in Chrome 150 with a
+     popover open: `getAttribute("aria-expanded")` is `null` and
+     `button.matches('[aria-expanded="true"]')` is `false`. CSS attribute
+     selectors match content attributes, so `.ui-burger[aria-expanded="true"]`
+     can never match and the bars would stay horizontal forever. Same shape as
+     `<summary>`, where authors must write `details[open] summary` rather than
+     selecting the implicit `aria-expanded`.
+
+     Screen readers still get the expanded state -- that half was never in
+     doubt, and it is why no author JavaScript is needed here.
+
+     KNOWN LIMITATION: `:has()` cannot express "the burger whose
+     `popovertarget` equals THIS drawer's id", so on a page with more than one
+     drawer every burger morphs whenever any drawer opens. Correct for the
+     single-drawer case this component exists to serve.
 
      The 7px offsets are the bar pitch -- 2px bar + 5px gap -- so each outer
      bar travels exactly onto the middle bar before rotating and the two
      strokes cross at a single point. Change either value above and these
      have to follow. */
-  .ui-burger[aria-expanded="true"] .ui-burger__bar:nth-child(1) {
+  :root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar:nth-child(1) {
     translate: 0 7px;
     rotate: 45deg;
   }
 
-  .ui-burger[aria-expanded="true"] .ui-burger__bar:nth-child(2) {
+  :root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar:nth-child(2) {
     opacity: 0;
   }
 
-  .ui-burger[aria-expanded="true"] .ui-burger__bar:nth-child(3) {
+  :root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar:nth-child(3) {
     translate: 0 -7px;
     rotate: -45deg;
   }

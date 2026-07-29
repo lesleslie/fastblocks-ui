@@ -683,10 +683,15 @@ def burger(
     """Render a burger button that toggles a `drawer()` (`.ui-burger`).
 
     ``controls`` is the drawer's id and becomes ``popovertarget``. No
-    JavaScript is involved: the browser toggles the popover and maintains
-    ``aria-expanded`` on this button through the implicit invoker
-    relationship, which is what `.ui-burger[aria-expanded="true"]` in CSS
-    selects on to morph the bars into a cross.
+    JavaScript is involved: the browser toggles the popover, and the invoker
+    relationship gives this button an implicit *expanded* state in the
+    accessibility tree, so screen readers are told whether the drawer is open.
+
+    That state is **not** a DOM attribute, though -- implicit ARIA never is.
+    Measured in Chrome 150 with the popover open, ``getAttribute
+    ("aria-expanded")`` returns ``None``. So the visual bars-to-cross morph
+    cannot select on it; components.css reaches the open state through the
+    drawer's own ``:popover-open`` via ``:has()`` instead.
 
     The accessible name is a visually-hidden `<span>`, not ``aria-label``, so
     the control keeps a name if the stylesheet fails to load.

@@ -1973,9 +1973,12 @@ class TestBurgerHelper(unittest.TestCase):
         )
 
     def test_burger_does_not_set_aria_expanded(self):
-        # The browser maintains aria-expanded via the implicit popovertarget
-        # invoker relationship. Authoring it would fight the platform and go
-        # stale the moment the popover is opened any other way.
+        # The popovertarget relationship gives the button an implicit expanded
+        # state in the accessibility tree. Authoring the attribute would fight
+        # the platform and go stale the moment the popover is opened any other
+        # way. Note this is an a11y-tree state only -- it is NOT a DOM
+        # attribute, which is why the open-state CSS selects on the drawer's
+        # `:popover-open` instead. See TestBurgerOpenStateIsCssOnly.
         self.assertNotIn("aria-expanded", fastblocks_ui.burger(controls="d"))
 
     def test_burger_accepts_extra_classes_and_attrs(self):
@@ -1990,23 +1993,40 @@ class TestBurgerHelper(unittest.TestCase):
 
 
 class TestBurgerOpenStateIsCssOnly(unittest.TestCase):
-    """The bars-to-cross morph has no JavaScript behind it: it hangs entirely
-    off the `aria-expanded` the browser writes onto a `popovertarget` invoker.
-    Both invariants below are invisible to the markup tests above -- `burger()`
-    renders identical HTML whether or not the stylesheet still carries them --
-    so they are asserted against the built bundle instead. Mirrors
+    """The bars-to-cross morph has no JavaScript behind it: it hangs off the
+    DRAWER's `:popover-open` state, reached with `:has()`. Both invariants
+    below are invisible to the markup tests above -- `burger()` renders
+    identical HTML whether or not the stylesheet still carries them -- so they
+    are asserted against the built bundle instead. Mirrors
     `TestDrawerBoxModelResets`."""
 
     @classmethod
     def setUpClass(cls):
+        import re
+
         cls.css = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
+        # Comments are stripped for the negative assertion below: the comment
+        # explaining why the dead selector was abandoned necessarily *quotes*
+        # it, and a bare substring search cannot tell prose from a rule.
+        cls.rules_only = re.sub(r"/\*.*?\*/", "", cls.css, flags=re.S)
         start = cls.css.index(".ui-burger {")
         cls.rule = cls.css[start : cls.css.index("}", start)]
 
-    def test_open_state_is_selected_from_browser_maintained_aria_expanded(self):
-        # If this selector is ever rewritten to a class, the component silently
-        # acquires a JavaScript dependency it is designed not to have.
-        self.assertIn('.ui-burger[aria-expanded="true"] .ui-burger__bar', self.css)
+    def test_open_state_is_selected_from_the_drawers_popover_open(self):
+        self.assertIn(
+            ":root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar",
+            self.css,
+        )
+
+    def test_open_state_does_not_select_on_aria_expanded(self):
+        # Regression. A `popovertarget` invoker's expanded state is *implicit*
+        # ARIA -- computed into the accessibility tree, never reflected as a
+        # DOM content attribute. Measured in Chrome 150 with the popover open:
+        # getAttribute("aria-expanded") is None and
+        # button.matches('[aria-expanded="true"]') is False. CSS attribute
+        # selectors match content attributes, so this selector can never match
+        # and the bars would stay horizontal forever.
+        self.assertNotIn('.ui-burger[aria-expanded="true"]', self.rules_only)
 
     def test_burger_establishes_a_containing_block_for_its_label(self):
         # `.ui-burger__label` is `position: absolute`; without a positioned
