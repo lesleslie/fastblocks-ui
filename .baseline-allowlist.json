@@ -1,0 +1,37 @@
+{
+  "$schema-note": [
+    "Exemptions from the Baseline floor enforced by scripts/check-baseline.mjs.",
+    "",
+    "The floor is 'newly' (Baseline Newly available). A feature below the floor",
+    "may be used unguarded only via an entry here, and only when failing to",
+    "support it is INERT -- the browser drops the declaration and the result is",
+    "still correct. Features where absence changes layout or correctness belong",
+    "in an @supports guard instead, not in this file.",
+    "",
+    "Every entry needs 'reason', 'degradation' and 'reviewBy'. The checker fails",
+    "the build when an entry is unused, when its feature has since reached the",
+    "floor, or when 'reviewBy' has passed -- a stale exemption is a silent lie",
+    "about the support policy, so it breaks the build like any other violation."
+  ],
+  "floor": "newly",
+  "allow": [
+    {
+      "key": "css.properties.accent-color",
+      "reason": "BCD data gap, not a real support gap. The support record lists chrome 93, edge 93, firefox 92, firefox_android 92, safari 26.2 and safari_ios 26.2, but has no chrome_android entry at all, and Baseline requires all seven. The property shipped in Chrome 93 across platforms. Re-check once BCD backfills the record.",
+      "degradation": "Checkbox and radio controls render in the UA default accent colour instead of --ui-color-primary. Purely cosmetic; no layout or behaviour change.",
+      "reviewBy": "2027-01-31"
+    },
+    {
+      "key": "css.properties.clip",
+      "reason": "Not a support gap -- every one of the seven browsers is recorded, back to Chrome 1. web-features reports it as non-Baseline because `clip` is DEPRECATED in favour of `clip-path`. This is a genuine finding: .ui-visually-hidden still uses the deprecated form while Spec A's .ui-burger__label uses `clip-path: inset(50%)`, so the library is about to ship two visually-hidden implementations. Fixing it means editing utilities.css and rebuilding fastblocks-ui.css, which Spec A currently owns. Tracked for Spec B; remove this entry with the fix.",
+      "degradation": "None at runtime -- universally supported. The risk is future removal, not present breakage.",
+      "reviewBy": "2026-09-30"
+    },
+    {
+      "key": "css.types.shape.rect",
+      "reason": "The `rect()` value inside the same deprecated `clip` declaration in .ui-visually-hidden. Retires together with the css.properties.clip entry above.",
+      "degradation": "None at runtime; see the css.properties.clip entry.",
+      "reviewBy": "2026-09-30"
+    }
+  ]
+}

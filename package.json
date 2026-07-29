@@ -2,6 +2,7 @@
   "description": "FastBlocks UI: HTML/CSS-first styling and component helpers for FastBlocks",
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
+    "@mdn/browser-compat-data": "^8.0.8",
     "@playwright/test": "^1.48.0",
     "@vitest/coverage-v8": "^1.6.0",
     "@vitest/ui": "^1.6.0",
@@ -12,7 +13,8 @@
     "jsdom": "^25.0.0",
     "prettier": "^3.2.0",
     "serve": "^14.2.0",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.0",
+    "web-features": "^3.34.2"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -20,6 +22,8 @@
   },
   "name": "fastblocks-ui",
   "scripts": {
+    "check:baseline": "node scripts/check-baseline.mjs",
+    "check:baseline:list": "node scripts/check-baseline.mjs --list",
     "format": "prettier --write fastblocks_ui/static/js/**/*.js",
     "lint": "eslint fastblocks_ui/static/js/**/*.js",
     "test": "vitest",
@@ -31,7 +35,7 @@
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
     "test:visual": "chromatic --build-script-name=build",
-    "validate": "npm run lint && npm run test:run"
+    "validate": "npm run lint && npm run check:baseline && npm run test:run"
   },
   "type": "module",
   "version": "0.7.0"
