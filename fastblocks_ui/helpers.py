@@ -173,8 +173,12 @@ def _render_attrs(**attrs: object) -> str:
 # intact, so `16rem;background:url(//evil)` would splice a second declaration
 # into the rule. Same reasoning as `_ATTR_NAME_PATTERN` and `_safe_url` -- the
 # value is structural, so it is validated rather than escaped.
+# `re.ASCII` is deliberate: bare `\d` also matches Unicode decimal digits, so
+# `١٦rem` and `１６px` passed validation while being values no browser parses.
+# Not exploitable -- nothing here can splice a declaration -- but the error
+# message promises "a bare number", and those are not one.
 _CSS_LENGTH_PATTERN = re.compile(
-    r"^-?(?:\d+|\d*\.\d+)(?:px|rem|em|ch|ex|vw|vh|vmin|vmax|%|)$"
+    r"^-?(?:\d+|\d*\.\d+)(?:px|rem|em|ch|ex|vw|vh|vmin|vmax|%|)$", re.ASCII
 )
 
 
@@ -729,13 +733,17 @@ def shell(
     if max_width is not None:
         declarations.append(f"--ui-shell-max:{_safe_css_length(max_width)}")
     if declarations:
-        # Pop *both* spellings: `_render_attrs` maps any trailing-underscore
-        # name onto the real attribute, so leaving `style_` behind emits
-        # `style` twice -- invalid HTML, and browsers keep the first, which
-        # silently drops the custom properties above. Mirrors the
-        # `class_`/`class` handling in `_render_attrs`.
+        # Pop every spelling that normalises to `style`, not a fixed pair:
+        # `_render_attrs` uses `rstrip("_")`, which collapses *unbounded*
+        # trailing underscores, so a literal ("style", "style_") tuple still
+        # let `style__` through and emitted `style` twice -- invalid HTML, and
+        # browsers keep the first, silently dropping the validated custom
+        # properties above. Mirrors `class_`/`class` handling in
+        # `_render_attrs`.
         existing = [
-            str(value) for key in ("style", "style_") if (value := attrs.pop(key, None))
+            str(value)
+            for key in [k for k in attrs if k.rstrip("_") == "style"]
+            if (value := attrs.pop(key, None))
         ]
         attrs["style"] = ";".join([*declarations, *existing])
 

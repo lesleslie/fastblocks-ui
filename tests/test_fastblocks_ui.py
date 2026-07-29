@@ -1582,3 +1582,65 @@ class TestShellHelper(unittest.TestCase):
 
     def test_shell_returns_safe_html(self):
         self.assertIsInstance(fastblocks_ui.shell("b"), fastblocks_ui.helpers.SafeHTML)
+
+
+class TestSafeCssLength(unittest.TestCase):
+    """`_safe_css_length` is a shared primitive: `shell()` uses it today and
+    later components take caller-supplied sizes too. Its boundaries are tested
+    directly rather than only through a caller, so a regression names itself."""
+
+    def test_accepts_every_supported_unit(self):
+        for value in (
+            "0", "16px", "1.5rem", "2em", "40ch", "3ex",
+            "50vw", "100vh", "10vmin", "10vmax", "75%", "-2rem", ".5rem",
+        ):
+            with self.subTest(value=value):
+                self.assertEqual(
+                    fastblocks_ui.helpers._safe_css_length(value), value
+                )
+
+    def test_strips_surrounding_whitespace(self):
+        self.assertEqual(fastblocks_ui.helpers._safe_css_length("  16rem  "), "16rem")
+
+    def test_rejects_values_that_could_splice_a_declaration(self):
+        # The reason this function exists: `escape()` neutralises quotes but
+        # leaves `;` and `}` intact inside a `style` attribute.
+        for value in (
+            "16rem;background:url(//evil)",
+            "16px}",
+            "16px!important",
+            "16rem\n;color:red",
+            "calc(100% - 2rem)",
+            "expression(alert(1))",
+        ):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    fastblocks_ui.helpers._safe_css_length(value)
+
+    def test_rejects_malformed_lengths(self):
+        for value in ("", "   ", "red", "12 rem", "1e3", "+16px", "16rm", "px"):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    fastblocks_ui.helpers._safe_css_length(value)
+
+    def test_rejects_non_ascii_digits(self):
+        # Bare `\d` matches Unicode decimals; these parse as numbers in Python
+        # but are not values any browser accepts.
+        for value in ("\u0661\u0666rem", "\uff11\uff16px"):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    fastblocks_ui.helpers._safe_css_length(value)
+
+
+class TestShellStyleMergeSpellings(unittest.TestCase):
+    def test_any_underscore_spelling_of_style_merges_once(self):
+        # `_render_attrs` uses rstrip("_"), which collapses unbounded trailing
+        # underscores, so every spelling below normalises to one `style`.
+        for key in ("style", "style_", "style__"):
+            with self.subTest(key=key):
+                markup = fastblocks_ui.shell(
+                    "b", max_width="120rem", **{key: "color:red"}
+                )
+                self.assertEqual(markup.count("style="), 1)
+                self.assertIn("--ui-shell-max:120rem", markup)
+                self.assertIn("color:red", markup)
