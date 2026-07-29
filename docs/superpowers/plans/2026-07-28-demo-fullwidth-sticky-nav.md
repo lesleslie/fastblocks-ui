@@ -39,7 +39,18 @@
   exists at `/usr/local/bin/python3` but is the wrong interpreter — it lacks
   the project venv. Never write a bare `python …` command.
 - Both demo pages must remain fully self-contained (inlined CSS/JS) so either opens as a bare local file.
-- `prefers-reduced-motion: reduce` must collapse every animation added here to 1ms.
+- **Do NOT add `prefers-reduced-motion` rules for `animation-duration` or
+  `transition-duration` on ordinary elements.** `base.css` already declares
+  `*, *::before, *::after { animation-duration: .01ms !important;
+  transition-duration: .01ms !important }` inside that media query. Because
+  `!important` **reverses** cascade-layer precedence, `@layer base` — the
+  lowest layer — beats anything `@layer components` can declare, important or
+  not. Such a rule is dead CSS.
+
+  It is only needed for selectors `*` does not match. `::backdrop` is one:
+  `*` is a universal *element* selector, and `base.css` lists only `::before`
+  and `::after`. So `.ui-drawer::backdrop` needs its own rule and
+  `.ui-drawer` itself does not. Task 3 already trimmed its block this way.
 
 ## File Structure
 
@@ -1187,12 +1198,13 @@ Inside `@layer components { … }`, after the `.ui-drawer` rules:
     rotate: -45deg;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .ui-burger__bar {
-      transition-duration: 1ms;
-    }
-  }
 ```
+
+**No `prefers-reduced-motion` block here.** `base.css` already collapses
+`transition-duration` on `*` with `!important` from `@layer base`, which beats
+`@layer components` because `!important` reverses layer order. `.ui-burger__bar`
+is an ordinary element that `*` matches, so such a rule would be dead CSS. See
+Global Constraints.
 
 - [ ] **Step 7: Regenerate the bundle**
 
@@ -1296,8 +1308,17 @@ class TestStickyLayoutCss(unittest.TestCase):
     def test_scroll_padding_accounts_for_the_fixed_bar(self):
         self.assertIn("scroll-padding-top", self.css)
 
-    def test_reduced_motion_collapses_the_reveal(self):
-        self.assertIn("prefers-reduced-motion: reduce", self.css)
+    def test_reveal_is_an_animation_so_reduced_motion_already_covers_it(self):
+        # NOT `assertIn("prefers-reduced-motion")` -- base.css already contains
+        # that string, so such an assertion passes even if this feature is
+        # deleted entirely. The real contract is that the reveal is driven by
+        # `animation`, because base.css collapses `animation-duration` on `*`
+        # with `!important` from the lowest cascade layer, which no rule in
+        # `components` can override. Assert the mechanism, not the keyword.
+        self.assertIn("animation: ui-navbar-reveal", self.css)
+        self.assertIn("@keyframes ui-navbar-reveal", self.css)
+        base = self.css[: self.css.index("@layer components")]
+        self.assertIn("animation-duration: 0.01ms !important", base)
 ```
 
 - [ ] **Step 2: Run the tests to verify they fail**
@@ -1412,12 +1433,14 @@ Inside `@layer components { … }`, after the `.ui-shell` rules from Task 1:
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .ui-navbar.is-sticky {
-      animation-duration: 1ms;
-    }
-  }
 ```
+
+**No `prefers-reduced-motion` block here either.** `base.css` already collapses
+`animation-duration` on `*` with `!important` from `@layer base`. The scroll-driven
+reveal is an `animation`, so it is already covered — and because the animation is
+also what makes the bar visible, collapsing its duration leaves the bar in its
+`to` state (opaque, in place), which is the correct reduced-motion outcome rather
+than a hidden bar.
 
 - [ ] **Step 4: Regenerate the bundle and run the tests**
 
