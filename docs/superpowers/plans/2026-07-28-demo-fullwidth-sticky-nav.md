@@ -1644,6 +1644,10 @@ def build_sidebar(categories):
         (label, [(entry["title"], f"#{entry['anchor']}") for entry in entries])
         for label, entries in categories
     ]
+    # No `active=` is passed, so no `aria-current` is emitted at all. If this
+    # ever marks a current section, it must pass `aria_current="location"`:
+    # these hrefs are fragments that only move the viewport, and the default
+    # `"true"` or a `"page"` token would both be less accurate.
     return fastblocks_ui.drawer(
         fastblocks_ui.nav_group(groups),
         id="site-nav",
