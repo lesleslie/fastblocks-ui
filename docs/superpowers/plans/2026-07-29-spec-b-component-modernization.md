@@ -100,14 +100,53 @@ Expected: FAIL, message contains `css.properties.overscroll-behavior is not Base
 Run: `git checkout fastblocks_ui/static/css/utilities.css`
 Then re-run Step 2 and confirm `1 passed`.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Add the version-parity guard**
+
+`package.json` is the one version field crackerjack does not manage, so it
+drifted from `pyproject.toml` between 0.7.0 and 0.7.1 with nothing to catch it.
+`fastblocks_ui.__version__` derives from dist metadata and cannot drift, so
+these two files are the whole surface.
+
+Add to `tests/test_fastblocks_ui.py`:
+
+```python
+class TestVersionParity(unittest.TestCase):
+    """package.json is not managed by crackerjack, so nothing else checks it."""
+
+    def test_package_json_version_matches_pyproject(self) -> None:
+        repo_root = Path(__file__).resolve().parents[1]
+        pyproject = tomllib.loads(
+            (repo_root / "pyproject.toml").read_text(encoding="utf-8")
+        )
+        package_json = json.loads(
+            (repo_root / "package.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            package_json["version"],
+            pyproject["project"]["version"],
+            "package.json and pyproject.toml versions have drifted; crackerjack "
+            "bumps only pyproject.toml, so package.json must be updated by hand.",
+        )
+```
+
+Add `import json` and `import tomllib` at the top of the file if absent.
+
+- [ ] **Step 6: Run both new tests**
+
+Run: `uv run pytest tests/test_fastblocks_ui.py::TestBaselineFloor tests/test_fastblocks_ui.py::TestVersionParity -q --no-cov`
+Expected: `2 passed`
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add tests/test_fastblocks_ui.py
-git commit -m "test(ci): run the Baseline floor gate from pytest
+git commit -m "test(ci): gate the Baseline floor and version parity from pytest
 
 Puts scripts/check-baseline.mjs in the crackerjack quality gate, matching how
-tools/build_css.py --check is wired. Skips cleanly when node_modules is absent."
+tools/build_css.py --check is wired; skips cleanly when node_modules is absent.
+
+Also asserts package.json and pyproject.toml agree. crackerjack bumps only
+pyproject.toml, which is how the two drifted apart between 0.7.0 and 0.7.1."
 ```
 
 ---
