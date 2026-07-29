@@ -2016,3 +2016,92 @@ class TestBurgerOpenStateIsCssOnly(unittest.TestCase):
         label_start = self.css.index(".ui-burger__label {")
         label_rule = self.css[label_start : self.css.index("}", label_start)]
         self.assertIn("position: absolute", label_rule)
+
+
+class TestAriaLabelGuardAcrossHelpers(unittest.TestCase):
+    """Every helper with a `label=` convenience argument must detect a
+    caller-supplied `aria-label` under ANY spelling.
+
+    `_render_attrs` normalises names with `rstrip("_")`, which collapses
+    unbounded trailing underscores -- so `aria_label`, `aria_label_` and
+    `aria_label__` all render as `aria-label`. The guards used to compare two
+    literal spellings, missed the rest, and then set their own value too, so
+    the opening tag carried `aria-label` twice. Invalid HTML, and browsers keep
+    the first -- silently discarding the value the caller asked for.
+    """
+
+    SPELLINGS = ("aria_label", "aria_label_", "aria_label__", "aria-label")
+
+    def _cases(self):
+        """Every helper whose landmark name can be overridden by the caller.
+
+        `breadcrumb()` is included but is shaped differently: it has no
+        `label=` parameter and hardcodes "breadcrumb" as its landmark name, so
+        it is exercised through `_labelled_cases` below rather than here.
+        """
+        return (
+            ("tabs", lambda **kw: fastblocks_ui.tabs([("a", "A", "x")], **kw)),
+            ("menu", lambda **kw: fastblocks_ui.menu([("A", "/a")], **kw)),
+            ("navbar", lambda **kw: fastblocks_ui.navbar(brand="B", **kw)),
+            ("breadcrumb", lambda **kw: fastblocks_ui.breadcrumb([("A", "/a")], **kw)),
+            ("drawer", lambda **kw: fastblocks_ui.drawer("c", id="d", **kw)),
+        )
+
+    def _labelled_cases(self):
+        """Only the helpers that actually expose a `label=` argument."""
+        return tuple(c for c in self._cases() if c[0] != "breadcrumb")
+
+    def test_explicit_aria_label_is_never_duplicated(self):
+        for name, render in self._cases():
+            for spelling in self.SPELLINGS:
+                with self.subTest(helper=name, spelling=spelling):
+                    markup = render(label="Convenience", **{spelling: "Explicit"})
+                    self.assertEqual(
+                        markup.count("aria-label="),
+                        1,
+                        f"{name}() emitted aria-label twice for {spelling!r}",
+                    )
+
+    def test_explicit_aria_label_wins_over_the_label_argument(self):
+        for name, render in self._cases():
+            for spelling in self.SPELLINGS:
+                with self.subTest(helper=name, spelling=spelling):
+                    markup = render(label="Convenience", **{spelling: "Explicit"})
+                    self.assertIn('aria-label="Explicit"', markup)
+                    self.assertNotIn('aria-label="Convenience"', markup)
+
+    def test_label_argument_still_applies_when_caller_supplies_nothing(self):
+        for name, render in self._labelled_cases():
+            with self.subTest(helper=name):
+                self.assertIn('aria-label="Convenience"', render(label="Convenience"))
+
+    def test_breadcrumb_keeps_its_hardcoded_landmark_name_by_default(self):
+        # `breadcrumb()` takes no `label=`; its landmark name is fixed unless
+        # the caller overrides the attribute directly.
+        self.assertIn(
+            'aria-label="breadcrumb"', fastblocks_ui.breadcrumb([("A", "/a")])
+        )
+
+
+class TestAttrNameNormalisation(unittest.TestCase):
+    def test_normalise_collapses_unbounded_trailing_underscores(self):
+        for name in ("aria_label", "aria_label_", "aria_label__", "aria-label"):
+            with self.subTest(name=name):
+                self.assertEqual(
+                    fastblocks_ui.helpers._normalise_attr_name(name), "aria-label"
+                )
+
+    def test_has_attr_matches_every_spelling(self):
+        for name in ("aria_label", "aria_label_", "aria_label__", "aria-label"):
+            with self.subTest(name=name):
+                self.assertTrue(
+                    fastblocks_ui.helpers._has_attr({name: "x"}, "aria-label")
+                )
+
+    def test_has_attr_does_not_match_a_different_attribute(self):
+        self.assertFalse(
+            fastblocks_ui.helpers._has_attr({"aria_describedby": "x"}, "aria-label")
+        )
+
+    def test_has_attr_is_false_for_empty_attrs(self):
+        self.assertFalse(fastblocks_ui.helpers._has_attr({}, "aria-label"))

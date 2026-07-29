@@ -139,6 +139,31 @@ def _safe_url(value: object) -> str:
     return text
 
 
+def _normalise_attr_name(name: str) -> str:
+    """Resolve a Python keyword spelling to the HTML attribute it renders as.
+
+    Kept beside `_render_attrs`, which applies the identical transform at
+    render time -- any caller that needs to reason about "did the caller
+    already supply this attribute?" must use *this* rule rather than compare
+    literal spellings, or the two will disagree.
+    """
+    return name.rstrip("_").replace("_", "-")
+
+
+def _has_attr(attrs: dict[str, object], attr_name: str) -> bool:
+    """Has the caller already supplied `attr_name`, under any spelling?
+
+    `rstrip("_")` collapses *unbounded* trailing underscores, so `aria_label`,
+    `aria_label_` and `aria_label__` all render as `aria-label`. Helpers that
+    set a convenience argument (`label=`) only when the caller has not passed
+    the attribute themselves used to compare two literal spellings, which
+    missed the rest -- the helper then set its own value too and the opening
+    tag carried the attribute twice. That is invalid HTML, and browsers keep
+    the first, silently discarding whichever value the caller meant.
+    """
+    return any(_normalise_attr_name(key) == attr_name for key in attrs)
+
+
 def _render_attrs(**attrs: object) -> str:
     rendered: list[str] = []
 
@@ -152,7 +177,7 @@ def _render_attrs(**attrs: object) -> str:
         if value is None or value is False:
             continue
 
-        attr_name = name.rstrip("_").replace("_", "-")
+        attr_name = _normalise_attr_name(name)
         if not _ATTR_NAME_PATTERN.match(attr_name):
             msg = (
                 f"invalid HTML attribute name {name!r}: attribute names are "
@@ -641,9 +666,7 @@ def drawer(
     # check would let it through -- emitting the attribute twice, which is
     # invalid HTML (browsers keep the first). Same trap as `shell()`'s `style`
     # merge. An explicit attribute wins over the `label` convenience argument.
-    if label is not None and not any(
-        key.rstrip("_").replace("_", "-") == "aria-label" for key in attrs
-    ):
+    if label is not None and not _has_attr(attrs, "aria-label"):
         attrs["aria_label"] = label
 
     attr_html = _render_attrs(class_=classes, id=id, popover=True, **attrs)
@@ -694,7 +717,7 @@ def tabs(
     # f-string below: appending produced a SECOND `aria-label` whenever a
     # caller passed one, which is invalid HTML and silently ignored `label=`
     # (browsers keep the first occurrence). Mirrors `breadcrumb()`'s guard.
-    if "aria_label" not in attrs and "aria-label" not in attrs:
+    if not _has_attr(attrs, "aria-label"):
         attrs["aria_label"] = label
     attr_html = _render_attrs(class_=classes, data_ui_tabs=True, **attrs)
     tab_buttons: list[str] = []
@@ -750,7 +773,7 @@ def menu(
     """
     classes = _flatten_classes("ui-menu", class_)
     # See tabs() above -- appending the label duplicated `aria-label`.
-    if "aria_label" not in attrs and "aria-label" not in attrs:
+    if not _has_attr(attrs, "aria-label"):
         attrs["aria_label"] = label
     attr_html = _render_attrs(class_=classes, data_ui_menu=True, **attrs)
     links = [
@@ -1254,7 +1277,7 @@ def navbar(
     # (a primary bar and a utility bar, say) exposed two navigation landmarks
     # with an identical accessible name -- ambiguous for landmark navigation
     # and flagged by axe's `landmark-unique`.
-    if "aria_label" not in attrs and "aria-label" not in attrs:
+    if not _has_attr(attrs, "aria-label"):
         attrs["aria_label"] = label
     attr_html = _render_attrs(class_=classes, **attrs)
 
@@ -1315,7 +1338,7 @@ def breadcrumb(
         items: List of (label, url) tuples. url=None for current page.
     """
     classes = _flatten_classes("ui-breadcrumb", class_)
-    if "aria_label" not in attrs and "aria-label" not in attrs:
+    if not _has_attr(attrs, "aria-label"):
         attrs["aria_label"] = "breadcrumb"
     attr_html = _render_attrs(class_=classes, **attrs)
 
