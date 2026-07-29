@@ -1891,3 +1891,51 @@ class TestDrawerHelper(unittest.TestCase):
         self.assertIsInstance(
             fastblocks_ui.drawer("p", id="d"), fastblocks_ui.helpers.SafeHTML
         )
+
+
+class TestDrawerBoxModelResets(unittest.TestCase):
+    """The UA stylesheet gives every `[popover]` element
+    `inset: 0; width: fit-content; height: fit-content; margin: auto`. Those
+    defaults over-constrain both axes once `.ui-drawer` sets a definite
+    `inline-size` and `margin: 0`, and CSS resolves an over-constrained box by
+    dropping one inset -- which silently put the end-side drawer against the
+    START edge at content height. Asserted here because the failure is
+    invisible to every Python-level test: markup and class names are identical
+    either way, and only a browser reveals it."""
+
+    @classmethod
+    def setUpClass(cls):
+        import fastblocks_ui
+
+        cls.css = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
+        start = cls.css.index(".ui-drawer {")
+        cls.rule = cls.css[start : cls.css.index("}", start)]
+
+    def test_inline_axis_is_not_over_constrained(self):
+        # Without this, `left: 0` wins over `right: 0` (CSS 2.1 s10.3.7) and
+        # the default end-side drawer renders on the wrong edge.
+        self.assertIn("inset-inline-start: auto", self.rule)
+        self.assertIn("inset-inline-end: 0", self.rule)
+
+    def test_block_axis_is_not_over_constrained(self):
+        # Without this, `height: fit-content` wins and the panel is
+        # content-height instead of full-height.
+        self.assertIn("block-size: auto", self.rule)
+        self.assertIn("inset-block: 0", self.rule)
+
+    def test_start_variant_resets_the_opposite_inset(self):
+        start = self.css.index(".ui-drawer.is-start {")
+        rule = self.css[start : self.css.index("}", start)]
+        self.assertIn("inset-inline-end: auto", rule)
+        self.assertIn("inset-inline-start: 0", rule)
+
+    def test_backdrop_scrim_is_on_popover_open_so_it_fades_both_ways(self):
+        # An opaque *base* backdrop has nothing to animate towards on exit.
+        self.assertIn(".ui-drawer:popover-open::backdrop", self.css)
+        base_start = self.css.index(".ui-drawer::backdrop {")
+        base_rule = self.css[base_start : self.css.index("}", base_start)]
+        self.assertIn("rgba(15, 23, 42, 0)", base_rule)
+
+    def test_drawer_and_dialog_scrims_match(self):
+        # Two overlay components should not dim the page to different shades.
+        self.assertEqual(self.css.count("rgba(15, 23, 42, 0.55)"), 2)

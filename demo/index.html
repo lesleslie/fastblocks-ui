@@ -840,7 +840,24 @@
      panel's end from chaining to the page behind it. */
   .ui-drawer {
     position: fixed;
+    /* The UA sheet gives every `[popover]` element
+       `inset: 0; width: fit-content; height: fit-content; margin: auto`, and
+       both resets below are load-bearing because of it:
+
+       Inline axis -- with `left: 0`, `right: 0`, `margin: 0` and a definite
+       `inline-size`, the box is over-constrained, and CSS 2.1 s10.3.7 resolves
+       that in LTR by *ignoring `right`*. Without `inset-inline-start: auto`
+       the end-side drawer lays out flush against the START edge and slides in
+       from the wrong side. `.is-start` below only escapes this because it
+       sets `inset-inline-end: auto` explicitly.
+
+       Block axis -- `top: 0` + `bottom: 0` + `height: fit-content` is
+       over-constrained the same way (s10.6.4 ignores `bottom`), so
+       `inset-block: 0` alone yields a content-height panel, not a full-height
+       one. `block-size: auto` lets both insets take effect. */
     inset-block: 0;
+    block-size: auto;
+    inset-inline-start: auto;
     inset-inline-end: 0;
     inline-size: min(20rem, 85vw);
     padding: var(--ui-space-4);
@@ -884,17 +901,32 @@
     }
   }
 
+  /* Transparent is the *base* value, with the scrim on `:popover-open`, so the
+     backdrop fades both ways. With the opaque value in the base rule the exit
+     had nothing to animate towards: once `:popover-open` stopped matching, the
+     backdrop reverted to full opacity, sat there for the 250ms discrete
+     `overlay`/`display` window while the panel slid out, then snapped away.
+
+     Colour matches `.ui-dialog::backdrop` -- two overlay components on the
+     same page should not dim the page to two different shades. */
   .ui-drawer::backdrop {
-    background: rgb(0 0 0 / 0.5);
+    background: rgba(15, 23, 42, 0);
     transition:
       background-color 0.25s,
       overlay 0.25s allow-discrete,
       display 0.25s allow-discrete;
   }
 
+  .ui-drawer:popover-open::backdrop {
+    background: rgba(15, 23, 42, 0.55);
+  }
+
+  /* Still required despite the base rule being transparent: an element
+     entering the top layer needs an explicit start value for the transition
+     to have anything to interpolate from. */
   @starting-style {
     .ui-drawer:popover-open::backdrop {
-      background: rgb(0 0 0 / 0);
+      background: rgba(15, 23, 42, 0);
     }
   }
 
