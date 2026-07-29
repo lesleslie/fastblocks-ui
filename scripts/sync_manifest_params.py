@@ -145,7 +145,15 @@ def main() -> None:
     args = parser.parse_args()
 
     current = MANIFEST_PATH.read_text(encoding="utf-8")
-    updated = json.dumps(build_manifest(), indent=2) + "\n"
+    # `manifest.json` is committed with alphabetized keys (3e76f69); emit the
+    # same order so this script and whatever sorted it can't overwrite each
+    # other on every run. Without this, `--check` fails on a full-file reorder
+    # that carries no semantic change at all -- every param object holds the
+    # same keys, just permuted.
+    #
+    # `sort_keys` reorders dict keys only and never list elements, so the
+    # manifest's component and param *arrays* keep their meaningful order.
+    updated = json.dumps(build_manifest(), indent=2, sort_keys=True) + "\n"
 
     if args.check:
         if current != updated:
