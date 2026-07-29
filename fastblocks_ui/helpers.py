@@ -709,9 +709,15 @@ def nav_list(
     for label, href in items:
         is_active = active is not None and href == active
         link_classes = _flatten_classes("ui-nav-list__link", is_active and "is-active")
+        # `aria-current="page"` alongside the class, matching `pagination()`
+        # and `breadcrumb()`: `is-active` is a purely visual cue, so without
+        # this assistive technology cannot tell which item is current
+        # (WCAG 4.1.2).
+        current_attr = ' aria-current="page"' if is_active else ""
         rendered.append(
             f'<li class="ui-nav-list__item">'
-            f'<a class="{link_classes}" href="{escape(_safe_url(href), quote=True)}">'
+            f'<a class="{link_classes}" href="{escape(_safe_url(href), quote=True)}"'
+            f"{current_attr}>"
             f"{_render_fragment(label)}</a></li>"
         )
 

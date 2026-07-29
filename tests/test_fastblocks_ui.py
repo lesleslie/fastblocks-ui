@@ -1720,8 +1720,21 @@ class TestNavListHelpers(unittest.TestCase):
 
     def test_nav_list_marks_active_item(self):
         markup = fastblocks_ui.nav_list([("A", "#a"), ("B", "#b")], active="#b")
-        self.assertIn('class="ui-nav-list__link is-active" href="#b"', markup)
+        self.assertIn(
+            'class="ui-nav-list__link is-active" href="#b" aria-current="page"', markup
+        )
         self.assertIn('class="ui-nav-list__link" href="#a"', markup)
+
+    def test_nav_list_exposes_the_active_item_to_assistive_tech(self):
+        # `is-active` is a visual cue only; without `aria-current` a screen
+        # reader gets no signal which item is current (WCAG 4.1.2). Matches
+        # `pagination()` and `breadcrumb()`.
+        markup = fastblocks_ui.nav_list([("A", "#a"), ("B", "#b")], active="#b")
+        self.assertEqual(markup.count('aria-current="page"'), 1)
+
+    def test_nav_list_omits_aria_current_when_nothing_is_active(self):
+        markup = fastblocks_ui.nav_list([("A", "#a"), ("B", "#b")])
+        self.assertNotIn("aria-current", markup)
 
     def test_nav_list_neutralises_dangerous_urls(self):
         markup = fastblocks_ui.nav_list([("X", "javascript:alert(1)")])
