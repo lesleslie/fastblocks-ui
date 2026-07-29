@@ -22,6 +22,18 @@
 - After changing any helper signature, run `.venv/bin/python scripts/sync_manifest_params.py`.
 - Breakpoint for the drawer/column switch is **1024px** exactly. The project's three breakpoints are 769/1024/1216.
 - Tests use `unittest.TestCase` style (`self.assertIn`, not bare pytest asserts).
+- **`tests/test_demo_parity.py` is expected-red from Task 1 until Task 8.**
+  Adding a component immediately invalidates the hand-written `demo/demo.html`,
+  which cannot be updated until every component exists. Exactly these four
+  tests, and no others, may fail in Tasks 1–7:
+  - `TestDemoParity::test_every_manifest_component_has_a_demo_section`
+  - `TestDemoParity::test_sidebar_links_to_every_section`
+  - `TestEmbeddedManifestFreshness::test_embedded_copy_matches_the_real_manifest`
+  - `TestInlinedBundleFreshness::test_inlined_css_matches_the_built_bundle`
+
+  Gate Tasks 1–7 on `tests/test_fastblocks_ui.py`, which must stay at **0
+  failures**. A fifth failing parity test, or any failure in the unit file, is
+  new breakage — stop and report it. Task 8 must return all four to green.
 - **`python` is NOT on this machine's PATH.** Every Python command must use
   `.venv/bin/python` (Python 3.13.11, has the package installed). `python3`
   exists at `/usr/local/bin/python3` but is the wrong interpreter — it lacks
@@ -414,7 +426,7 @@ Match the existing table's exact column count and header — open the file and c
 .venv/bin/python -m pytest tests/test_fastblocks_ui.py -q
 ```
 
-Expected: PASS. `TestManifestContract` in particular must pass — it checks export, callability, a `.ui-shell` rule in the bundle, and the `docs/components.md` row.
+Expected: PASS, 0 failures. Do NOT run `tests/` here — `tests/test_demo_parity.py` is expected-red until Task 8 (see Global Constraints). `TestManifestContract` in particular must pass — it checks export, callability, a `.ui-shell` rule in the bundle, and the `docs/components.md` row.
 
 - [ ] **Step 11: Commit**
 
@@ -703,7 +715,7 @@ Add two rows to `docs/components.md`, matching the existing row shape:
 .venv/bin/python -m pytest tests/test_fastblocks_ui.py -q
 ```
 
-Expected: PASS
+Expected: PASS, 0 failures. Do NOT run `tests/` here — `tests/test_demo_parity.py` is expected-red until Task 8 (see Global Constraints)
 
 - [ ] **Step 11: Commit**
 
@@ -981,7 +993,7 @@ Add to `docs/components.md`:
 .venv/bin/python -m pytest tests/test_fastblocks_ui.py -q
 ```
 
-Expected: PASS
+Expected: PASS, 0 failures. Do NOT run `tests/` here — `tests/test_demo_parity.py` is expected-red until Task 8 (see Global Constraints)
 
 - [ ] **Step 11: Commit**
 
@@ -1223,7 +1235,7 @@ Add to `docs/components.md`:
 .venv/bin/python -m pytest tests/test_fastblocks_ui.py -q
 ```
 
-Expected: PASS
+Expected: PASS, 0 failures. Do NOT run `tests/` here — `tests/test_demo_parity.py` is expected-red until Task 8 (see Global Constraints)
 
 - [ ] **Step 11: Commit**
 
@@ -1422,7 +1434,7 @@ Expected: `--check` exits 0; 7 tests PASS.
 .venv/bin/python -m pytest tests/test_fastblocks_ui.py -q
 ```
 
-Expected: PASS
+Expected: PASS, 0 failures. Do NOT run `tests/` here — `tests/test_demo_parity.py` is expected-red until Task 8 (see Global Constraints)
 
 - [ ] **Step 6: Commit**
 
@@ -1752,7 +1764,23 @@ git commit -m "feat(demo): rebuild generated demo on the public shell and drawer
 
 - [ ] **Step 1: Update the parity test's selectors first**
 
-In `tests/test_demo_parity.py`, replace the sidebar lookup:
+`tests/test_demo_parity.py:381` hardcodes the component count:
+
+```python
+            len(names), 27, "expected manifest to still have 27 components"
+```
+
+This task adds five components (`shell`, `nav_list`, `nav_group`, `drawer`,
+`burger`), so update it to `32` and adjust the message. Verify the number
+against the manifest rather than trusting this plan:
+
+```bash
+.venv/bin/python -c "
+import json; print(len(json.load(open('fastblocks_ui/manifest.json'))['components']))
+"
+```
+
+Then, in the same file, replace the sidebar lookup:
 
 ```python
         sidebar_start = DEMO_HTML.index('<nav class="demo-sidebar"')
