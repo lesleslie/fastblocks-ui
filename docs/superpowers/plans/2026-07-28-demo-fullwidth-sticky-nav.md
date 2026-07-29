@@ -62,8 +62,8 @@
 ### Task 0: Fix `sync_manifest_params.py` key ordering (pre-existing)
 
 **Files:**
-- Modify: `scripts/sync_manifest_params.py`
-- Modify: `fastblocks_ui/manifest.json`
+- Modify: `scripts/sync_manifest_params.py` — **the only file this task commits**
+- Read-only: `fastblocks_ui/manifest.json` — must NOT change; if the sync produces a diff here, stop and report
 
 **Interfaces:**
 - Produces: a green `.venv/bin/python scripts/sync_manifest_params.py --check`, which Tasks 1–4 each depend on.
