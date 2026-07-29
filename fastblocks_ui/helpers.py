@@ -21,6 +21,7 @@ __all__ = [
     "Variant",
     "alert",
     "breadcrumb",
+    "burger",
     "button",
     "card",
     "checkbox",
@@ -647,6 +648,36 @@ def drawer(
 
     attr_html = _render_attrs(class_=classes, id=id, popover=True, **attrs)
     return _safe(f"<{tag}{attr_html}>{_render_fragment(content)}</{tag}>")
+
+
+def burger(
+    *,
+    controls: str,
+    label: object = "Menu",
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    """Render a burger button that toggles a `drawer()` (`.ui-burger`).
+
+    ``controls`` is the drawer's id and becomes ``popovertarget``. No
+    JavaScript is involved: the browser toggles the popover and maintains
+    ``aria-expanded`` on this button through the implicit invoker
+    relationship, which is what `.ui-burger[aria-expanded="true"]` in CSS
+    selects on to morph the bars into a cross.
+
+    The accessible name is a visually-hidden `<span>`, not ``aria-label``, so
+    the control keeps a name if the stylesheet fails to load.
+    """
+    classes = _flatten_classes("ui-burger", class_)
+    attr_html = _render_attrs(
+        class_=classes, type="button", popovertarget=controls, **attrs
+    )
+    bars = '<span class="ui-burger__bar" aria-hidden="true"></span>' * 3
+    return _safe(
+        f"<button{attr_html}>{bars}"
+        f'<span class="ui-burger__label">{_render_fragment(label)}</span>'
+        f"</button>"
+    )
 
 
 def tabs(

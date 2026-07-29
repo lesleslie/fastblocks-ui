@@ -1939,3 +1939,80 @@ class TestDrawerBoxModelResets(unittest.TestCase):
     def test_drawer_and_dialog_scrims_match(self):
         # Two overlay components should not dim the page to different shades.
         self.assertEqual(self.css.count("rgba(15, 23, 42, 0.55)"), 2)
+
+
+class TestBurgerHelper(unittest.TestCase):
+    def test_burger_renders_button_targeting_popover(self):
+        markup = fastblocks_ui.burger(controls="site-nav")
+        self.assertIn('type="button"', markup)
+        self.assertIn('class="ui-burger"', markup)
+        self.assertIn('popovertarget="site-nav"', markup)
+
+    def test_burger_renders_three_bars(self):
+        markup = fastblocks_ui.burger(controls="d")
+        self.assertEqual(markup.count('class="ui-burger__bar"'), 3)
+        self.assertEqual(markup.count('aria-hidden="true"'), 3)
+
+    def test_burger_label_is_element_text_not_aria_label(self):
+        # "element text", not "visible text": `.ui-burger__label` is clipped to
+        # 1px. The point is that the name lives in a text node, so it survives
+        # the stylesheet failing to load -- an `aria-label` would too, but a
+        # text node degrades to a *visible* label rather than to nothing.
+        markup = fastblocks_ui.burger(controls="d")
+        self.assertIn('<span class="ui-burger__label">Menu</span>', markup)
+        self.assertNotIn("aria-label", markup)
+
+    def test_burger_custom_label(self):
+        self.assertIn(
+            ">Sections</span>", fastblocks_ui.burger(controls="d", label="Sections")
+        )
+
+    def test_burger_escapes_label(self):
+        self.assertNotIn(
+            "<script>", fastblocks_ui.burger(controls="d", label="<script>")
+        )
+
+    def test_burger_does_not_set_aria_expanded(self):
+        # The browser maintains aria-expanded via the implicit popovertarget
+        # invoker relationship. Authoring it would fight the platform and go
+        # stale the moment the popover is opened any other way.
+        self.assertNotIn("aria-expanded", fastblocks_ui.burger(controls="d"))
+
+    def test_burger_accepts_extra_classes_and_attrs(self):
+        markup = fastblocks_ui.burger(controls="d", class_="extra", data_x="1")
+        self.assertIn("ui-burger extra", markup)
+        self.assertIn('data-x="1"', markup)
+
+    def test_burger_returns_safe_html(self):
+        self.assertIsInstance(
+            fastblocks_ui.burger(controls="d"), fastblocks_ui.helpers.SafeHTML
+        )
+
+
+class TestBurgerOpenStateIsCssOnly(unittest.TestCase):
+    """The bars-to-cross morph has no JavaScript behind it: it hangs entirely
+    off the `aria-expanded` the browser writes onto a `popovertarget` invoker.
+    Both invariants below are invisible to the markup tests above -- `burger()`
+    renders identical HTML whether or not the stylesheet still carries them --
+    so they are asserted against the built bundle instead. Mirrors
+    `TestDrawerBoxModelResets`."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.css = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
+        start = cls.css.index(".ui-burger {")
+        cls.rule = cls.css[start : cls.css.index("}", start)]
+
+    def test_open_state_is_selected_from_browser_maintained_aria_expanded(self):
+        # If this selector is ever rewritten to a class, the component silently
+        # acquires a JavaScript dependency it is designed not to have.
+        self.assertIn('.ui-burger[aria-expanded="true"] .ui-burger__bar', self.css)
+
+    def test_burger_establishes_a_containing_block_for_its_label(self):
+        # `.ui-burger__label` is `position: absolute`; without a positioned
+        # ancestor it resolves against whatever positioned element happens to
+        # sit further up the page, dragging the clipped 1px name with it.
+        self.assertIn("position: relative", self.rule)
+        label_start = self.css.index(".ui-burger__label {")
+        label_rule = self.css[label_start : self.css.index("}", label_start)]
+        self.assertIn("position: absolute", label_rule)

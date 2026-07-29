@@ -37,6 +37,27 @@
       ]
     },
     {
+      "class_name": "ui-burger",
+      "codegen": true,
+      "description": "Burger button that toggles a drawer via the Popover API.",
+      "helper": "burger",
+      "name": "burger",
+      "params": [
+        {
+          "kind": "keyword_only",
+          "name": "controls",
+          "required": true,
+          "type": "str"
+        },
+        {
+          "default": "Menu",
+          "kind": "keyword_only",
+          "name": "label",
+          "type": "object"
+        }
+      ]
+    },
+    {
       "class_name": "ui-button",
       "codegen": false,
       "description": "Primary and secondary action buttons.",

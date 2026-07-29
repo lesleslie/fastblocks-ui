@@ -932,6 +932,74 @@
       transition-duration: 0.01ms;
     }
   }
+
+  /* `position: relative` here is load-bearing, not decorative:
+     `.ui-burger__label` below is `position: absolute`, and without a
+     positioned ancestor it resolves against whatever positioned element
+     happens to sit further up the page. That is exactly the `.ui-menu`
+     footgun this library documents at length -- do not remove it. */
+  .ui-burger {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    /* 2.75rem clears the WCAG 2.5.8 24px minimum target size with margin. */
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ui-radius-md);
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .ui-burger__bar {
+    display: block;
+    block-size: 2px;
+    inline-size: 1.25rem;
+    /* Auto margins, not `align-items`, do the cross-axis centring here: the
+       bar has a definite `inline-size`, so the flex default would leave it at
+       the start edge (and the UA sheet's `align-items: flex-start` on
+       `button` pins it there outright). */
+    margin-inline: auto;
+    background: currentColor;
+    transition:
+      translate 0.2s ease,
+      rotate 0.2s ease,
+      opacity 0.2s ease;
+  }
+
+  .ui-burger__label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* aria-expanded is browser-maintained via the popovertarget invoker
+     relationship, so the open state needs no author JavaScript to track.
+
+     The 7px offsets are the bar pitch -- 2px bar + 5px gap -- so each outer
+     bar travels exactly onto the middle bar before rotating and the two
+     strokes cross at a single point. Change either value above and these
+     have to follow. */
+  .ui-burger[aria-expanded="true"] .ui-burger__bar:nth-child(1) {
+    translate: 0 7px;
+    rotate: 45deg;
+  }
+
+  .ui-burger[aria-expanded="true"] .ui-burger__bar:nth-child(2) {
+    opacity: 0;
+  }
+
+  .ui-burger[aria-expanded="true"] .ui-burger__bar:nth-child(3) {
+    translate: 0 -7px;
+    rotate: -45deg;
+  }
 }
 
 /* FastBlocks UI Layout System
