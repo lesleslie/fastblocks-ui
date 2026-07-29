@@ -268,6 +268,45 @@
       ]
     },
     {
+      "class_name": "ui-drawer",
+      "codegen": true,
+      "description": "Off-canvas panel built on the Popover API.",
+      "helper": "drawer",
+      "name": "drawer",
+      "params": [
+        {
+          "kind": "positional_or_keyword",
+          "name": "content",
+          "required": true,
+          "type": "object"
+        },
+        {
+          "kind": "keyword_only",
+          "name": "id",
+          "required": true,
+          "type": "str"
+        },
+        {
+          "default": null,
+          "kind": "keyword_only",
+          "name": "label",
+          "type": "str | None"
+        },
+        {
+          "default": "end",
+          "kind": "keyword_only",
+          "name": "side",
+          "type": "str"
+        },
+        {
+          "default": "div",
+          "kind": "keyword_only",
+          "name": "tag",
+          "type": "str"
+        }
+      ]
+    },
+    {
       "class_name": "ui-field",
       "codegen": false,
       "description": "Label, help, and error grouping for form controls.",

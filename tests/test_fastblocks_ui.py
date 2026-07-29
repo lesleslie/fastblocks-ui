@@ -1827,3 +1827,67 @@ class TestNavListHelpers(unittest.TestCase):
         self.assertIsInstance(
             fastblocks_ui.nav_group([]), fastblocks_ui.helpers.SafeHTML
         )
+
+
+class TestDrawerHelper(unittest.TestCase):
+    def test_drawer_renders_popover_with_id(self):
+        markup = fastblocks_ui.drawer("panel", id="site-nav")
+        self.assertIn('<div class="ui-drawer" id="site-nav" popover>', markup)
+        self.assertIn("panel", markup)
+
+    def test_drawer_label_becomes_aria_label(self):
+        markup = fastblocks_ui.drawer("p", id="d", label="Component sections")
+        self.assertIn('aria-label="Component sections"', markup)
+
+    def test_drawer_omits_aria_label_when_unlabelled(self):
+        self.assertNotIn("aria-label", fastblocks_ui.drawer("p", id="d"))
+
+    def test_drawer_label_does_not_override_an_explicit_aria_label(self):
+        # `_render_attrs` normalises trailing underscores, so a literal
+        # ("aria_label", "aria-label") check lets `aria_label_` through and the
+        # attribute is emitted twice -- invalid HTML, and browsers keep the
+        # first, silently dropping whichever one the caller meant.
+        for spelling in ("aria_label", "aria_label_", "aria-label"):
+            with self.subTest(spelling=spelling):
+                markup = fastblocks_ui.drawer(
+                    "p", id="d", label="From label", **{spelling: "From attrs"}
+                )
+                self.assertEqual(markup.count("aria-label="), 1)
+                self.assertIn('aria-label="From attrs"', markup)
+
+    def test_drawer_side_start_adds_modifier(self):
+        markup = fastblocks_ui.drawer("p", id="d", side="start")
+        self.assertIn("ui-drawer is-start", markup)
+
+    def test_drawer_side_end_is_the_default_with_no_modifier(self):
+        explicit_end = fastblocks_ui.drawer("p", id="d", side="end")
+        self.assertNotIn("is-start", explicit_end)
+        # `end` is the *default*, not merely the value that adds no modifier.
+        self.assertEqual(fastblocks_ui.drawer("p", id="d"), explicit_end)
+
+    def test_drawer_rejects_unknown_side(self):
+        with self.assertRaises(ValueError):
+            fastblocks_ui.drawer("p", id="d", side="middle")
+
+    def test_drawer_renders_alternate_tag(self):
+        markup = fastblocks_ui.drawer("p", id="d", tag="nav")
+        self.assertIn("<nav ", markup)
+        self.assertIn("</nav>", markup)
+
+    def test_drawer_rejects_arbitrary_tag(self):
+        with self.assertRaises(ValueError):
+            fastblocks_ui.drawer("p", id="d", tag="script")
+
+    def test_drawer_escapes_plain_content(self):
+        markup = fastblocks_ui.drawer("<script>alert(1)</script>", id="d")
+        self.assertNotIn("<script>alert", markup)
+        self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", markup)
+
+    def test_drawer_accepts_extra_classes(self):
+        markup = fastblocks_ui.drawer("p", id="d", class_="ui-shell-aside")
+        self.assertIn("ui-drawer ui-shell-aside", markup)
+
+    def test_drawer_returns_safe_html(self):
+        self.assertIsInstance(
+            fastblocks_ui.drawer("p", id="d"), fastblocks_ui.helpers.SafeHTML
+        )

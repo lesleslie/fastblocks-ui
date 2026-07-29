@@ -28,6 +28,7 @@ __all__ = [
     "columns",
     "container",
     "dialog",
+    "drawer",
     "field",
     "footer",
     "Option",
@@ -587,6 +588,65 @@ def dialog(
         )
         return _safe(f"<ui-dialog{host_attr_html}>{dialog_markup}</ui-dialog>")
     return _safe(dialog_markup)
+
+
+# The tag is interpolated into the markup unescaped, so it is validated against
+# an allowlist rather than sanitised -- same posture as `_ATTR_NAME_PATTERN`.
+# These four are the elements a drawer legitimately is: a generic container, or
+# one of the three sectioning elements that make sense as an off-canvas panel.
+_DRAWER_TAGS = frozenset({"div", "nav", "aside", "section"})
+_DRAWER_SIDES = frozenset({"start", "end"})
+
+
+def drawer(
+    content: object,
+    *,
+    id: str,
+    label: str | None = None,
+    side: str = "end",
+    tag: str = "div",
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    """Render an off-canvas panel (`<div class="ui-drawer" popover>`).
+
+    Built on the Popover API, so the browser supplies light-dismiss,
+    Escape-to-close, top-layer rendering, implicit ``aria-expanded`` and
+    ``aria-details`` on the invoker, placement in the tab order when shown, and
+    focus return to the invoker on close. None of that needs JavaScript --
+    pair it with any ``<button popovertarget="...">``.
+
+    ``id`` is required because ``popovertarget`` needs a stable target. That is
+    the same stable-ID contract htmx swapping depends on; do not generate it
+    per-render.
+
+    Above a breakpoint the same element can render as an ordinary in-flow
+    column instead, by overriding the UA ``[popover]:not(:popover-open)``
+    display rule. One DOM node, one id, both roles.
+    """
+    if side not in _DRAWER_SIDES:
+        msg = f"drawer side must be one of {sorted(_DRAWER_SIDES)}, got {side!r}"
+        raise ValueError(msg)
+    if tag not in _DRAWER_TAGS:
+        msg = f"drawer tag must be one of {sorted(_DRAWER_TAGS)}, got {tag!r}"
+        raise ValueError(msg)
+
+    classes = _flatten_classes(
+        "ui-drawer", "is-start" if side == "start" else None, class_
+    )
+    # Match on the *normalised* attribute name rather than a literal
+    # ("aria_label", "aria-label") pair: `_render_attrs` collapses trailing
+    # underscores, so `aria_label_` also renders as `aria-label` and a literal
+    # check would let it through -- emitting the attribute twice, which is
+    # invalid HTML (browsers keep the first). Same trap as `shell()`'s `style`
+    # merge. An explicit attribute wins over the `label` convenience argument.
+    if label is not None and not any(
+        key.rstrip("_").replace("_", "-") == "aria-label" for key in attrs
+    ):
+        attrs["aria_label"] = label
+
+    attr_html = _render_attrs(class_=classes, id=id, popover=True, **attrs)
+    return _safe(f"<{tag}{attr_html}>{_render_fragment(content)}</{tag}>")
 
 
 def tabs(

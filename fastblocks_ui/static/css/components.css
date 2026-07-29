@@ -509,4 +509,81 @@
     background: var(--ui-color-surface-muted);
     color: var(--ui-color-text-strong);
   }
+
+  /* Off-canvas panel on the Popover API. The browser supplies light-dismiss,
+     Escape, top-layer stacking, focus return, and the implicit
+     aria-expanded/aria-details relationship with the invoker -- so unlike
+     `.ui-menu` there is no z-index guess and no JS toggle here.
+
+     `overscroll-behavior: contain` stops a scroll gesture that reaches the
+     panel's end from chaining to the page behind it. */
+  .ui-drawer {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-end: 0;
+    inline-size: min(20rem, 85vw);
+    padding: var(--ui-space-4);
+    margin: 0;
+    border: 0;
+    border-inline-start: var(--ui-border-width) solid var(--ui-color-border);
+    background: var(--ui-color-surface-raised);
+    color: var(--ui-color-text);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    translate: 100% 0;
+    transition:
+      translate 0.25s ease,
+      overlay 0.25s allow-discrete,
+      display 0.25s allow-discrete;
+  }
+
+  .ui-drawer.is-start {
+    inset-inline-end: auto;
+    inset-inline-start: 0;
+    border-inline-start: 0;
+    border-inline-end: var(--ui-border-width) solid var(--ui-color-border);
+    translate: -100% 0;
+  }
+
+  /* Equal specificity to `.ui-drawer.is-start` above (one class + one
+     pseudo-class vs two classes), so this must stay after it to win. */
+  .ui-drawer:popover-open {
+    translate: 0 0;
+  }
+
+  /* Must follow the `:popover-open` rule: equal specificity means source order
+     decides, and an earlier @starting-style block is simply overridden. */
+  @starting-style {
+    .ui-drawer:popover-open {
+      translate: 100% 0;
+    }
+
+    .ui-drawer.is-start:popover-open {
+      translate: -100% 0;
+    }
+  }
+
+  .ui-drawer::backdrop {
+    background: rgb(0 0 0 / 0.5);
+    transition:
+      background-color 0.25s,
+      overlay 0.25s allow-discrete,
+      display 0.25s allow-discrete;
+  }
+
+  @starting-style {
+    .ui-drawer:popover-open::backdrop {
+      background: rgb(0 0 0 / 0);
+    }
+  }
+
+  /* Only the backdrop needs this. base.css already neutralises transitions
+     under `prefers-reduced-motion` with `transition-duration: 0.01ms
+     !important`, but its selector list is `*, *::before, *::after`, and
+     `::backdrop` is none of those. Same duration as base.css. */
+  @media (prefers-reduced-motion: reduce) {
+    .ui-drawer::backdrop {
+      transition-duration: 0.01ms;
+    }
+  }
 }

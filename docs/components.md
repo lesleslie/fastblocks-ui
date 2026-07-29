@@ -34,6 +34,7 @@ This page is generated from `fastblocks_ui/manifest.json`. Keep the manifest and
 | checkbox | `ui-checkbox` | `checkbox()` | Checkbox label and control grouping. |
 | switch | `ui-switch` | `switch()` | Accessible toggle switch presentation. |
 | dialog | `ui-dialog` | `dialog()` | Native dialog styling and enhancement hooks. |
+| drawer | `ui-drawer` | `drawer()` | Off-canvas panel built on the Popover API. |
 | tabs | `ui-tabs` | `tabs()` | Accessible tablist, tab, and panel patterns. |
 | menu | `ui-menu` | `menu()` | Disclosure and navigation menu styling. |
 | alert | `ui-alert` | `alert()` | Inline notices and status messaging. |
