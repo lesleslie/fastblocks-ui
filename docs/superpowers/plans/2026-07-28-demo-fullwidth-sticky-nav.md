@@ -899,7 +899,16 @@ Inside `@layer components { … }`, after the `.ui-nav-list__link` rules from Ta
      panel's end from chaining to the page behind it. */
   .ui-drawer {
     position: fixed;
+    /* The UA sheet gives every `[popover]` `inset: 0; width: fit-content;
+       height: fit-content; margin: auto`. With a definite inline-size and
+       `margin: 0` both axes are over-constrained, and CSS resolves that by
+       dropping an inset -- LTR ignores `right` (CSS 2.1 s10.3.7) and
+       `bottom` (s10.6.4). Without these two resets the DEFAULT end-side
+       drawer renders flush against the START edge at content height.
+       Verified in Chrome: end drawer left=880 height=657 at 1200x657. */
     inset-block: 0;
+    block-size: auto;
+    inset-inline-start: auto;
     inset-inline-end: 0;
     inline-size: min(20rem, 85vw);
     padding: var(--ui-space-4);
