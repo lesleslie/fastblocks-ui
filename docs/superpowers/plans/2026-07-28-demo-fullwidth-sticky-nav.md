@@ -13,15 +13,19 @@
 ## Global Constraints
 
 - `ui-*` is the stable public CSS namespace. Class names **are** public API — never rename an existing one.
-- `fastblocks_ui/static/css/fastblocks-ui.css` is a **GENERATED FILE**. Never hand-edit it. Edit the source modules under `fastblocks_ui/static/css/` and run `python tools/build_css.py`.
+- `fastblocks_ui/static/css/fastblocks-ui.css` is a **GENERATED FILE**. Never hand-edit it. Edit the source modules under `fastblocks_ui/static/css/` and run `.venv/bin/python tools/build_css.py`.
 - CSS source modules wrap rules in `@layer components { … }`. New rules go inside that block.
 - `ui-shell` and `.ui-navbar.is-sticky` belong in `layout.css` (where `.ui-navbar`, `.ui-hero`, `.ui-container` live). `ui-nav-list`, `ui-drawer`, `ui-burger` belong in `components.css` (where `.ui-menu`, `.ui-tabs`, `.ui-dialog` live).
 - Component element classes use the `__` convention (`.ui-menu__item`, `.ui-tabs__panel`). Layout sub-parts use `-` (`.ui-hero-body`, `.ui-navbar-item`).
 - Every helper returns `SafeHTML`. Interpolated content goes through `_render_fragment`; URLs through `_safe_url`; attributes through `_render_attrs`.
 - Every manifest component must: be in `fastblocks_ui.__all__`, be a callable attribute of `fastblocks_ui`, have a `.class_name` rule in the built bundle, and appear in `docs/components.md` as `| name |`. Four tests enforce this (`TestManifestContract`).
-- After changing any helper signature, run `python scripts/sync_manifest_params.py`.
+- After changing any helper signature, run `.venv/bin/python scripts/sync_manifest_params.py`.
 - Breakpoint for the drawer/column switch is **1024px** exactly. The project's three breakpoints are 769/1024/1216.
 - Tests use `unittest.TestCase` style (`self.assertIn`, not bare pytest asserts).
+- **`python` is NOT on this machine's PATH.** Every Python command must use
+  `.venv/bin/python` (Python 3.13.11, has the package installed). `python3`
+  exists at `/usr/local/bin/python3` but is the wrong interpreter — it lacks
+  the project venv. Never write a bare `python …` command.
 - Both demo pages must remain fully self-contained (inlined CSS/JS) so either opens as a bare local file.
 - `prefers-reduced-motion: reduce` must collapse every animation added here to 1ms.
 
@@ -30,7 +34,7 @@
 **Modified — CSS sources (then regenerate bundle):**
 - `fastblocks_ui/static/css/layout.css` — `ui-shell`, `.ui-navbar.is-sticky`, `:root` tokens, `text-wrap` on titles
 - `fastblocks_ui/static/css/components.css` — `ui-nav-list`, `ui-drawer`, `ui-burger`
-- `fastblocks_ui/static/css/fastblocks-ui.css` — **generated**, via `python tools/build_css.py`
+- `fastblocks_ui/static/css/fastblocks-ui.css` — **generated**, via `.venv/bin/python tools/build_css.py`
 
 **Modified — Python:**
 - `fastblocks_ui/helpers.py` — `_safe_css_length`, `_drawer_tag`, `shell`, `nav_list`, `nav_group`, `drawer`, `burger`
@@ -52,6 +56,103 @@
 - `tests/js/enhance.test.js` — breakpoint listener tests
 - `tests/e2e/demo-layout.spec.js` — **new** responsive/drawer e2e
 - `tests/e2e/accessibility.spec.js` — breakpoint a11y assertions
+
+---
+
+### Task 0: Fix `sync_manifest_params.py` key ordering (pre-existing)
+
+**Files:**
+- Modify: `scripts/sync_manifest_params.py`
+- Modify: `fastblocks_ui/manifest.json`
+
+**Interfaces:**
+- Produces: a green `.venv/bin/python scripts/sync_manifest_params.py --check`, which Tasks 1–4 each depend on.
+
+This is a **pre-existing failure on main**, not caused by this feature. It is
+fixed first because Tasks 1, 2, 3, and 4 each run the sync script, and every
+one of them would otherwise fail the same way.
+
+**Diagnosis:** `manifest.json`'s per-param keys were alphabetized in commit
+`3e76f69` by a JSON formatter (`default`, `kind`, `name`, `required`, `type`).
+`sync_manifest_params.py` writes them in Python insertion order (`name`,
+`kind`, `type`, `required`, `default`) at line 148 via
+`json.dumps(build_manifest(), indent=2)`. `--check` therefore reports "stale"
+across 874 lines of pure reordering with **zero semantic difference**. The two
+tools disagree about key order and will keep overwriting each other.
+
+**Fix:** make the sync script emit the sorted order the formatter produces, so
+they agree. Do **not** re-sort `manifest.json` to the script's order — the
+formatter would simply undo it on the next run.
+
+- [ ] **Step 1: Confirm the failure and that the diff is ordering-only**
+
+```bash
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py::TestManifestParamsSync -q
+```
+
+Expected: FAIL — "manifest.json params are stale".
+
+```bash
+cp fastblocks_ui/manifest.json /tmp/m.before.json
+.venv/bin/python scripts/sync_manifest_params.py
+.venv/bin/python -c "
+import json
+a=json.load(open('/tmp/m.before.json')); b=json.load(open('fastblocks_ui/manifest.json'))
+print('semantically identical:', a == b)
+"
+git checkout -- fastblocks_ui/manifest.json
+```
+
+Expected: `semantically identical: True`. If it prints `False`, **stop and
+report** — the staleness is more than key ordering and this fix is wrong.
+
+- [ ] **Step 2: Make the script emit sorted keys**
+
+In `scripts/sync_manifest_params.py`, change line 148 from:
+
+```python
+    updated = json.dumps(build_manifest(), indent=2) + "\n"
+```
+
+to:
+
+```python
+    # `sort_keys=True` so this agrees with the JSON formatter that runs over
+    # manifest.json in the commit hooks. Without it the two tools alternate
+    # key orders on every run and `--check` fails on an 874-line diff that
+    # carries no semantic change at all.
+    updated = json.dumps(build_manifest(), indent=2, sort_keys=True) + "\n"
+```
+
+- [ ] **Step 3: Run the sync and verify the file is unchanged**
+
+```bash
+.venv/bin/python scripts/sync_manifest_params.py
+git diff --stat fastblocks_ui/manifest.json
+```
+
+Expected: **no diff** — the committed file already has sorted keys, so a
+sorted writer is a no-op. If there is a diff, inspect it before continuing.
+
+- [ ] **Step 4: Verify the check passes**
+
+```bash
+.venv/bin/python scripts/sync_manifest_params.py --check && echo "CHECK CLEAN"
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -q
+```
+
+Expected: `CHECK CLEAN`, and the full file passes with **0 failures**.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add scripts/sync_manifest_params.py
+git commit -m "fix(scripts): emit sorted manifest keys so sync agrees with the formatter
+
+manifest.json's keys were alphabetized by a JSON formatter in 3e76f69, but
+sync_manifest_params.py wrote them in insertion order, so --check reported
+874 lines of stale-but-identical output and the sync test failed on main."
+```
 
 ---
 
@@ -117,7 +218,7 @@ class TestShellHelper(unittest.TestCase):
 - [ ] **Step 2: Run the tests to verify they fail**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -k TestShellHelper -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -k TestShellHelper -q
 ```
 
 Expected: FAIL — `AttributeError: module 'fastblocks_ui' has no attribute 'shell'`
@@ -207,7 +308,7 @@ Add `shell` to the import list from `.helpers` and to `__init__.py`'s `__all__`,
 - [ ] **Step 5: Run the tests to verify they pass**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -k TestShellHelper -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -k TestShellHelper -q
 ```
 
 Expected: PASS, 8 passed
@@ -267,13 +368,13 @@ Inside the existing `@layer components { … }` block, after the `.ui-container`
 - [ ] **Step 7: Regenerate the CSS bundle**
 
 ```bash
-python tools/build_css.py
+.venv/bin/python tools/build_css.py
 ```
 
 Expected: writes `fastblocks_ui/static/css/fastblocks-ui.css`. Verify:
 
 ```bash
-python tools/build_css.py --check
+.venv/bin/python tools/build_css.py --check
 ```
 
 Expected: exit 0, no output about staleness.
@@ -296,7 +397,7 @@ In `fastblocks_ui/manifest.json`, add to the `components` array in alphabetical 
 - [ ] **Step 9: Sync manifest params and document the component**
 
 ```bash
-python scripts/sync_manifest_params.py
+.venv/bin/python scripts/sync_manifest_params.py
 ```
 
 Then add a row to `docs/components.md` in the same table and column format as the existing rows:
@@ -310,7 +411,7 @@ Match the existing table's exact column count and header — open the file and c
 - [ ] **Step 10: Run the full Python suite**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -q
 ```
 
 Expected: PASS. `TestManifestContract` in particular must pass — it checks export, callability, a `.ui-shell` rule in the bundle, and the `docs/components.md` row.
@@ -340,7 +441,13 @@ git commit -m "feat(layout): add ui-shell full-bleed page shell"
 - Consumes: `_flatten_classes`, `_render_attrs`, `_render_fragment`, `_safe_url`, `SafeHTML`
 - Produces:
   - `nav_list(items: list[tuple[object, str]], *, active: str | None = None, class_: object = None, **attrs: object) -> SafeHTML`
-  - `nav_group(groups: list[tuple[object, list[tuple[object, str]]]], *, active: str | None = None, class_: object = None, **attrs: object) -> SafeHTML` — calls `nav_list` per group. Used by Task 7.
+  - `nav_group(groups: list[tuple[object, list[tuple[object, str]]]], *, active: str | None = None, class_: object = None, **attrs: object) -> SafeHTML` — renders one outer `<div class="ui-nav-groups">` containing one `<div class="ui-nav-group">` per group, and calls `nav_list` inside each. Used by Task 7.
+
+The outer wrapper is not cosmetic. `class_` and `**attrs` must land on exactly
+one element: applying them per-group would emit N elements sharing whatever
+`id` the caller passed, which is invalid HTML and breaks
+`document.getElementById`. It also mirrors the `.demo-sidebar-groups` wrapper
+the current demo already uses.
 
 Named `ui-nav-list`, **not** `ui-menu-list`: `ui-menu` is already the absolutely-positioned dropdown, and a `ui-menu`/`ui-menu-list` pair would imply kinship between components that behave nothing alike.
 
@@ -377,8 +484,22 @@ class TestNavListHelpers(unittest.TestCase):
 
     def test_nav_group_renders_label_and_list(self):
         markup = fastblocks_ui.nav_group([("Layout", [("Container", "#container")])])
+        self.assertIn('<div class="ui-nav-groups">', markup)
         self.assertIn('<div class="ui-nav-group">', markup)
         self.assertIn('<p class="ui-nav-group__label">Layout</p>', markup)
+
+    def test_nav_group_attrs_land_on_the_wrapper_only_once(self):
+        # Regression: applying **attrs per group emitted N elements sharing
+        # one id, which is invalid HTML and breaks getElementById.
+        markup = fastblocks_ui.nav_group(
+            [("A", [("x", "#x")]), ("B", [("y", "#y")])], id="nav-groups"
+        )
+        self.assertEqual(markup.count('id="nav-groups"'), 1)
+        self.assertEqual(markup.count('class="ui-nav-group"'), 2)
+
+    def test_nav_group_custom_class_lands_on_the_wrapper(self):
+        markup = fastblocks_ui.nav_group([("A", [])], class_="extra")
+        self.assertIn('class="ui-nav-groups extra"', markup)
         self.assertIn('<a class="ui-nav-list__link" href="#container">Container</a>', markup)
 
     def test_nav_group_propagates_active(self):
@@ -397,7 +518,7 @@ class TestNavListHelpers(unittest.TestCase):
 - [ ] **Step 2: Run the tests to verify they fail**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -k TestNavListHelpers -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -k TestNavListHelpers -q
 ```
 
 Expected: FAIL — `AttributeError: module 'fastblocks_ui' has no attribute 'nav_list'`
@@ -455,19 +576,19 @@ def nav_group(
     the document outline that do not correspond to page sections. Same
     reasoning as `_heading_tag`'s `<p>` default.
     """
-    classes = _flatten_classes("ui-nav-group", class_)
+    classes = _flatten_classes("ui-nav-groups", class_)
     attr_html = _render_attrs(class_=classes, **attrs)
 
     rendered: list[str] = []
     for label, items in groups:
         rendered.append(
-            f"<div{attr_html}>"
+            f'<div class="ui-nav-group">'
             f'<p class="ui-nav-group__label">{_render_fragment(label)}</p>'
             f"{nav_list(items, active=active)}"
             f"</div>"
         )
 
-    return SafeHTML("".join(rendered))
+    return SafeHTML(f"<div{attr_html}>{''.join(rendered)}</div>")
 ```
 
 Add `"nav_group"` and `"nav_list"` to `helpers.py`'s `__all__` (alphabetical — between `"navbar"` and `"pagination"`... note `nav_group` and `nav_list` sort *before* `navbar`, so place them before it).
@@ -479,7 +600,7 @@ Add `nav_group` and `nav_list` to the `.helpers` import and to `__init__.py`'s `
 - [ ] **Step 5: Run the tests to verify they pass**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -k TestNavListHelpers -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -k TestNavListHelpers -q
 ```
 
 Expected: PASS, 8 passed
@@ -491,6 +612,10 @@ Inside the existing `@layer components { … }` block, after the `.ui-menu__item
 ```css
   /* Vertical in-flow navigation list. Distinct from `.ui-menu`, which is an
      absolutely-positioned dropdown -- see nav_list()'s docstring. */
+  .ui-nav-groups {
+    display: block;
+  }
+
   .ui-nav-group + .ui-nav-group {
     margin-block-start: var(--ui-space-4);
   }
@@ -531,7 +656,7 @@ Inside the existing `@layer components { … }` block, after the `.ui-menu__item
 - [ ] **Step 7: Regenerate the bundle**
 
 ```bash
-python tools/build_css.py && python tools/build_css.py --check
+.venv/bin/python tools/build_css.py && .venv/bin/python tools/build_css.py --check
 ```
 
 Expected: bundle written, `--check` exits 0.
@@ -542,9 +667,9 @@ Add both to the `components` array in alphabetical position by `name` (before `"
 
 ```json
 {
-  "class_name": "ui-nav-group",
+  "class_name": "ui-nav-groups",
   "codegen": false,
-  "description": "Labelled group of vertical navigation links.",
+  "description": "Labelled groups of vertical navigation links.",
   "helper": "nav_group",
   "name": "nav_group",
   "params": []
@@ -562,20 +687,20 @@ Add both to the `components` array in alphabetical position by `name` (before `"
 - [ ] **Step 9: Sync params and document**
 
 ```bash
-python scripts/sync_manifest_params.py
+.venv/bin/python scripts/sync_manifest_params.py
 ```
 
 Add two rows to `docs/components.md`, matching the existing row shape:
 
 ```markdown
-| nav_group | ui-nav-group | Labelled group of vertical navigation links. |
+| nav_group | ui-nav-groups | Labelled groups of vertical navigation links. |
 | nav_list | ui-nav-list | Vertical navigation list for sidebars and drawers. |
 ```
 
 - [ ] **Step 10: Run the full Python suite**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -q
 ```
 
 Expected: PASS
@@ -663,7 +788,7 @@ class TestDrawerHelper(unittest.TestCase):
 - [ ] **Step 2: Run the tests to verify they fail**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -k TestDrawerHelper -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -k TestDrawerHelper -q
 ```
 
 Expected: FAIL — `AttributeError: module 'fastblocks_ui' has no attribute 'drawer'`
@@ -732,7 +857,7 @@ Add `drawer` to the `.helpers` import and to `__init__.py`'s `__all__`, between 
 - [ ] **Step 5: Run the tests to verify they pass**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -k TestDrawerHelper -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -k TestDrawerHelper -q
 ```
 
 Expected: PASS, 11 passed
@@ -818,7 +943,7 @@ Inside `@layer components { … }`, after the `.ui-nav-list__link` rules from Ta
 - [ ] **Step 7: Regenerate the bundle**
 
 ```bash
-python tools/build_css.py && python tools/build_css.py --check
+.venv/bin/python tools/build_css.py && .venv/bin/python tools/build_css.py --check
 ```
 
 Expected: bundle written, `--check` exits 0.
@@ -841,7 +966,7 @@ Alphabetical position by `name`, after `"dialog"`:
 - [ ] **Step 9: Sync params and document**
 
 ```bash
-python scripts/sync_manifest_params.py
+.venv/bin/python scripts/sync_manifest_params.py
 ```
 
 Add to `docs/components.md`:
@@ -853,7 +978,7 @@ Add to `docs/components.md`:
 - [ ] **Step 10: Run the full Python suite**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -q
 ```
 
 Expected: PASS
@@ -932,7 +1057,7 @@ class TestBurgerHelper(unittest.TestCase):
 - [ ] **Step 2: Run the tests to verify they fail**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -k TestBurgerHelper -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -k TestBurgerHelper -q
 ```
 
 Expected: FAIL — `AttributeError: module 'fastblocks_ui' has no attribute 'burger'`
@@ -981,7 +1106,7 @@ Add `burger` to the `.helpers` import and `__init__.py`'s `__all__`, before `but
 - [ ] **Step 5: Run the tests to verify they pass**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -k TestBurgerHelper -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -k TestBurgerHelper -q
 ```
 
 Expected: PASS, 8 passed
@@ -1060,7 +1185,7 @@ Inside `@layer components { … }`, after the `.ui-drawer` rules:
 - [ ] **Step 7: Regenerate the bundle**
 
 ```bash
-python tools/build_css.py && python tools/build_css.py --check
+.venv/bin/python tools/build_css.py && .venv/bin/python tools/build_css.py --check
 ```
 
 Expected: bundle written, `--check` exits 0.
@@ -1083,7 +1208,7 @@ Alphabetical position by `name`, before `"button"`:
 - [ ] **Step 9: Sync params and document**
 
 ```bash
-python scripts/sync_manifest_params.py
+.venv/bin/python scripts/sync_manifest_params.py
 ```
 
 Add to `docs/components.md`:
@@ -1095,7 +1220,7 @@ Add to `docs/components.md`:
 - [ ] **Step 10: Run the full Python suite**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -q
 ```
 
 Expected: PASS
@@ -1166,7 +1291,7 @@ class TestStickyLayoutCss(unittest.TestCase):
 - [ ] **Step 2: Run the tests to verify they fail**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -k TestStickyLayoutCss -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -k TestStickyLayoutCss -q
 ```
 
 Expected: FAIL — several assertions fail on missing selectors.
@@ -1285,8 +1410,8 @@ Inside `@layer components { … }`, after the `.ui-shell` rules from Task 1:
 - [ ] **Step 4: Regenerate the bundle and run the tests**
 
 ```bash
-python tools/build_css.py && python tools/build_css.py --check
-python -m pytest tests/test_fastblocks_ui.py -k TestStickyLayoutCss -q
+.venv/bin/python tools/build_css.py && .venv/bin/python tools/build_css.py --check
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -k TestStickyLayoutCss -q
 ```
 
 Expected: `--check` exits 0; 7 tests PASS.
@@ -1294,7 +1419,7 @@ Expected: `--check` exits 0; 7 tests PASS.
 - [ ] **Step 5: Run the full Python suite**
 
 ```bash
-python -m pytest tests/test_fastblocks_ui.py -q
+.venv/bin/python -m pytest tests/test_fastblocks_ui.py -q
 ```
 
 Expected: PASS
@@ -1584,7 +1709,7 @@ Remove the entire `nav_js` string (the `navTrigger` / `closeDemoNav` / Escape-ha
 - [ ] **Step 6: Regenerate and inspect**
 
 ```bash
-python scripts/build_demo.py
+.venv/bin/python scripts/build_demo.py
 grep -c "demo-sidebar\|demo-layout\|demo-topbar\|data-demo-nav-trigger" demo/index.html
 ```
 
@@ -1644,7 +1769,7 @@ Search the file for any other `demo-sidebar`, `demo-layout`, `demo-content`, or 
 - [ ] **Step 2: Run the parity test to see it fail against the old page**
 
 ```bash
-python -m pytest tests/test_demo_parity.py -q
+.venv/bin/python -m pytest tests/test_demo_parity.py -q
 ```
 
 Expected: FAIL — `demo.html` still has the old structure and a stale inlined bundle.
@@ -1652,7 +1777,7 @@ Expected: FAIL — `demo.html` still has the old structure and a stale inlined b
 - [ ] **Step 3: Re-inline the freshly built CSS bundle**
 
 ```bash
-python - <<'PY'
+.venv/bin/python - <<'PY'
 import re
 from pathlib import Path
 import fastblocks_ui
@@ -1689,7 +1814,7 @@ Apply the same structural changes by hand:
 Every fragment the file marks "real helper output" must be **regenerated by calling the helper**, never hand-typed. Generate each with:
 
 ```bash
-python -c "
+.venv/bin/python -c "
 import fastblocks_ui
 print(fastblocks_ui.burger(controls='site-nav'))
 print(fastblocks_ui.navbar(brand='FastBlocks UI', brand_url='#top', label='site navigation', class_='is-sticky'))
@@ -1701,7 +1826,7 @@ and paste the exact output, keeping the existing HTML comment above each fragmen
 - [ ] **Step 5: Run the parity suite**
 
 ```bash
-python -m pytest tests/test_demo_parity.py -q
+.venv/bin/python -m pytest tests/test_demo_parity.py -q
 ```
 
 Expected: PASS. If `test_inlined_css_matches_the_built_bundle` fails, re-run Step 3 — the bundle changed after you last inlined it.
@@ -1709,7 +1834,7 @@ Expected: PASS. If `test_inlined_css_matches_the_built_bundle` fails, re-run Ste
 - [ ] **Step 6: Run the whole Python suite**
 
 ```bash
-python -m pytest tests/ -q
+.venv/bin/python -m pytest tests/ -q
 ```
 
 Expected: PASS
@@ -1879,9 +2004,9 @@ Expected: PASS, no violations. A `landmark-unique` violation means the navbar an
 - [ ] **Step 5: Run everything**
 
 ```bash
-python -m pytest tests/ -q && npm run test:run && npm run lint
+.venv/bin/python -m pytest tests/ -q && npm run test:run && npm run lint
 npx playwright test --config=playwright.audit.config.js
-python tools/build_css.py --check
+.venv/bin/python tools/build_css.py --check
 ```
 
 Expected: all pass; `--check` exits 0.
@@ -1967,10 +2092,10 @@ Add under a new `Unreleased` heading, matching the file's existing format:
 - [ ] **Step 4: Run the quality gate**
 
 ```bash
-python -m pytest tests/ -q
+.venv/bin/python -m pytest tests/ -q
 npm run validate
 npx playwright test --config=playwright.audit.config.js
-python tools/build_css.py --check
+.venv/bin/python tools/build_css.py --check
 crackerjack check
 ```
 
