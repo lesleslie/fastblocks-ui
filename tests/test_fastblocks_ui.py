@@ -1519,3 +1519,66 @@ class TestSelectOptionType(unittest.TestCase):
         html = str(ui_select([("1", "One"), Option(label="Two", value="2")], value="2"))
         self.assertIn('<option value="1">One</option>', html)
         self.assertIn('<option value="2" selected>Two</option>', html)
+
+
+class TestShellHelper(unittest.TestCase):
+    def test_shell_renders_main_only(self):
+        markup = fastblocks_ui.shell("body copy")
+        self.assertIn('<div class="ui-shell">', markup)
+        self.assertIn('<main class="ui-shell-main">body copy</main>', markup)
+        self.assertNotIn("ui-shell-aside", markup)
+
+    def test_shell_renders_aside_after_main(self):
+        # SafeHTML, not a bare str: `aside` goes through `_render_fragment`, so
+        # a plain string is escaped like any other content. The aside slot is
+        # for composed markup (a nav, a drawer), which is already SafeHTML.
+        aside = fastblocks_ui.SafeHTML('<nav id="x"></nav>')
+        markup = fastblocks_ui.shell("body", aside=aside)
+        self.assertLess(markup.index("ui-shell-main"), markup.index('id="x"'))
+
+    def test_shell_escapes_a_plain_string_aside(self):
+        markup = fastblocks_ui.shell("body", aside='<nav id="x"></nav>')
+        self.assertNotIn("<nav", markup)
+        self.assertIn("&lt;nav", markup)
+
+    def test_shell_main_id_is_rendered(self):
+        markup = fastblocks_ui.shell("body", main_id="content")
+        self.assertIn('<main class="ui-shell-main" id="content">', markup)
+
+    def test_shell_widths_become_custom_properties(self):
+        markup = fastblocks_ui.shell("b", aside_width="18rem", max_width="120rem")
+        self.assertIn("--ui-shell-aside-width:18rem", markup)
+        self.assertIn("--ui-shell-max:120rem", markup)
+
+    def test_shell_merges_a_caller_style_in_either_spelling(self):
+        # `_render_attrs` maps any trailing-underscore name onto the real
+        # attribute, so `style_` is a supported spelling. Popping only
+        # `style` emitted the attribute twice -- invalid HTML, and browsers
+        # keep the first, silently dropping the custom property. Same
+        # duplicate-attribute bug the aria-label guards in tabs()/menu()/
+        # navbar() exist for.
+        for spelling in ("style", "style_"):
+            with self.subTest(spelling=spelling):
+                markup = fastblocks_ui.shell(
+                    "b", max_width="120rem", **{spelling: "color:red"}
+                )
+                self.assertEqual(markup.count("style="), 1)
+                self.assertIn("--ui-shell-max:120rem", markup)
+                self.assertIn("color:red", markup)
+
+    def test_shell_rejects_css_injection_in_widths(self):
+        with self.assertRaises(ValueError):
+            fastblocks_ui.shell("b", aside_width="16rem;background:url(//evil)")
+
+    def test_shell_escapes_plain_content(self):
+        markup = fastblocks_ui.shell("<script>alert(1)</script>")
+        self.assertNotIn("<script>", markup)
+        self.assertIn("&lt;script&gt;", markup)
+
+    def test_shell_accepts_custom_class_and_attrs(self):
+        markup = fastblocks_ui.shell("b", class_="extra", data_role="page")
+        self.assertIn("ui-shell extra", markup)
+        self.assertIn('data-role="page"', markup)
+
+    def test_shell_returns_safe_html(self):
+        self.assertIsInstance(fastblocks_ui.shell("b"), fastblocks_ui.helpers.SafeHTML)

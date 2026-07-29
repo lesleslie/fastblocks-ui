@@ -814,6 +814,52 @@
   }
 
   /* =========================================================================
+     SHELL
+     ========================================================================= */
+  /* Full-bleed page shell. `--ui-shell-max` defaults to `none` so the shell is
+     genuinely edge-to-edge; set it per page to cap width on very wide displays.
+     Readable line length is a separate opt-in (`.ui-measure`) so component
+     demos keep the full width while prose does not. */
+  .ui-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ui-space-6);
+    padding-inline: var(--ui-space-4);
+    padding-block: var(--ui-space-6);
+    max-inline-size: var(--ui-shell-max, none);
+    margin-inline: auto;
+  }
+
+  /* `minmax(0, 1fr)`, not the implicit `auto`: an auto-sized track floors at
+     its widest child's min-content width and applies that floor to every
+     sibling, so one un-shrinkable component stretches every section past the
+     viewport. Same fix as `.demo-content` carried into the public shell. */
+  .ui-shell-main {
+    min-inline-size: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ui-space-6);
+  }
+
+  .ui-measure {
+    max-inline-size: var(--ui-measure-size, 72ch);
+  }
+
+  /* The hero is full-bleed now, so headlines wrap at genuinely large widths;
+     `balance` keeps the last line from stranding a single word. */
+  .ui-title,
+  .ui-subtitle {
+    text-wrap: balance;
+  }
+
+  @media (min-width: 1024px) {
+    .ui-shell {
+      grid-template-columns: minmax(0, 1fr) var(--ui-shell-aside-width, 16rem);
+      align-items: start;
+    }
+  }
+
+  /* =========================================================================
      COLUMNS
      ========================================================================= */
   .ui-columns {

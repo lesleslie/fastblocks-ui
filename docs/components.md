@@ -6,6 +6,7 @@ This page is generated from `fastblocks_ui/manifest.json`. Keep the manifest and
 
 | Component | CSS Class | Helper | Purpose |
 | --------- | -------- | ------ | ------- |
+| shell | `ui-shell` | `shell()` | Full-bleed page shell with optional sticky aside column. |
 | container | `ui-container` | `container()` | Centered max-width container |
 | columns | `ui-columns` | `columns()` | Flexible grid container |
 | column | `ui-column` | `column()` | Individual column in grid |

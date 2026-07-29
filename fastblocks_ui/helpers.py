@@ -40,6 +40,7 @@ __all__ = [
     "progress",
     "section",
     "select",
+    "shell",
     "switch",
     "table",
     "text_input",
@@ -165,6 +166,28 @@ def _render_attrs(**attrs: object) -> str:
         rendered.append(f'{attr_name}="{escape(str(value), quote=True)}"')
 
     return (" " + " ".join(rendered)) if rendered else ""
+
+
+# A CSS length reaches the page inside a `style` attribute, where HTML escaping
+# is not sufficient protection: `escape()` neutralises quotes but leaves `;`
+# intact, so `16rem;background:url(//evil)` would splice a second declaration
+# into the rule. Same reasoning as `_ATTR_NAME_PATTERN` and `_safe_url` -- the
+# value is structural, so it is validated rather than escaped.
+_CSS_LENGTH_PATTERN = re.compile(
+    r"^-?(?:\d+|\d*\.\d+)(?:px|rem|em|ch|ex|vw|vh|vmin|vmax|%|)$"
+)
+
+
+def _safe_css_length(value: object) -> str:
+    text = str(value).strip()
+    if not _CSS_LENGTH_PATTERN.match(text):
+        msg = (
+            f"invalid CSS length {value!r}: values are written into a `style` "
+            "attribute verbatim, so only a bare number with an optional CSS "
+            "unit is accepted"
+        )
+        raise ValueError(msg)
+    return text
 
 
 def _safe(markup: str) -> SafeHTML:
@@ -674,6 +697,58 @@ def container(
     attr_html = _render_attrs(class_=classes, **attrs)
     inner = _render_fragment(content) if content is not None else ""
     return _safe(f"<div{attr_html}>{inner}</div>")
+
+
+def shell(
+    main: object,
+    aside: object = None,
+    *,
+    aside_width: str | None = None,
+    max_width: str | None = None,
+    main_id: str | None = None,
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    """Create the full-bleed page shell (`<div class="ui-shell">`).
+
+    Renders ``main`` inside ``<main class="ui-shell-main">`` and places
+    ``aside`` after it. The aside is rendered *after* main deliberately: it is
+    the right-hand column in LTR, so DOM order matches visual order and WCAG
+    1.3.2/2.4.3 hold without grid reordering. Pair it with a skip link so
+    keyboard users are not forced through the whole main column to reach it.
+
+    ``aside_width`` and ``max_width`` are emitted as the ``--ui-shell-aside-width``
+    and ``--ui-shell-max`` custom properties. Both are validated as CSS lengths
+    -- see ``_safe_css_length``.
+    """
+    classes = _flatten_classes("ui-shell", class_)
+
+    declarations: list[str] = []
+    if aside_width is not None:
+        declarations.append(f"--ui-shell-aside-width:{_safe_css_length(aside_width)}")
+    if max_width is not None:
+        declarations.append(f"--ui-shell-max:{_safe_css_length(max_width)}")
+    if declarations:
+        # Pop *both* spellings: `_render_attrs` maps any trailing-underscore
+        # name onto the real attribute, so leaving `style_` behind emits
+        # `style` twice -- invalid HTML, and browsers keep the first, which
+        # silently drops the custom properties above. Mirrors the
+        # `class_`/`class` handling in `_render_attrs`.
+        existing = [
+            str(value) for key in ("style", "style_") if (value := attrs.pop(key, None))
+        ]
+        attrs["style"] = ";".join([*declarations, *existing])
+
+    attr_html = _render_attrs(class_=classes, **attrs)
+    main_attr_html = _render_attrs(class_="ui-shell-main", id=main_id)
+    aside_html = _render_fragment(aside) if aside is not None else ""
+
+    return SafeHTML(
+        f"<div{attr_html}>"
+        f"<main{main_attr_html}>{_render_fragment(main)}</main>"
+        f"{aside_html}"
+        f"</div>"
+    )
 
 
 def section(
