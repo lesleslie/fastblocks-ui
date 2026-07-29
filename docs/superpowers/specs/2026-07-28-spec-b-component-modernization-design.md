@@ -86,7 +86,7 @@ being dropped** (see D3).
 |---|---|---|
 | `accent-color` | "Baseline" | `false` — BCD has no `chrome_android` entry |
 | `anchor-positioning` | "caniuse computes Baseline 2026" | `false` at feature level; **6 of 325** compat keys lag |
-| `overscroll-behavior` | ✅ Chrome / ✅ Safari / ✅ Firefox | `false` — Chrome 144, FF 150, **no Safari recorded** |
+| `overscroll-behavior` | ✅ Chrome / ✅ Safari / ✅ Firefox | `false` — every engine ships it `partial_implementation`; Chrome fixed in 144, FF in 150, **Safari still partial** |
 | `field-sizing` | "verify Safari and Firefox" | Baseline Newly **2026-06-16** |
 | `container-style-queries` | Tier 3, unverified | Baseline Newly **2026-05-19** |
 | `relative-color` | "newer — verify" | Baseline Newly **2024-09-16** |
@@ -154,6 +154,16 @@ compat key, a rationale, a degradation note, and a `review-by` date. This is for
 features that are **inert on failure** — an unsupported declaration is dropped
 by the CSS parser and the result is still correct. Wrapping those in `@supports`
 would be pure ceremony.
+
+**Partial implementations force escape hatch 2.** Baseline counts a
+`partial_implementation` record as unsupported, but the engine still *parses*
+the declaration — so `@supports` returns true there and the guard protects
+nothing while looking like it does. `overscroll-behavior` is the live example:
+every engine shipped it partially (no effect on containers without scrollable
+overflow), Chrome fixed it in 144 and Firefox in 150, and Safari has not
+(webkit.org/b/243452). A guard around it would be actively misleading, so a
+partial implementation always belongs in the allowlist with the real-world
+degradation written down.
 
 **Value-keyword granularity.** BCD's per-value records are patchily populated —
 `css.properties.cursor.pointer` reports not-Baseline solely because no

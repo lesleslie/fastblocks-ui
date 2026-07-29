@@ -27,9 +27,15 @@
  * the precise question.
  *
  * Usage:
- *   node scripts/check-baseline.mjs           # gate; exit 1 on violation
- *   node scripts/check-baseline.mjs --list    # full inventory, always exit 0
- *   node scripts/check-baseline.mjs --json    # machine-readable report
+ *   node scripts/check-baseline.mjs               # gate; exit 1 on violation
+ *   node scripts/check-baseline.mjs --list        # full inventory, always exit 0
+ *   node scripts/check-baseline.mjs --json        # machine-readable report
+ *   node scripts/check-baseline.mjs --css-dir=DIR # scan CSS from elsewhere
+ *
+ * `--css-dir` exists so an unmerged branch can be checked before it lands:
+ *   git show BRANCH:fastblocks_ui/static/css/components.css > /tmp/css/components.css
+ *   node scripts/check-baseline.mjs --css-dir=/tmp/css
+ * Finding out that a branch breaks the floor after the merge is strictly worse.
  */
 
 import bcd from '@mdn/browser-compat-data' with { type: 'json' };
@@ -355,9 +361,12 @@ function main() {
     return 1;
   }
 
+  const dirArg = [...args].find((arg) => arg.startsWith('--css-dir='));
+  const cssDir = dirArg ? dirArg.slice('--css-dir='.length) : CSS_DIR;
+
   const usages = [];
   for (const name of MODULES) {
-    usages.push(...scanStylesheet(readFileSync(join(CSS_DIR, name), 'utf8'), name));
+    usages.push(...scanStylesheet(readFileSync(join(cssDir, name), 'utf8'), name));
   }
 
   const byKey = collapse(usages);
