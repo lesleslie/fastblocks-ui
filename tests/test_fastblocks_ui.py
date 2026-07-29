@@ -2125,3 +2125,164 @@ class TestAttrNameNormalisation(unittest.TestCase):
 
     def test_has_attr_is_false_for_empty_attrs(self):
         self.assertFalse(fastblocks_ui.helpers._has_attr({}, "aria-label"))
+
+
+class TestStickyLayoutCss(unittest.TestCase):
+    """These assert on the built bundle: the responsive switch is pure CSS with
+    no Python surface, so the bundle is the only place the contract exists."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.css = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
+        # Comments are stripped for the negative and selector-shape assertions
+        # below: those comments necessarily *name* the declarations they reject,
+        # and a bare substring search cannot tell prose from a rule. Same trap
+        # as `TestBurgerOpenStateIsCssOnly` and the utilities gate.
+        cls.rules_only = re.sub(r"/\*.*?\*/", "", cls.css, flags=re.S)
+
+    def _rule_body(self, selector):
+        """Declarations of the first rule whose selector is exactly `selector`.
+
+        Exact, not prefix: `body:has(> .ui-navbar.is-sticky)` must not match
+        `body:has(> .ui-navbar.is-sticky):has(> .ui-hero)`, because the whole
+        point of two of the tests below is that those two carry opposite
+        values for the same property.
+        """
+        match = re.search(
+            re.escape(selector) + r"\s*\{([^{}]*)\}",
+            self.rules_only,
+        )
+        self.assertIsNotNone(match, f"no rule with selector {selector!r}")
+        return match.group(1)
+
+    def test_aside_overrides_ua_popover_display_above_breakpoint(self):
+        # The UA sheet's `[popover]:not(:popover-open) { display: none }` is
+        # what the `display` here exists to beat; without it the element that
+        # is a drawer below the breakpoint simply vanishes above it.
+        body = self._rule_body(".ui-shell-aside[popover]")
+        self.assertIn("display: block", body)
+        self.assertIn("position: sticky", body)
+
+    def test_breakpoint_is_1024px(self):
+        # Deliberately not `assertIn("@media (min-width: 1024px)", css)`: the
+        # `.ui-shell` grid switch from Task 1 already put that exact string in
+        # the bundle, so that assertion passed before this feature existed and
+        # would keep passing if the aside moved to a different breakpoint.
+        # Assert the media query the aside is actually nested in.
+        preceding = self.rules_only[: self.rules_only.index(".ui-shell-aside[popover]")]
+        conditions = re.findall(r"@media([^{]*)\{", preceding)
+        self.assertEqual(conditions[-1].strip(), "(min-width: 1024px)")
+
+    def test_navbar_sticky_modifier_exists(self):
+        self.assertIn(".ui-navbar.is-sticky", self.css)
+
+    def test_reveal_is_guarded_by_supports(self):
+        self.assertIn("@supports (animation-timeline: view())", self.css)
+        self.assertIn("timeline-scope", self.css)
+
+    def test_fallback_reserves_space_for_the_fixed_bar(self):
+        # Firefox stable does not support scroll-driven animations, so the
+        # always-visible bar is a first-class rendering, not a degradation.
+        self.assertIn("padding-block-start: var(--ui-navbar-height)", self.css)
+
+    def test_scroll_padding_accounts_for_the_fixed_bar(self):
+        self.assertIn("scroll-padding-top", self.css)
+
+    def test_reveal_is_driven_by_an_animation_not_a_transition(self):
+        # NOT `assertIn("prefers-reduced-motion")` -- base.css already contains
+        # that string, so such an assertion passes even if this feature is
+        # deleted entirely. Assert the mechanism, not the keyword.
+        #
+        # The `animation-duration` assertion below is why no duration override
+        # belongs in this feature: base.css collapses it on `*` with
+        # `!important` from the lowest cascade layer, and `!important` reverses
+        # layer order, so nothing in `components` could override it anyway.
+        # That covers ordinary time-driven animations -- see the separate
+        # `no-preference` gate for why it does NOT cover this one.
+        self.assertIn("animation: ui-navbar-reveal", self.css)
+        self.assertIn("@keyframes ui-navbar-reveal", self.css)
+        base = self.css[: self.css.index("@layer components")]
+        self.assertIn("animation-duration: 0.01ms !important", base)
+
+    def test_reveal_is_gated_on_no_preference_for_motion(self):
+        # base.css's blanket `animation-duration: 0.01ms !important` does NOT
+        # neutralise this reveal, because `animation-duration` is ignored
+        # outright on a progress-based timeline. Measured in Chrome 150 with
+        # base.css's reduced-motion rule injected verbatim: at scrollY 0 the
+        # bar still computed `opacity: 0` / `visibility: hidden` and its
+        # animation still reported a live `ViewTimeline`, i.e. the
+        # scroll-linked slide survived completely untouched. A reduced-motion
+        # user would still get the full parallax-style reveal, so the branch
+        # has to be gated on the query itself rather than relying on the
+        # duration collapse that covers every other animation in the bundle.
+        #
+        # Gating, not overriding: this is deliberately NOT a
+        # `prefers-reduced-motion: reduce` block re-declaring a duration --
+        # that rule really would be dead CSS for the reason above.
+        gate = self.rules_only.index("@media (prefers-reduced-motion: no-preference)")
+        supports = self.rules_only.index("@supports (animation-timeline: view())")
+        reveal = self.rules_only.index("animation: ui-navbar-reveal")
+        self.assertLess(gate, supports, "the gate must enclose the @supports branch")
+        self.assertLess(supports, reveal, "the reveal must sit inside both")
+
+    def test_view_timeline_is_declared_by_exactly_one_selector(self):
+        # A named view timeline declared by MORE THAN ONE element in scope
+        # resolves to an inactive timeline, and an animation attached to an
+        # inactive timeline applies none of its keyframes. Measured in Chrome
+        # 142 on a two-subject page: `bar.getAnimations()[0].timeline` is
+        # `null`, and the bar computes `opacity: 1` / `translate: none` -- the
+        # un-animated values, not the `to` keyframe. With one subject the same
+        # page yields a live `ViewTimeline` and `opacity: 0`.
+        #
+        # `demo/demo.html` renders NINE `.ui-hero` variants, so a bare
+        # `.ui-hero` selector here would silently kill the reveal on the very
+        # page this feature exists to serve.
+        selectors = re.findall(r"([^{}]*)\{[^{}]*view-timeline-name", self.rules_only)
+        self.assertEqual([s.strip() for s in selectors], ["body > .ui-hero"])
+
+    def test_view_timeline_ignores_the_scroll_padding_this_task_also_adds(self):
+        # `view-timeline-inset` defaults to `auto`, which means "use the
+        # scrollport's `scroll-padding`" -- and `:root` above sets
+        # `scroll-padding-top` to the bar's own height. The two interact:
+        # measured in Chrome 150 at rest (scrollY 0) with the default `auto`,
+        # the bar computed `opacity: 0.252` / `translate: 0 -74.8%`, i.e. a
+        # quarter-revealed sliver hanging over the hero before the user has
+        # scrolled at all. With the inset pinned to 0 the same page computes
+        # `opacity: 0` / `translate: 0 -100%` at rest and reaches 1 exactly as
+        # the hero clears the viewport.
+        self.assertIn("view-timeline-inset: 0", self._rule_body("body > .ui-hero"))
+
+    def test_reserved_space_is_dropped_only_when_a_page_hero_exists(self):
+        # The reveal is the only thing that ever hides the bar. With no
+        # `body > .ui-hero` there is no timeline, the animation is inert and
+        # the bar is permanently visible -- so dropping the reserved space
+        # would bury the first screenful of content under it. The two rules
+        # must therefore be guarded on the SAME structural condition that
+        # supplies the timeline.
+        self.assertIn(
+            "padding-block-start: 0",
+            self._rule_body("body:has(> .ui-navbar.is-sticky):has(> .ui-hero)"),
+        )
+        self.assertIn(
+            "padding-block-start: var(--ui-navbar-height)",
+            self._rule_body("body:has(> .ui-navbar.is-sticky)"),
+        )
+
+    def test_sticky_bar_height_is_a_floor_not_a_fixed_size(self):
+        # `.ui-navbar` is `flex-wrap: wrap` on purpose -- its own comment calls
+        # wrapping "the CSS-first answer to a narrow viewport". A fixed
+        # `block-size` fights that: measured in Chrome 150 at a 320px bar
+        # width, `block-size: 3.5rem` left the wrapped menu row overflowing
+        # 60px past the bar's painted box, so the links floated over the page
+        # with no background behind them. `min-block-size` grew the bar to
+        # 117px and contained them.
+        body = self._rule_body(".ui-navbar.is-sticky")
+        self.assertIn("min-block-size: var(--ui-navbar-height)", body)
+        self.assertNotRegex(body, r"(?<!min-)block-size:")
+
+    def test_sticky_column_neutralises_the_drawer_transition(self):
+        # `.ui-drawer` transitions `translate`, `overlay` and `display`. Left
+        # in place, crossing the breakpoint animates the column in and out
+        # instead of switching roles, and the discrete `display` transition
+        # holds the old rendering for the duration.
+        self.assertIn("transition: none", self._rule_body(".ui-shell-aside[popover]"))

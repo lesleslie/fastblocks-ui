@@ -1102,6 +1102,176 @@
   }
 
   /* =========================================================================
+     STICKY NAVBAR + ASIDE
+     ========================================================================= */
+  :root {
+    --ui-navbar-height: 3.5rem;
+    /* One declaration replaces per-section `scroll-margin-top`: without it
+       every in-page anchor lands underneath the fixed bar. */
+    scroll-padding-top: calc(var(--ui-navbar-height) + var(--ui-space-4));
+    /* Reserve the classic scrollbar's track at all times, so the page cannot
+       jump sideways when the document's height crosses the viewport's -- e.g.
+       as `content-visibility` sections render in. A fixed bar makes that
+       shift especially visible, because its `inset-inline: 0` resolves
+       against the initial containing block and moves with it. */
+    scrollbar-gutter: stable;
+  }
+
+  /* `min-block-size`, not `block-size`. `.ui-navbar` sets `flex-wrap: wrap` on
+     purpose -- its own comment calls wrapping "the CSS-first answer to a
+     narrow viewport" -- and an exact height fights that: a wrapped bar
+     overflows its own painted box, leaving the second row of links floating
+     over the page with no background behind them. A floor lets the bar grow
+     instead, and it composes with `.ui-navbar`'s existing `min-height: 3rem`
+     (the same computed property) rather than contradicting it.
+
+     KNOWN LIMITATION: the space reserved on `body` below is a single length,
+     so a bar that does wrap still covers the top of the content.
+     `--ui-navbar-height` is the tuning point for pages whose bar is taller
+     than one row. */
+  .ui-navbar.is-sticky {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: 30;
+    min-block-size: var(--ui-navbar-height);
+  }
+
+  /* DEFAULT, and the fallback path: the bar is always visible and its space is
+     reserved. Firefox stable still has scroll-driven animations behind
+     `layout.css.scroll-driven-animations.enabled` (verified 2026-07-28,
+     Firefox 152), so this branch is what a large share of real users get. It
+     is a supported rendering, not a degraded one -- both paths are tested. */
+  body:has(> .ui-navbar.is-sticky) {
+    padding-block-start: var(--ui-navbar-height);
+  }
+
+  /* Gated on the motion query, NOT on `@supports` alone. base.css's blanket
+     `animation-duration: 0.01ms !important` neutralises every other animation
+     in this bundle, but it does nothing here: `animation-duration` is ignored
+     outright on a progress-based timeline. Measured in Chrome 150 with that
+     exact rule applied, the bar still computed `opacity: 0` / `visibility:
+     hidden` at rest and still reported a live `ViewTimeline` -- a
+     reduced-motion user would have got the whole scroll-linked slide. Note
+     this is a `no-preference` GATE, not a `reduce` override re-declaring a
+     duration; the latter would be dead CSS for the same reason. Opting out
+     lands on the always-visible branch above, which is a tested rendering. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) and (timeline-scope: none) {
+      @media (min-width: 1024px) {
+        /* Scoped to the PAGE-level hero -- the navbar's own sibling -- and not
+           to every `.ui-hero`. A named view timeline declared by more than one
+           element in scope resolves to an INACTIVE timeline, and an animation
+           attached to an inactive timeline applies none of its keyframes.
+           Measured in Chrome 150 on a two-subject page: the animation's
+           `timeline` is `null` and the subject computes its un-animated values
+           (`opacity: 1`, `translate: none`), where the same page with one
+           subject yields a live `ViewTimeline` and `opacity: 0`. This library's
+           own demo renders nine `.ui-hero` variants below the fold, so an
+           unscoped declaration would silently disable the reveal on the page
+           the feature exists to serve. */
+        body > .ui-hero {
+          view-timeline-name: --ui-page-hero;
+          view-timeline-axis: block;
+          /* Not decorative. `view-timeline-inset` defaults to `auto`, which
+             means "inset the scrollport by its `scroll-padding`" -- and `:root`
+             above sets `scroll-padding-top` to the bar's own height, so the two
+             declarations in this one feature interact. Left at `auto`, the exit
+             range is already a quarter elapsed before the user scrolls at all:
+             measured in Chrome 150 at rest, the bar computed `opacity: 0.252`
+             and `translate: 0 -74.8%`, a translucent sliver over the hero.
+             Pinning the inset to 0 makes the range start where the page does. */
+          view-timeline-inset: 0;
+        }
+
+        /* `:has(> .ui-hero)` repeats the exact condition that supplies the
+           timeline above, because the reveal is the only thing that ever hides
+           the bar: with no page-level hero the timeline is inactive, the bar
+           stays visible, and dropping the reserved space would bury the first
+           screenful of content under it.
+
+           Without `timeline-scope` a named view timeline is only visible to
+           the hero's own descendants -- the navbar is a sibling, so it could
+           not reference it. */
+        body:has(> .ui-navbar.is-sticky):has(> .ui-hero) {
+          padding-block-start: 0;
+          timeline-scope: --ui-page-hero;
+        }
+
+        /* `animation-timeline` and `animation-range` must follow the
+           `animation` shorthand, which resets every `animation-*` longhand
+           including those two. */
+        .ui-navbar.is-sticky {
+          animation: ui-navbar-reveal linear both;
+          animation-timeline: --ui-page-hero;
+          animation-range: exit 0% exit 100%;
+        }
+      }
+    }
+  }
+
+  @keyframes ui-navbar-reveal {
+    from {
+      opacity: 0;
+      translate: 0 -100%;
+      visibility: hidden;
+    }
+
+    to {
+      opacity: 1;
+      translate: 0 0;
+      visibility: visible;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    /* The same DOM node that is a drawer below this width becomes an ordinary
+       in-flow sticky column here. The UA stylesheet's
+       `[popover]:not(:popover-open) { display: none }` is author-overridable,
+       which is what makes one element, one id, two roles possible -- and
+       keeping one id is what keeps htmx swapping safe. With `.ui-burger`
+       hidden, nothing can open the popover, so the top-layer path is
+       unreachable at this width.
+
+       Every declaration below neutralises one from `.ui-drawer`, which is
+       written for a fixed off-canvas panel: `inset` clears its `inset-block`
+       / `inset-inline-*`, `translate` its off-screen offset, `transition` the
+       slide (left in place, crossing the breakpoint animates the column in
+       and out, and the discrete `display` transition holds the old rendering
+       for its duration), and the two `border-inline-*` zeroes cover both the
+       default and `.is-start` panel edges. Equal-specificity rules such as
+       `.ui-drawer.is-start` lose to these on source order: layout.css is
+       concatenated after components.css inside the same cascade layer. */
+    .ui-shell-aside[popover] {
+      display: block;
+      position: sticky;
+      inset: auto;
+      translate: none;
+      transition: none;
+      inline-size: auto;
+      padding: 0;
+      border-inline-start: 0;
+      border-inline-end: 0;
+      background: none;
+      overscroll-behavior: auto;
+      inset-block-start: calc(var(--ui-navbar-height) + var(--ui-space-4));
+      max-block-size: calc(100vh - var(--ui-navbar-height) - var(--ui-space-8));
+      overflow-y: auto;
+    }
+
+    /* Not dead CSS: a drawer opened below the breakpoint stays in the top
+       layer until something closes it, so a resize across 1024px lands here
+       with the popover still open and a full-page scrim over the column. */
+    .ui-shell-aside[popover]::backdrop {
+      background: none;
+    }
+
+    .ui-burger {
+      display: none;
+    }
+  }
+
+  /* =========================================================================
      COLUMNS
      ========================================================================= */
   .ui-columns {
