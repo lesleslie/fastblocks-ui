@@ -325,7 +325,8 @@ hard-coded to one element ID.
 
 Toggle button. Reference: Bulma `.navbar-burger`. Three bars that transform to a
 cross when the popover is open. Bulma's implementation requires JavaScript to
-toggle `is-active`; ours does not, because the browser maintains `aria-expanded`
+toggle `is-active`; ours does not, because CSS can read the drawer's own
+`:popover-open`
 on a `popovertarget` invoker and CSS can select on it.
 
 ```css
@@ -366,12 +367,12 @@ on a `popovertarget` invoker and CSS can select on it.
   white-space: nowrap;
 }
 
-.ui-burger[aria-expanded="true"] .ui-burger__bar:nth-child(1) {
+:root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar:nth-child(1) {
   translate: 0 7px;
   rotate: 45deg;
 }
-.ui-burger[aria-expanded="true"] .ui-burger__bar:nth-child(2) { opacity: 0; }
-.ui-burger[aria-expanded="true"] .ui-burger__bar:nth-child(3) {
+:root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar:nth-child(2) { opacity: 0; }
+:root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar:nth-child(3) {
   translate: 0 -7px;
   rotate: -45deg;
 }
@@ -382,7 +383,12 @@ margin to spare. `.ui-burger__label` provides the accessible name visually
 hidden; it must not be replaced with `aria-label` alone, so the control retains
 a name if CSS fails to load.
 
-`aria-expanded` is browser-maintained via the implicit invoker relationship. The
+The open state is read from the DRAWER's `:popover-open` via `:has()`, not from
+`aria-expanded` on the button: the invoker's expanded state is *implicit* ARIA,
+present in the accessibility tree but never as a DOM attribute (measured in
+Chrome 150), so an attribute selector can never match it. `:has()` cannot tie a
+burger to one specific drawer, so with several drawers on a page every burger
+morphs when any opens -- acceptable for the single-drawer case. The
 implementation plan must include an e2e assertion that this holds in all three
 target engines, since the CSS depends on it and a polyfill would be needed if any
 engine does not set the attribute in the DOM.
@@ -501,7 +507,10 @@ correctly with it enabled.
 - Nav DOM order matches visual order (WCAG 1.3.2, 2.4.3).
 - Burger has a visually-hidden text label, not `aria-label` alone.
 - Burger target is 2.75rem (WCAG 2.5.8 minimum is 24px).
-- `aria-expanded` and `aria-details` are browser-maintained via `popovertarget`.
+- `aria-expanded` and `aria-details` are browser-maintained via `popovertarget`
+  **in the accessibility tree only**. They are implicit ARIA and never appear
+  as DOM attributes (verified in Chrome 150), so CSS and e2e assertions must
+  not select on them. Screen-reader behaviour is unaffected.
 - Escape closes the drawer and returns focus to the burger — platform-supplied.
 - The drawer is a `<nav>` with `aria-label="Component sections"`; it keeps that
   label in both roles, so the accessible name is stable across breakpoints.
@@ -578,7 +587,9 @@ generalised listener to `enhance.js`.
 **Playwright e2e** at 375px, 768px, 1023px, 1024px, 1280px:
 - Drawer opens from burger, closes on backdrop click, closes on Escape.
 - Focus returns to the burger on close.
-- `aria-expanded` flips on the invoker without author JS (all three engines).
+- The burger's bars morph to a cross when the drawer opens, via
+  `:root:has(.ui-drawer:popover-open)`. Do NOT assert `aria-expanded` on the
+  invoker -- it is implicit ARIA and is absent from the DOM.
 - Above 1024px: aside is an in-flow sticky column, burger is hidden.
 - Open the drawer at 768px, resize to 1280px: drawer closes and the aside
   renders as an in-flow sticky column with no top-layer remnant.
@@ -601,7 +612,7 @@ to cover the new rules.
 | Drawer left open across the 1024px boundary | Resolved: generalised `matchMedia` listener in `enhance.js` closes it; covered by unit and e2e tests |
 | `content-visibility` destabilises anchor scrolling | `contain-intrinsic-size` required; e2e asserts anchor landing |
 | Three artefacts drift apart | Parity test extended before markup changes |
-| `aria-expanded` not set in DOM by some engine | E2E asserts it in all three; polyfill only if it fails |
+| `aria-expanded` is implicit ARIA, absent from the DOM in every engine | Confirmed in Chrome 150; open state selects on the drawer's `:popover-open` via `:has()` instead |
 | Full-bleed hurts readability on ultrawide | `.ui-measure` utility on prose; `--ui-shell-max` available per page |
 
 ## Follow-ups (not this spec)

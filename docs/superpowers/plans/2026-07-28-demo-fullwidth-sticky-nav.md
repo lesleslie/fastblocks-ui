@@ -1110,9 +1110,10 @@ def burger(
 
     ``controls`` is the drawer's id and becomes ``popovertarget``. No
     JavaScript is involved: the browser toggles the popover and maintains
-    ``aria-expanded`` on this button through the implicit invoker
-    relationship, which is what `.ui-burger[aria-expanded="true"]` in CSS
-    selects on to morph the bars into a cross.
+    an implicit *expanded* state in the accessibility tree, so screen readers
+    are told whether the drawer is open. That state is NOT a DOM attribute --
+    implicit ARIA never is -- so the visual bars-to-cross morph selects on the
+    drawer's own ``:popover-open`` via ``:has()`` instead.
 
     The accessible name is a visually-hidden `<span>`, not ``aria-label``, so
     the control keeps a name if the stylesheet fails to load.
@@ -1191,18 +1192,22 @@ Inside `@layer components { … }`, after the `.ui-drawer` rules:
     white-space: nowrap;
   }
 
-  /* aria-expanded is browser-maintained via the popovertarget invoker
-     relationship, so the open state needs no author JavaScript to track. */
-  .ui-burger[aria-expanded="true"] .ui-burger__bar:nth-child(1) {
+  /* The open state is selected from the DRAWER's `:popover-open`, NOT from
+     `aria-expanded` on the button. A popovertarget invoker's expanded state is
+     *implicit* ARIA -- it goes into the accessibility tree and is never a DOM
+     content attribute, so an attribute selector can never match it. Measured
+     in Chrome 150: getAttribute("aria-expanded") is null while open. Screen
+     readers still get the state; only CSS cannot see it. */
+  :root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar:nth-child(1) {
     translate: 0 7px;
     rotate: 45deg;
   }
 
-  .ui-burger[aria-expanded="true"] .ui-burger__bar:nth-child(2) {
+  :root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar:nth-child(2) {
     opacity: 0;
   }
 
-  .ui-burger[aria-expanded="true"] .ui-burger__bar:nth-child(3) {
+  :root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar:nth-child(3) {
     translate: 0 -7px;
     rotate: -45deg;
   }
@@ -1939,11 +1944,14 @@ test.describe('drawer below the breakpoint', () => {
     await page.goto(PAGE);
     const burger = page.locator('.ui-burger');
     await expect(burger).toBeVisible();
-    await expect(burger).toHaveAttribute('aria-expanded', 'false');
+    // NOT toHaveAttribute('aria-expanded', ...) -- the invoker's expanded
+    // state is implicit ARIA and never lands in the DOM. Assert the drawer's
+    // own observable state instead.
+    await expect(page.locator('#site-nav')).toBeHidden();
 
     await burger.click();
     await expect(page.locator('#site-nav')).toBeVisible();
-    await expect(burger).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('#site-nav')).toBeVisible();
   });
 
   test('Escape closes the drawer and returns focus to the burger', async ({ page }) => {
@@ -2032,7 +2040,7 @@ test('the sticky bar is reachable in both support paths', async ({ page }) => {
 npx playwright test tests/e2e/demo-layout.spec.js --config=playwright.audit.config.js
 ```
 
-Expected: PASS, 7 passed. If `aria-expanded` assertions fail, the browser is not setting the attribute in the DOM via the invoker relationship — in that case stop and report, because the `.ui-burger[aria-expanded="true"]` CSS depends on it and would need a polyfill.
+Expected: PASS, 7 passed. Do NOT assert `aria-expanded` on the burger — it is implicit ARIA, verified absent from the DOM in Chrome 150. Assert the drawer's `:popover-open` / visibility instead, and assert the bars actually morph (`rotate: 45deg` on the first bar) since that is the behaviour the `:has()` selector exists to produce.
 
 - [ ] **Step 3: Add breakpoint coverage to the accessibility spec**
 
