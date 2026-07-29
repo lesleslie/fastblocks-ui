@@ -486,6 +486,12 @@
           "kind": "keyword_only",
           "name": "active",
           "type": "str | None"
+        },
+        {
+          "default": "true",
+          "kind": "keyword_only",
+          "name": "aria_current",
+          "type": "str"
         }
       ]
     },
@@ -507,6 +513,12 @@
           "kind": "keyword_only",
           "name": "active",
           "type": "str | None"
+        },
+        {
+          "default": "true",
+          "kind": "keyword_only",
+          "name": "aria_current",
+          "type": "str"
         }
       ]
     },

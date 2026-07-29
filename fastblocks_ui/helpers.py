@@ -678,10 +678,17 @@ def menu(
     return _safe(menu_markup)
 
 
+# The enumerated `aria-current` tokens. ARIA treats any unlisted non-null value
+# as `true` rather than rejecting it, so a typo would silently degrade to the
+# generic token instead of failing -- validate here so it fails loudly.
+_ARIA_CURRENT_TOKENS = frozenset({"page", "step", "location", "date", "time", "true"})
+
+
 def nav_list(
     items: list[tuple[object, str]],
     *,
     active: str | None = None,
+    aria_current: str = "true",
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
@@ -697,11 +704,26 @@ def nav_list(
             against each item's raw href, *before* URL sanitisation, so a
             caller comparing against a value they supplied gets the match they
             expect.
+        aria_current: The `aria-current` token for the active item. Defaults
+            to `"true"`, which is the only value that is honest no matter what
+            the hrefs point at -- `breadcrumb()` and `pagination()` hardcode
+            `"page"` because they *are* page navigation, but this component is
+            generic and cannot know. Pass `"page"` for cross-page site nav, or
+            `"location"` for an in-page table of contents whose links only
+            move the viewport; announcing "current page" for a link that never
+            leaves the page is worse than the generic token.
 
     No `<nav>` landmark is emitted: the list is meant to be placed inside one
     the caller already owns (a drawer, an aside), and nesting landmarks here
     would produce a second, unnamed navigation region.
     """
+    if aria_current not in _ARIA_CURRENT_TOKENS:
+        msg = (
+            f"invalid aria-current token {aria_current!r}: expected one of "
+            f"{sorted(_ARIA_CURRENT_TOKENS)}"
+        )
+        raise ValueError(msg)
+
     classes = _flatten_classes("ui-nav-list", class_)
     attr_html = _render_attrs(class_=classes, **attrs)
 
@@ -709,11 +731,12 @@ def nav_list(
     for label, href in items:
         is_active = active is not None and href == active
         link_classes = _flatten_classes("ui-nav-list__link", is_active and "is-active")
-        # `aria-current="page"` alongside the class, matching `pagination()`
-        # and `breadcrumb()`: `is-active` is a purely visual cue, so without
-        # this assistive technology cannot tell which item is current
-        # (WCAG 4.1.2).
-        current_attr = ' aria-current="page"' if is_active else ""
+        # `aria-current` alongside the class: `is-active` is a purely visual
+        # cue, so without this assistive technology cannot tell which item is
+        # current (WCAG 4.1.2). Same reasoning as `pagination()` and
+        # `breadcrumb()`; the token is a parameter here because those two know
+        # they navigate pages and this one does not.
+        current_attr = f' aria-current="{aria_current}"' if is_active else ""
         rendered.append(
             f'<li class="ui-nav-list__item">'
             f'<a class="{link_classes}" href="{escape(_safe_url(href), quote=True)}"'
@@ -728,6 +751,7 @@ def nav_group(
     groups: list[tuple[object, list[tuple[object, str]]]],
     *,
     active: str | None = None,
+    aria_current: str = "true",
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
@@ -737,6 +761,8 @@ def nav_group(
         groups: List of (label, items) tuples, where `items` is a `nav_list()`
             item list.
         active: Forwarded to every group's `nav_list()`.
+        aria_current: Forwarded to every group's `nav_list()`. See there for
+            why the default is the generic `"true"` rather than `"page"`.
 
     `class_` and `**attrs` land on one outer `<div class="ui-nav-groups">`
     rather than on each group: applying them per group would emit N elements
@@ -756,7 +782,7 @@ def nav_group(
         rendered.append(
             f'<div class="ui-nav-group">'
             f'<p class="ui-nav-group__label">{_render_fragment(label)}</p>'
-            f"{nav_list(items, active=active)}"
+            f"{nav_list(items, active=active, aria_current=aria_current)}"
             f"</div>"
         )
 

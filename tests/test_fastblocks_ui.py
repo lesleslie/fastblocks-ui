@@ -1202,7 +1202,10 @@ class TestContrastGateActuallyRuns(unittest.TestCase):
 
     def test_parser_finds_base_fills_in_both_themes(self) -> None:
         css = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
-        for selector, label in ((":root {", "light"), ('[data-theme="dark"] {', "dark")):
+        for selector, label in (
+            (":root {", "light"),
+            ('[data-theme="dark"] {', "dark"),
+        ):
             block = TestColorTokenContrastRegression._extract_block(css, selector)
             tokens = TestColorTokenContrastRegression._tokens(block)
             missing = [
@@ -1591,13 +1594,22 @@ class TestSafeCssLength(unittest.TestCase):
 
     def test_accepts_every_supported_unit(self):
         for value in (
-            "0", "16px", "1.5rem", "2em", "40ch", "3ex",
-            "50vw", "100vh", "10vmin", "10vmax", "75%", "-2rem", ".5rem",
+            "0",
+            "16px",
+            "1.5rem",
+            "2em",
+            "40ch",
+            "3ex",
+            "50vw",
+            "100vh",
+            "10vmin",
+            "10vmax",
+            "75%",
+            "-2rem",
+            ".5rem",
         ):
             with self.subTest(value=value):
-                self.assertEqual(
-                    fastblocks_ui.helpers._safe_css_length(value), value
-                )
+                self.assertEqual(fastblocks_ui.helpers._safe_css_length(value), value)
 
     def test_strips_surrounding_whitespace(self):
         self.assertEqual(fastblocks_ui.helpers._safe_css_length("  16rem  "), "16rem")
@@ -1719,22 +1731,56 @@ class TestNavListHelpers(unittest.TestCase):
         )
 
     def test_nav_list_marks_active_item(self):
+        # Deliberately two assertions on class/href only: coupling this test to
+        # attribute *emission order* would break it on a semantically identical
+        # reordering. The aria-current half is covered separately below.
         markup = fastblocks_ui.nav_list([("A", "#a"), ("B", "#b")], active="#b")
-        self.assertIn(
-            'class="ui-nav-list__link is-active" href="#b" aria-current="page"', markup
-        )
+        self.assertIn('class="ui-nav-list__link is-active" href="#b"', markup)
         self.assertIn('class="ui-nav-list__link" href="#a"', markup)
 
     def test_nav_list_exposes_the_active_item_to_assistive_tech(self):
         # `is-active` is a visual cue only; without `aria-current` a screen
-        # reader gets no signal which item is current (WCAG 4.1.2). Matches
-        # `pagination()` and `breadcrumb()`.
+        # reader gets no signal which item is current (WCAG 4.1.2).
         markup = fastblocks_ui.nav_list([("A", "#a"), ("B", "#b")], active="#b")
-        self.assertEqual(markup.count('aria-current="page"'), 1)
+        self.assertEqual(markup.count('aria-current="true"'), 1)
+
+    def test_nav_list_aria_current_defaults_to_the_generic_token(self):
+        # `nav_list` is generic: it cannot know whether hrefs are pages or
+        # in-page anchors, so the default must be the one token that is never
+        # a false statement. Announcing "current page" for a fragment link
+        # that only scrolls is worse than announcing "current".
+        markup = fastblocks_ui.nav_list([("A", "#a")], active="#a")
+        self.assertIn('aria-current="true"', markup)
+        self.assertNotIn('aria-current="page"', markup)
+
+    def test_nav_list_accepts_a_specific_aria_current_token(self):
+        for token in ("page", "location", "step"):
+            with self.subTest(token=token):
+                markup = fastblocks_ui.nav_list(
+                    [("A", "#a")], active="#a", aria_current=token
+                )
+                self.assertIn(f'aria-current="{token}"', markup)
+
+    def test_nav_list_rejects_an_unenumerated_aria_current_token(self):
+        # ARIA treats any unlisted non-null value as `true`, so a typo would
+        # silently degrade rather than fail. Fail loudly instead.
+        with self.assertRaises(ValueError):
+            fastblocks_ui.nav_list([("A", "#a")], active="#a", aria_current="pgae")
 
     def test_nav_list_omits_aria_current_when_nothing_is_active(self):
         markup = fastblocks_ui.nav_list([("A", "#a"), ("B", "#b")])
         self.assertNotIn("aria-current", markup)
+
+    def test_nav_list_accepts_custom_class_and_attrs(self):
+        markup = fastblocks_ui.nav_list([], class_="extra", id="toc")
+        self.assertIn('class="ui-nav-list extra"', markup)
+        self.assertIn('id="toc"', markup)
+
+    def test_nav_group_forwards_the_aria_current_token(self):
+        markup = fastblocks_ui.nav_group(
+            [("G", [("A", "#a")])], active="#a", aria_current="location"
+        )
+        self.assertIn('aria-current="location"', markup)
 
     def test_nav_list_neutralises_dangerous_urls(self):
         markup = fastblocks_ui.nav_list([("X", "javascript:alert(1)")])
