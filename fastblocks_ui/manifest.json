@@ -469,6 +469,48 @@
       ]
     },
     {
+      "class_name": "ui-nav-groups",
+      "codegen": false,
+      "description": "Labelled groups of vertical navigation links.",
+      "helper": "nav_group",
+      "name": "nav_group",
+      "params": [
+        {
+          "kind": "positional_or_keyword",
+          "name": "groups",
+          "required": true,
+          "type": "list[tuple[object, list[tuple[object, str]]]]"
+        },
+        {
+          "default": null,
+          "kind": "keyword_only",
+          "name": "active",
+          "type": "str | None"
+        }
+      ]
+    },
+    {
+      "class_name": "ui-nav-list",
+      "codegen": false,
+      "description": "Vertical navigation list for sidebars and drawers.",
+      "helper": "nav_list",
+      "name": "nav_list",
+      "params": [
+        {
+          "kind": "positional_or_keyword",
+          "name": "items",
+          "required": true,
+          "type": "list[tuple[object, str]]"
+        },
+        {
+          "default": null,
+          "kind": "keyword_only",
+          "name": "active",
+          "type": "str | None"
+        }
+      ]
+    },
+    {
       "class_name": "ui-navbar",
       "codegen": false,
       "description": "Navigation bar with brand and menu items.",

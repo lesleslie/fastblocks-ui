@@ -35,6 +35,8 @@ __all__ = [
     "level",
     "media",
     "menu",
+    "nav_group",
+    "nav_list",
     "navbar",
     "pagination",
     "progress",
@@ -674,6 +676,85 @@ def menu(
         )
         return _safe(f"<ui-menu{host_attr_html}>{menu_markup}</ui-menu>")
     return _safe(menu_markup)
+
+
+def nav_list(
+    items: list[tuple[object, str]],
+    *,
+    active: str | None = None,
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    """Render a vertical navigation list (`<ul class="ui-nav-list">`).
+
+    This is the in-flow sidebar list, not the dropdown: `menu()` renders
+    `.ui-menu`, which is `position: absolute` and overlays the page. The two
+    are unrelated despite both being navigation.
+
+    Args:
+        items: List of (label, href) tuples.
+        active: Href of the current item, marked with `is-active`. Matched
+            against each item's raw href, *before* URL sanitisation, so a
+            caller comparing against a value they supplied gets the match they
+            expect.
+
+    No `<nav>` landmark is emitted: the list is meant to be placed inside one
+    the caller already owns (a drawer, an aside), and nesting landmarks here
+    would produce a second, unnamed navigation region.
+    """
+    classes = _flatten_classes("ui-nav-list", class_)
+    attr_html = _render_attrs(class_=classes, **attrs)
+
+    rendered: list[str] = []
+    for label, href in items:
+        is_active = active is not None and href == active
+        link_classes = _flatten_classes("ui-nav-list__link", is_active and "is-active")
+        rendered.append(
+            f'<li class="ui-nav-list__item">'
+            f'<a class="{link_classes}" href="{escape(_safe_url(href), quote=True)}">'
+            f"{_render_fragment(label)}</a></li>"
+        )
+
+    return _safe(f"<ul{attr_html}>{''.join(rendered)}</ul>")
+
+
+def nav_group(
+    groups: list[tuple[object, list[tuple[object, str]]]],
+    *,
+    active: str | None = None,
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    """Render labelled groups of navigation links.
+
+    Args:
+        groups: List of (label, items) tuples, where `items` is a `nav_list()`
+            item list.
+        active: Forwarded to every group's `nav_list()`.
+
+    `class_` and `**attrs` land on one outer `<div class="ui-nav-groups">`
+    rather than on each group: applying them per group would emit N elements
+    sharing whatever `id` the caller passed, which is invalid HTML and breaks
+    `document.getElementById`.
+
+    The label is a `<p>`, not a heading: these are section dividers inside a
+    navigation landmark, and emitting headings here would inject entries into
+    the document outline that do not correspond to page sections. Same
+    reasoning as `_heading_tag`'s `<p>` default.
+    """
+    classes = _flatten_classes("ui-nav-groups", class_)
+    attr_html = _render_attrs(class_=classes, **attrs)
+
+    rendered: list[str] = []
+    for label, items in groups:
+        rendered.append(
+            f'<div class="ui-nav-group">'
+            f'<p class="ui-nav-group__label">{_render_fragment(label)}</p>'
+            f"{nav_list(items, active=active)}"
+            f"</div>"
+        )
+
+    return _safe(f"<div{attr_html}>{''.join(rendered)}</div>")
 
 
 # =============================================================================

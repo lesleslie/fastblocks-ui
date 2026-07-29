@@ -1707,3 +1707,64 @@ class TestUtilityClassesAreDocumented(unittest.TestCase):
         for class_name in self._utility_classes():
             with self.subTest(class_name=class_name):
                 self.assertIn(f".{class_name}", css)
+
+
+class TestNavListHelpers(unittest.TestCase):
+    def test_nav_list_renders_items(self):
+        markup = fastblocks_ui.nav_list([("Container", "#container")])
+        self.assertIn('<ul class="ui-nav-list">', markup)
+        self.assertIn('<li class="ui-nav-list__item">', markup)
+        self.assertIn(
+            '<a class="ui-nav-list__link" href="#container">Container</a>', markup
+        )
+
+    def test_nav_list_marks_active_item(self):
+        markup = fastblocks_ui.nav_list([("A", "#a"), ("B", "#b")], active="#b")
+        self.assertIn('class="ui-nav-list__link is-active" href="#b"', markup)
+        self.assertIn('class="ui-nav-list__link" href="#a"', markup)
+
+    def test_nav_list_neutralises_dangerous_urls(self):
+        markup = fastblocks_ui.nav_list([("X", "javascript:alert(1)")])
+        self.assertNotIn("javascript:", markup)
+        self.assertIn('href="#"', markup)
+
+    def test_nav_list_escapes_labels(self):
+        markup = fastblocks_ui.nav_list([("<script>", "#a")])
+        self.assertNotIn("<script>", markup)
+
+    def test_nav_list_empty_renders_empty_ul(self):
+        self.assertEqual(fastblocks_ui.nav_list([]), '<ul class="ui-nav-list"></ul>')
+
+    def test_nav_group_renders_label_and_list(self):
+        markup = fastblocks_ui.nav_group([("Layout", [("Container", "#container")])])
+        self.assertIn('<div class="ui-nav-groups">', markup)
+        self.assertIn('<div class="ui-nav-group">', markup)
+        self.assertIn('<p class="ui-nav-group__label">Layout</p>', markup)
+
+    def test_nav_group_attrs_land_on_the_wrapper_only_once(self):
+        # Regression: applying **attrs per group emitted N elements sharing
+        # one id, which is invalid HTML and breaks getElementById.
+        markup = fastblocks_ui.nav_group(
+            [("A", [("x", "#x")]), ("B", [("y", "#y")])], id="nav-groups"
+        )
+        self.assertEqual(markup.count('id="nav-groups"'), 1)
+        self.assertEqual(markup.count('class="ui-nav-group"'), 2)
+
+    def test_nav_group_custom_class_lands_on_the_wrapper(self):
+        markup = fastblocks_ui.nav_group([("A", [])], class_="extra")
+        self.assertIn('class="ui-nav-groups extra"', markup)
+        # Only on the wrapper: the per-group design this rejects would have
+        # copied the caller's class onto every `.ui-nav-group` too.
+        self.assertNotIn('class="ui-nav-group extra"', markup)
+
+    def test_nav_group_propagates_active(self):
+        markup = fastblocks_ui.nav_group([("G", [("A", "#a")])], active="#a")
+        self.assertIn("is-active", markup)
+
+    def test_nav_helpers_return_safe_html(self):
+        self.assertIsInstance(
+            fastblocks_ui.nav_list([]), fastblocks_ui.helpers.SafeHTML
+        )
+        self.assertIsInstance(
+            fastblocks_ui.nav_group([]), fastblocks_ui.helpers.SafeHTML
+        )

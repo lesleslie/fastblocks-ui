@@ -781,6 +781,48 @@
     background: var(--ui-color-surface-muted);
     outline: none;
   }
+
+  /* Vertical in-flow navigation list. Distinct from `.ui-menu`, which is an
+     absolutely-positioned dropdown -- see nav_list()'s docstring. */
+  .ui-nav-groups {
+    display: block;
+  }
+
+  .ui-nav-group + .ui-nav-group {
+    margin-block-start: var(--ui-space-4);
+  }
+
+  .ui-nav-group__label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--ui-color-text-muted);
+    margin: 0 0 var(--ui-space-2);
+  }
+
+  .ui-nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--ui-space-1);
+  }
+
+  .ui-nav-list__link {
+    display: block;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-color-text);
+    text-decoration: none;
+  }
+
+  .ui-nav-list__link:hover,
+  .ui-nav-list__link:focus-visible,
+  .ui-nav-list__link.is-active {
+    background: var(--ui-color-surface-muted);
+    color: var(--ui-color-text-strong);
+  }
 }
 
 /* FastBlocks UI Layout System
