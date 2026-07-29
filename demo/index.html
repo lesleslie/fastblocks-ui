@@ -309,6 +309,14 @@
     white-space: nowrap;
     border: 0;
   }
+
+  /* Caps line length for readable prose. Belongs here rather than with the
+     layout components: `.ui-shell` is deliberately full-bleed, so restoring a
+     comfortable measure is an opt-in applied to the text that needs it, not a
+     property of the page grid. */
+  .ui-measure {
+    max-inline-size: var(--ui-measure-size, 72ch);
+  }
 }
 
 @layer components {
@@ -848,9 +856,6 @@
     gap: var(--ui-space-6);
   }
 
-  .ui-measure {
-    max-inline-size: var(--ui-measure-size, 72ch);
-  }
 
   /* The hero is full-bleed now, so headlines wrap at genuinely large widths;
      `balance` keeps the last line from stranding a single word. */

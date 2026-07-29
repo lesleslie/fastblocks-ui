@@ -64,9 +64,6 @@
     gap: var(--ui-space-6);
   }
 
-  .ui-measure {
-    max-inline-size: var(--ui-measure-size, 72ch);
-  }
 
   /* The hero is full-bleed now, so headlines wrap at genuinely large widths;
      `balance` keeps the last line from stranding a single word. */

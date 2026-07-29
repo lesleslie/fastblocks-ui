@@ -42,4 +42,12 @@
     white-space: nowrap;
     border: 0;
   }
+
+  /* Caps line length for readable prose. Belongs here rather than with the
+     layout components: `.ui-shell` is deliberately full-bleed, so restoring a
+     comfortable measure is an opt-in applied to the text that needs it, not a
+     property of the page grid. */
+  .ui-measure {
+    max-inline-size: var(--ui-measure-size, 72ch);
+  }
 }

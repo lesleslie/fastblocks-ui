@@ -40,6 +40,21 @@ This page is generated from `fastblocks_ui/manifest.json`. Keep the manifest and
 | pagination | `ui-pagination` | `pagination()` | Pagination links with current page indicator. |
 | validation_summary | `ui-validation-summary` | `validation_summary()` | Aggregated form-error summary linking to individual fields. |
 
+## Utilities
+
+Single-purpose classes in `@layer utilities`, so they always win over component
+rules. Utilities have no Python helper and no manifest entry -- they are applied
+directly to whatever element needs them.
+
+| Class | Purpose |
+| ----- | ------- |
+| `ui-stack` | Vertical grid with a uniform gap. `data-space="sm"` tightens it. |
+| `ui-cluster` | Horizontal wrapping flex row, vertically centred. |
+| `ui-surface` | Panel background, border, radius, and shadow. `data-elevated` raises it. |
+| `ui-muted` | De-emphasised text colour. |
+| `ui-visually-hidden` | Hides content visually while leaving it available to assistive tech. |
+| `ui-measure` | Caps line length for readable prose. Override with `--ui-measure-size`. |
+
 ## State Modifiers
 
 ### Color Modifiers

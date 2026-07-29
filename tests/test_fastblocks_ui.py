@@ -1644,3 +1644,66 @@ class TestShellStyleMergeSpellings(unittest.TestCase):
                 self.assertEqual(markup.count("style="), 1)
                 self.assertIn("--ui-shell-max:120rem", markup)
                 self.assertIn("color:red", markup)
+
+
+class TestUtilityClassesAreDocumented(unittest.TestCase):
+    """`ui-*` is the stable public namespace, but only manifest *components*
+    were gated -- `TestManifestContract` walks manifest.json, and utilities
+    have no manifest entry by design (no helper, applied directly). That left
+    six public classes shipping with no documentation and nothing to catch a
+    seventh. This closes that gap from the CSS side instead."""
+
+    def _utility_classes(self):
+        import re
+
+        css = (
+            Path(__file__).resolve().parents[1]
+            / "fastblocks_ui"
+            / "static"
+            / "css"
+            / "utilities.css"
+        ).read_text(encoding="utf-8")
+        # Comments are stripped first: prose legitimately references other
+        # components by class name (`.ui-shell`), and a passing mention must
+        # not register as a utility this file defines.
+        css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+        # The attribute qualifier is dropped by the pattern itself, so
+        # `.ui-stack[data-space="sm"]` and `.ui-stack` collapse to one name.
+        return sorted({m.group(1) for m in re.finditer(r"\.(ui-[a-z0-9-]+)", css)})
+
+    def test_utilities_css_defines_the_expected_surface(self):
+        # Pinned so adding a utility is a deliberate act that updates the docs
+        # in the same change, rather than something noticed much later.
+        self.assertEqual(
+            self._utility_classes(),
+            [
+                "ui-cluster",
+                "ui-measure",
+                "ui-muted",
+                "ui-stack",
+                "ui-surface",
+                "ui-visually-hidden",
+            ],
+        )
+
+    def test_every_utility_class_is_documented(self):
+        doc = (
+            Path(__file__).resolve().parents[1] / "docs" / "components.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("## Utilities", doc)
+        for class_name in self._utility_classes():
+            with self.subTest(class_name=class_name):
+                self.assertIn(
+                    f"| `{class_name}` |",
+                    doc,
+                    f"{class_name!r} missing from the Utilities table in "
+                    "docs/components.md",
+                )
+
+    def test_every_utility_class_is_styled_in_the_shipped_bundle(self):
+        import fastblocks_ui
+
+        css = Path(fastblocks_ui.get_css_path()).read_text(encoding="utf-8")
+        for class_name in self._utility_classes():
+            with self.subTest(class_name=class_name):
+                self.assertIn(f".{class_name}", css)
