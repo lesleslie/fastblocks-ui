@@ -1113,6 +1113,14 @@
      ========================================================================= */
   :root {
     --ui-navbar-height: 3.5rem;
+  }
+
+  /* Scoped, not bare `:root`. Both declarations below are global side effects
+     -- they change anchor landing positions and reserve a scrollbar track for
+     EVERY page that loads this bundle, including ones with no sticky bar. They
+     exist only to compensate for the fixed bar, so they apply only where one
+     is present. */
+  :root:has(> body > .ui-navbar.is-sticky) {
     /* One declaration replaces per-section `scroll-margin-top`: without it
        every in-page anchor lands underneath the fixed bar. */
     scroll-padding-top: calc(var(--ui-navbar-height) + var(--ui-space-4));

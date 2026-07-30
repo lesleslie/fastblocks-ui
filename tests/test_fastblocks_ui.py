@@ -2178,7 +2178,10 @@ class TestStickyLayoutCss(unittest.TestCase):
 
     def test_reveal_is_guarded_by_supports(self):
         self.assertIn("@supports (animation-timeline: view())", self.css)
-        self.assertIn("timeline-scope", self.css)
+        # Comment-stripped: the word `timeline-scope` also appears in the
+        # comment explaining why it is needed, so a bundle-wide search would
+        # pass with the declaration gone.
+        self.assertIn("timeline-scope: --ui-page-hero", self.rules_only)
 
     def test_fallback_reserves_space_for_the_fixed_bar(self):
         # Firefox stable does not support scroll-driven animations, so the
@@ -2186,7 +2189,14 @@ class TestStickyLayoutCss(unittest.TestCase):
         self.assertIn("padding-block-start: var(--ui-navbar-height)", self.css)
 
     def test_scroll_padding_accounts_for_the_fixed_bar(self):
-        self.assertIn("scroll-padding-top", self.css)
+        # Against the rule body, not the whole bundle: "scroll-padding-top"
+        # also appears in the `view-timeline-inset` comment, so a bundle-wide
+        # assertIn passed even with the declaration deleted -- and every
+        # in-page anchor would then land under the fixed bar untested.
+        self.assertIn(
+            "scroll-padding-top: calc(var(--ui-navbar-height)",
+            self._rule_body(":root:has(> body > .ui-navbar.is-sticky)"),
+        )
 
     def test_reveal_is_driven_by_an_animation_not_a_transition(self):
         # NOT `assertIn("prefers-reduced-motion")` -- base.css already contains
@@ -2229,7 +2239,7 @@ class TestStickyLayoutCss(unittest.TestCase):
         # A named view timeline declared by MORE THAN ONE element in scope
         # resolves to an inactive timeline, and an animation attached to an
         # inactive timeline applies none of its keyframes. Measured in Chrome
-        # 142 on a two-subject page: `bar.getAnimations()[0].timeline` is
+        # 150 on a two-subject page: `bar.getAnimations()[0].timeline` is
         # `null`, and the bar computes `opacity: 1` / `translate: none` -- the
         # un-animated values, not the `to` keyframe. With one subject the same
         # page yields a live `ViewTimeline` and `opacity: 0`.
