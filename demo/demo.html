@@ -311,6 +311,14 @@
     white-space: nowrap;
     border: 0;
   }
+
+  /* Caps line length for readable prose. Belongs here rather than with the
+     layout components: `.ui-shell` is deliberately full-bleed, so restoring a
+     comfortable measure is an opt-in applied to the text that needs it, not a
+     property of the page grid. */
+  .ui-measure {
+    max-inline-size: var(--ui-measure-size, 72ch);
+  }
 }
 
 @layer components {
@@ -782,6 +790,243 @@
     background: var(--ui-color-surface-muted);
     outline: none;
   }
+
+  /* Vertical in-flow navigation list. Distinct from `.ui-menu`, which is an
+     absolutely-positioned dropdown -- see nav_list()'s docstring. */
+  .ui-nav-groups {
+    display: block;
+  }
+
+  .ui-nav-group + .ui-nav-group {
+    margin-block-start: var(--ui-space-4);
+  }
+
+  .ui-nav-group__label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--ui-color-text-muted);
+    margin: 0 0 var(--ui-space-2);
+  }
+
+  .ui-nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--ui-space-1);
+  }
+
+  .ui-nav-list__link {
+    display: block;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-color-text);
+    text-decoration: none;
+  }
+
+  .ui-nav-list__link:hover,
+  .ui-nav-list__link:focus-visible,
+  .ui-nav-list__link.is-active {
+    background: var(--ui-color-surface-muted);
+    color: var(--ui-color-text-strong);
+  }
+
+  /* Off-canvas panel on the Popover API. The browser supplies light-dismiss,
+     Escape, top-layer stacking, focus return, and the implicit
+     aria-expanded/aria-details relationship with the invoker -- so unlike
+     `.ui-menu` there is no z-index guess and no JS toggle here.
+
+     `overscroll-behavior: contain` stops a scroll gesture that reaches the
+     panel's end from chaining to the page behind it. */
+  .ui-drawer {
+    position: fixed;
+    /* The UA sheet gives every `[popover]` element
+       `inset: 0; width: fit-content; height: fit-content; margin: auto`, and
+       both resets below are load-bearing because of it:
+
+       Inline axis -- with `left: 0`, `right: 0`, `margin: 0` and a definite
+       `inline-size`, the box is over-constrained, and CSS 2.1 s10.3.7 resolves
+       that in LTR by *ignoring `right`*. Without `inset-inline-start: auto`
+       the end-side drawer lays out flush against the START edge and slides in
+       from the wrong side. `.is-start` below only escapes this because it
+       sets `inset-inline-end: auto` explicitly.
+
+       Block axis -- `top: 0` + `bottom: 0` + `height: fit-content` is
+       over-constrained the same way (s10.6.4 ignores `bottom`), so
+       `inset-block: 0` alone yields a content-height panel, not a full-height
+       one. `block-size: auto` lets both insets take effect. */
+    inset-block: 0;
+    block-size: auto;
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    inline-size: min(20rem, 85vw);
+    padding: var(--ui-space-4);
+    margin: 0;
+    border: 0;
+    border-inline-start: var(--ui-border-width) solid var(--ui-color-border);
+    background: var(--ui-color-surface-raised);
+    color: var(--ui-color-text);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    translate: 100% 0;
+    transition:
+      translate 0.25s ease,
+      overlay 0.25s allow-discrete,
+      display 0.25s allow-discrete;
+  }
+
+  .ui-drawer.is-start {
+    inset-inline-end: auto;
+    inset-inline-start: 0;
+    border-inline-start: 0;
+    border-inline-end: var(--ui-border-width) solid var(--ui-color-border);
+    translate: -100% 0;
+  }
+
+  /* Equal specificity to `.ui-drawer.is-start` above (one class + one
+     pseudo-class vs two classes), so this must stay after it to win. */
+  .ui-drawer:popover-open {
+    translate: 0 0;
+  }
+
+  /* Must follow the `:popover-open` rule: equal specificity means source order
+     decides, and an earlier @starting-style block is simply overridden. */
+  @starting-style {
+    .ui-drawer:popover-open {
+      translate: 100% 0;
+    }
+
+    .ui-drawer.is-start:popover-open {
+      translate: -100% 0;
+    }
+  }
+
+  /* Transparent is the *base* value, with the scrim on `:popover-open`, so the
+     backdrop fades both ways. With the opaque value in the base rule the exit
+     had nothing to animate towards: once `:popover-open` stopped matching, the
+     backdrop reverted to full opacity, sat there for the 250ms discrete
+     `overlay`/`display` window while the panel slid out, then snapped away.
+
+     Colour matches `.ui-dialog::backdrop` -- two overlay components on the
+     same page should not dim the page to two different shades. */
+  .ui-drawer::backdrop {
+    background: rgba(15, 23, 42, 0);
+    transition:
+      background-color 0.25s,
+      overlay 0.25s allow-discrete,
+      display 0.25s allow-discrete;
+  }
+
+  .ui-drawer:popover-open::backdrop {
+    background: rgba(15, 23, 42, 0.55);
+  }
+
+  /* Still required despite the base rule being transparent: an element
+     entering the top layer needs an explicit start value for the transition
+     to have anything to interpolate from. */
+  @starting-style {
+    .ui-drawer:popover-open::backdrop {
+      background: rgba(15, 23, 42, 0);
+    }
+  }
+
+  /* Only the backdrop needs this. base.css already neutralises transitions
+     under `prefers-reduced-motion` with `transition-duration: 0.01ms
+     !important`, but its selector list is `*, *::before, *::after`, and
+     `::backdrop` is none of those. Same duration as base.css. */
+  @media (prefers-reduced-motion: reduce) {
+    .ui-drawer::backdrop {
+      transition-duration: 0.01ms;
+    }
+  }
+
+  /* `position: relative` here is load-bearing, not decorative:
+     `.ui-burger__label` below is `position: absolute`, and without a
+     positioned ancestor it resolves against whatever positioned element
+     happens to sit further up the page. That is exactly the `.ui-menu`
+     footgun this library documents at length -- do not remove it. */
+  .ui-burger {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    /* 2.75rem clears the WCAG 2.5.8 24px minimum target size with margin. */
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ui-radius-md);
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .ui-burger__bar {
+    display: block;
+    block-size: 2px;
+    inline-size: 1.25rem;
+    /* Auto margins, not `align-items`, do the cross-axis centring here: the
+       bar has a definite `inline-size`, so the flex default would leave it at
+       the start edge (and the UA sheet's `align-items: flex-start` on
+       `button` pins it there outright). */
+    margin-inline: auto;
+    background: currentColor;
+    transition:
+      translate 0.2s ease,
+      rotate 0.2s ease,
+      opacity 0.2s ease;
+  }
+
+  .ui-burger__label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* The open state is selected from the DRAWER's `:popover-open`, not from
+     `aria-expanded` on the button.
+
+     A `popovertarget` invoker does get an `expanded` state -- but it is
+     *implicit* ARIA, computed straight into the accessibility tree and never
+     reflected as a DOM content attribute. Measured in Chrome 150 with a
+     popover open: `getAttribute("aria-expanded")` is `null` and
+     `button.matches('[aria-expanded="true"]')` is `false`. CSS attribute
+     selectors match content attributes, so `.ui-burger[aria-expanded="true"]`
+     can never match and the bars would stay horizontal forever. Same shape as
+     `<summary>`, where authors must write `details[open] summary` rather than
+     selecting the implicit `aria-expanded`.
+
+     Screen readers still get the expanded state -- that half was never in
+     doubt, and it is why no author JavaScript is needed here.
+
+     KNOWN LIMITATION: `:has()` cannot express "the burger whose
+     `popovertarget` equals THIS drawer's id", so on a page with more than one
+     drawer every burger morphs whenever any drawer opens. Correct for the
+     single-drawer case this component exists to serve.
+
+     The 7px offsets are the bar pitch -- 2px bar + 5px gap -- so each outer
+     bar travels exactly onto the middle bar before rotating and the two
+     strokes cross at a single point. Change either value above and these
+     have to follow. */
+  :root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar:nth-child(1) {
+    translate: 0 7px;
+    rotate: 45deg;
+  }
+
+  :root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar:nth-child(2) {
+    opacity: 0;
+  }
+
+  :root:has(.ui-drawer:popover-open) .ui-burger .ui-burger__bar:nth-child(3) {
+    translate: 0 -7px;
+    rotate: -45deg;
+  }
 }
 
 /* FastBlocks UI Layout System
@@ -820,6 +1065,227 @@
 
   .ui-container.is-fullhd {
     max-width: none;
+  }
+
+  /* =========================================================================
+     SHELL
+     ========================================================================= */
+  /* Full-bleed page shell. `--ui-shell-max` defaults to `none` so the shell is
+     genuinely edge-to-edge; set it per page to cap width on very wide displays.
+     Readable line length is a separate opt-in (`.ui-measure`) so component
+     demos keep the full width while prose does not. */
+  .ui-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ui-space-6);
+    padding-inline: var(--ui-space-4);
+    padding-block: var(--ui-space-6);
+    max-inline-size: var(--ui-shell-max, none);
+    margin-inline: auto;
+  }
+
+  /* `minmax(0, 1fr)`, not the implicit `auto`: an auto-sized track floors at
+     its widest child's min-content width and applies that floor to every
+     sibling, so one un-shrinkable component stretches every section past the
+     viewport. Same fix as `.demo-content` carried into the public shell. */
+  .ui-shell-main {
+    min-inline-size: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ui-space-6);
+  }
+
+
+  /* The hero is full-bleed now, so headlines wrap at genuinely large widths;
+     `balance` keeps the last line from stranding a single word. */
+  .ui-title,
+  .ui-subtitle {
+    text-wrap: balance;
+  }
+
+  @media (min-width: 1024px) {
+    .ui-shell {
+      grid-template-columns: minmax(0, 1fr) var(--ui-shell-aside-width, 16rem);
+      align-items: start;
+    }
+  }
+
+  /* =========================================================================
+     STICKY NAVBAR + ASIDE
+     ========================================================================= */
+  :root {
+    --ui-navbar-height: 3.5rem;
+  }
+
+  /* Scoped, not bare `:root`. Both declarations below are global side effects
+     -- they change anchor landing positions and reserve a scrollbar track for
+     EVERY page that loads this bundle, including ones with no sticky bar. They
+     exist only to compensate for the fixed bar, so they apply only where one
+     is present. */
+  :root:has(> body > .ui-navbar.is-sticky) {
+    /* One declaration replaces per-section `scroll-margin-top`: without it
+       every in-page anchor lands underneath the fixed bar. */
+    scroll-padding-top: calc(var(--ui-navbar-height) + var(--ui-space-4));
+    /* Reserve the classic scrollbar's track at all times, so the page cannot
+       jump sideways when the document's height crosses the viewport's -- e.g.
+       as `content-visibility` sections render in. A fixed bar makes that
+       shift especially visible, because its `inset-inline: 0` resolves
+       against the initial containing block and moves with it. */
+    scrollbar-gutter: stable;
+  }
+
+  /* `min-block-size`, not `block-size`. `.ui-navbar` sets `flex-wrap: wrap` on
+     purpose -- its own comment calls wrapping "the CSS-first answer to a
+     narrow viewport" -- and an exact height fights that: a wrapped bar
+     overflows its own painted box, leaving the second row of links floating
+     over the page with no background behind them. A floor lets the bar grow
+     instead, and it composes with `.ui-navbar`'s existing `min-height: 3rem`
+     (the same computed property) rather than contradicting it.
+
+     KNOWN LIMITATION: the space reserved on `body` below is a single length,
+     so a bar that does wrap still covers the top of the content.
+     `--ui-navbar-height` is the tuning point for pages whose bar is taller
+     than one row. */
+  .ui-navbar.is-sticky {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: 30;
+    min-block-size: var(--ui-navbar-height);
+  }
+
+  /* DEFAULT, and the fallback path: the bar is always visible and its space is
+     reserved. Firefox stable still has scroll-driven animations behind
+     `layout.css.scroll-driven-animations.enabled` (verified 2026-07-28,
+     Firefox 152), so this branch is what a large share of real users get. It
+     is a supported rendering, not a degraded one -- both paths are tested. */
+  body:has(> .ui-navbar.is-sticky) {
+    padding-block-start: var(--ui-navbar-height);
+  }
+
+  /* Gated on the motion query, NOT on `@supports` alone. base.css's blanket
+     `animation-duration: 0.01ms !important` neutralises every other animation
+     in this bundle, but it does nothing here: `animation-duration` is ignored
+     outright on a progress-based timeline. Measured in Chrome 150 with that
+     exact rule applied, the bar still computed `opacity: 0` / `visibility:
+     hidden` at rest and still reported a live `ViewTimeline` -- a
+     reduced-motion user would have got the whole scroll-linked slide. Note
+     this is a `no-preference` GATE, not a `reduce` override re-declaring a
+     duration; the latter would be dead CSS for the same reason. Opting out
+     lands on the always-visible branch above, which is a tested rendering. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) and (timeline-scope: none) {
+      @media (min-width: 1024px) {
+        /* Scoped to the PAGE-level hero -- the navbar's own sibling -- and not
+           to every `.ui-hero`. A named view timeline declared by more than one
+           element in scope resolves to an INACTIVE timeline, and an animation
+           attached to an inactive timeline applies none of its keyframes.
+           Measured in Chrome 150 on a two-subject page: the animation's
+           `timeline` is `null` and the subject computes its un-animated values
+           (`opacity: 1`, `translate: none`), where the same page with one
+           subject yields a live `ViewTimeline` and `opacity: 0`. This library's
+           own demo renders many `.ui-hero` variants below the fold, so an
+           unscoped declaration would silently disable the reveal on the page
+           the feature exists to serve. */
+        body > .ui-hero {
+          view-timeline-name: --ui-page-hero;
+          view-timeline-axis: block;
+          /* Not decorative. `view-timeline-inset` defaults to `auto`, which
+             means "inset the scrollport by its `scroll-padding`" -- and `:root`
+             above sets `scroll-padding-top` to the bar's own height, so the two
+             declarations in this one feature interact. Left at `auto`, the exit
+             range is already a quarter elapsed before the user scrolls at all:
+             measured in Chrome 150 at rest, the bar computed `opacity: 0.252`
+             and `translate: 0 -74.8%`, a translucent sliver over the hero.
+             Pinning the inset to 0 makes the range start where the page does. */
+          view-timeline-inset: 0;
+        }
+
+        /* `:has(> .ui-hero)` repeats the exact condition that supplies the
+           timeline above, because the reveal is the only thing that ever hides
+           the bar: with no page-level hero the timeline is inactive, the bar
+           stays visible, and dropping the reserved space would bury the first
+           screenful of content under it.
+
+           Without `timeline-scope` a named view timeline is only visible to
+           the hero's own descendants -- the navbar is a sibling, so it could
+           not reference it. */
+        body:has(> .ui-navbar.is-sticky):has(> .ui-hero) {
+          padding-block-start: 0;
+          timeline-scope: --ui-page-hero;
+        }
+
+        /* `animation-timeline` and `animation-range` must follow the
+           `animation` shorthand, which resets every `animation-*` longhand
+           including those two. */
+        .ui-navbar.is-sticky {
+          animation: ui-navbar-reveal linear both;
+          animation-timeline: --ui-page-hero;
+          animation-range: exit 0% exit 100%;
+        }
+      }
+    }
+  }
+
+  @keyframes ui-navbar-reveal {
+    from {
+      opacity: 0;
+      translate: 0 -100%;
+      visibility: hidden;
+    }
+
+    to {
+      opacity: 1;
+      translate: 0 0;
+      visibility: visible;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    /* The same DOM node that is a drawer below this width becomes an ordinary
+       in-flow sticky column here. The UA stylesheet's
+       `[popover]:not(:popover-open) { display: none }` is author-overridable,
+       which is what makes one element, one id, two roles possible -- and
+       keeping one id is what keeps htmx swapping safe. With `.ui-burger`
+       hidden, nothing can open the popover, so the top-layer path is
+       unreachable at this width.
+
+       Every declaration below neutralises one from `.ui-drawer`, which is
+       written for a fixed off-canvas panel: `inset` clears its `inset-block`
+       / `inset-inline-*`, `translate` its off-screen offset, `transition` the
+       slide (left in place, crossing the breakpoint animates the column in
+       and out, and the discrete `display` transition holds the old rendering
+       for its duration), and the two `border-inline-*` zeroes cover both the
+       default and `.is-start` panel edges. Equal-specificity rules such as
+       `.ui-drawer.is-start` lose to these on source order: layout.css is
+       concatenated after components.css inside the same cascade layer. */
+    .ui-shell-aside[popover] {
+      display: block;
+      position: sticky;
+      inset: auto;
+      translate: none;
+      transition: none;
+      inline-size: auto;
+      padding: 0;
+      border-inline-start: 0;
+      border-inline-end: 0;
+      background: none;
+      overscroll-behavior: auto;
+      inset-block-start: calc(var(--ui-navbar-height) + var(--ui-space-4));
+      max-block-size: calc(100vh - var(--ui-navbar-height) - var(--ui-space-8));
+      overflow-y: auto;
+    }
+
+    /* Not dead CSS: a drawer opened below the breakpoint stays in the top
+       layer until something closes it, so a resize across 1024px lands here
+       with the popover still open and a full-page scrim over the column. */
+    .ui-shell-aside[popover]::backdrop {
+      background: none;
+    }
+
+    .ui-burger {
+      display: none;
+    }
   }
 
   /* =========================================================================
@@ -1854,78 +2320,27 @@
   left: var(--ui-space-4);
   top: var(--ui-space-4);
 }
-.demo-topbar {
-  display: flex;
-  justify-content: flex-end;
-  padding: var(--ui-space-3) var(--ui-space-4) 0;
-}
-.demo-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--ui-space-6);
-  max-width: 72rem;
-  margin-inline: auto;
-  padding: var(--ui-space-4) var(--ui-space-4) var(--ui-space-6);
-  align-items: start;
-}
-.demo-sidebar {
+/* The nav skip link exists only above the drawer breakpoint, because below it
+   the target does not exist to skip to: `#site-nav` is a `[popover]`, and the
+   UA rule `[popover]:not(:popover-open) { display: none }` applies until
+   layout.css grants it `display: block` at 1024px. A skip link pointing at a
+   `display: none` target neither scrolls nor moves focus, so it was dead at
+   exactly the widths where "skip to nav" would earn its keep.
+
+   Hiding it there loses nothing: below the breakpoint the nav is reached
+   through the burger, which sits in the sticky bar within a couple of tabs of
+   the page top. Above the breakpoint the nav is a DOM-last sticky column
+   behind 30-odd sections, which is where the link genuinely helps.
+
+   Note axe reports a hidden skip-link target as *incomplete*, not a
+   violation -- a violations-only scan will not catch this class of bug. */
+.demo-skip-link[data-demo-skip="nav"] {
   display: none;
-  border: var(--ui-border-width) solid var(--ui-color-border);
-  border-radius: var(--ui-radius-lg);
-  padding: var(--ui-space-4);
-  background: var(--ui-color-surface-raised);
 }
-.demo-sidebar.is-active {
-  display: block;
-}
-.demo-sidebar-title {
-  display: block;
-  font-weight: 600;
-  color: var(--ui-color-text-strong);
-  text-decoration: none;
-  margin-bottom: var(--ui-space-4);
-}
-.demo-sidebar-group + .demo-sidebar-group {
-  margin-top: var(--ui-space-4);
-}
-.demo-sidebar-heading {
-  font-weight: 600;
-  font-size: 0.8125rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--ui-color-text-muted);
-  margin: 0 0 var(--ui-space-2);
-}
-.demo-sidebar-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--ui-space-1);
-}
-.demo-sidebar-list a {
-  display: block;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--ui-radius-sm);
-  color: var(--ui-color-text);
-  text-decoration: none;
-}
-.demo-sidebar-list a:hover,
-.demo-sidebar-list a:focus-visible {
-  background: var(--ui-color-surface-muted);
-  color: var(--ui-color-text-strong);
-}
-.demo-content {
-  min-width: 0;
-  display: grid;
-  /* `minmax(0, 1fr)`, not the implicit `auto`. An auto-sized grid track
-     floors at the widest item's *min-content* width, and that floor is
-     then applied to every sibling -- so one un-shrinkable component (the
-     pagination row, historically ~419px) stretched all 32 sections past
-     the viewport. `min-width: 0` above only frees this element inside its
-     own parent; it says nothing about how this grid sizes its children. */
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--ui-space-6);
+@media (min-width: 1024px) {
+  .demo-skip-link[data-demo-skip="nav"] {
+    display: revert;
+  }
 }
 .demo-category-title {
   margin: 0;
@@ -1937,7 +2352,17 @@
   border-top: none;
 }
 .demo-section {
-  scroll-margin-top: var(--ui-space-6);
+  /* No `scroll-margin-top` here any more: the bundle's
+     `:root:has(> body > .ui-navbar.is-sticky) { scroll-padding-top }` offsets
+     every anchor on the page from one declaration, including the ones these
+     sections do not own (the navbar brand's `#top`, the skip links). */
+  content-visibility: auto;
+  /* Required alongside `content-visibility: auto`, which applies size
+     containment while a subtree is skipped. With no intrinsic size to fall
+     back on, every offscreen section measures 0px tall, so the scroll
+     position an anchor resolves to is computed against a document that is a
+     fraction of its real height. */
+  contain-intrinsic-size: auto 40rem;
 }
 .demo-section h3 {
   margin-block-end: var(--ui-space-3);
@@ -1957,65 +2382,6 @@
 .demo-bordered + .demo-bordered {
   margin-top: var(--ui-space-2);
 }
-/* Container-query comparison. The panels' fixed widths ARE the demo, so
-   they must not shrink -- but a 31rem panel cannot fit a 375px phone, and
-   left alone it widens every ancestor and overflows the page by ~2x.
-   `max-width: 100%` doesn't help: it resolves against a parent that was
-   itself stretched by this very child, so the constraint is circular.
-
-   Same answer as `.ui-table-container`: give the pair its own scroll
-   container. The panels keep their real widths, the overflow is contained
-   and scrollable, and the comparison stays truthful at every viewport
-   instead of silently collapsing into two identical panels. */
-.cq-compare {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-  gap: var(--ui-space-3);
-  overflow-x: auto;
-}
-.cq-panel {
-  flex: none;
-  border: 1px dashed var(--ui-color-border);
-  padding: var(--ui-space-3);
-}
-.demo-avatar {
-  inline-size: 2.5rem;
-  block-size: 2.5rem;
-  border-radius: 50%;
-  background: var(--ui-color-surface-muted);
-  color: var(--ui-color-text-strong);
-  display: grid;
-  place-items: center;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-@media (min-width: 769px) {
-  .demo-topbar {
-    display: none;
-  }
-  .demo-layout {
-    grid-template-columns: 16rem 1fr;
-    padding-top: var(--ui-space-6);
-  }
-  /* `top` must equal `.demo-layout`'s padding-top (both --ui-space-6).
-     A sticky element scrolls normally until its box reaches the `top`
-     threshold, so any gap between where it starts and where it sticks is
-     visible travel: with top at --ui-space-4 (16px) and the layout
-     padding at --ui-space-6 (32px), the sidebar slid up exactly 16px on
-     the first scroll before locking. Matching them makes it start already
-     at its threshold, so it never moves. max-height follows the same
-     offset on both edges to keep the gap symmetric. */
-  .demo-sidebar {
-    display: block;
-    position: sticky;
-    top: var(--ui-space-6);
-    max-height: calc(100vh - var(--ui-space-6) * 2);
-    overflow-y: auto;
-  }
-}
-
 .demo-swatch-row + .demo-swatch-row {
   margin-top: var(--ui-space-4);
 }
@@ -2057,6 +2423,51 @@
   font-size: 0.6875rem;
   color: var(--ui-color-text-muted);
   overflow-wrap: anywhere;
+}
+
+/* Container-query comparison. The panels' fixed widths ARE the demo, so
+   they must not shrink -- but a 31rem panel cannot fit a 375px phone, and
+   left alone it widens every ancestor and overflows the page by ~2x.
+   `max-width: 100%` doesn't help: it resolves against a parent that was
+   itself stretched by this very child, so the constraint is circular.
+
+   Same answer as `.ui-table-container`: give the pair its own scroll
+   container. The panels keep their real widths, the overflow is contained
+   and scrollable, and the comparison stays truthful at every viewport
+   instead of silently collapsing into two identical panels. */
+.cq-compare {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: var(--ui-space-3);
+  overflow-x: auto;
+}
+.cq-panel {
+  flex: none;
+  border: 1px dashed var(--ui-color-border);
+  padding: var(--ui-space-3);
+}
+/* Only the shell section uses this: it shows escaped markup because a live
+   nested `shell()` would emit a second `<main>`, which is invalid HTML. */
+.demo-code {
+  margin: 0;
+  padding: var(--ui-space-3);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-muted);
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.demo-avatar {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 50%;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-strong);
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 .demo-swatch[data-token="primary-subtle"] { background: var(--ui-color-primary-subtle); }
 .demo-swatch[data-token="primary"] { background: var(--ui-color-primary); }
@@ -2114,7 +2525,7 @@
 <!-- fastblocks_ui.hero("FastBlocks UI", subtitle="HTML/CSS-first components, semantic tokens, htmx-safe fragments, and optional enhancement JavaScript.", variant="primary") -->
 <section class="ui-hero is-primary"><div class="ui-hero-body"><h1 class="ui-title">FastBlocks UI</h1><p class="ui-subtitle">HTML/CSS-first components, semantic tokens, htmx-safe fragments, and optional enhancement JavaScript.</p></div></section>
 <h2 id="cat-layout" class="demo-category-title">Layout</h2><section id="container" class="demo-section" aria-labelledby="container-heading"><h3 id="container-heading">Container</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">A container&#x27;s max-width only matters at full page width, wider than this demo column -- default/fluid/widescreen/fullhd render identically here but differ in a real page.</p><div class="ui-stack"><div class="demo-bordered"><div class="ui-container"><code>Default container -- max-width 1200px.</code></div></div><div class="demo-bordered"><div class="ui-container is-fluid"><code>is-fluid container -- no max-width, always full width.</code></div></div><div class="demo-bordered"><div class="ui-container is-widescreen"><code>is-widescreen container -- max-width 1344px.</code></div></div><div class="demo-bordered"><div class="ui-container is-fullhd"><code>is-fullhd container -- no max-width above the fullhd breakpoint.</code></div></div></div></div></div></section><section id="section" class="demo-section" aria-labelledby="section-heading"><h3 id="section-heading">Section</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Vertical spacing container -- default/medium/large padding.</p><div class="ui-stack"><div class="demo-bordered"><section class="ui-section"><code>Default section padding.</code></section></div><div class="demo-bordered"><section class="ui-section is-medium"><code>is-medium section padding.</code></section></div><div class="demo-bordered"><section class="ui-section is-large"><code>is-large section padding.</code></section></div></div></div></div></section><section id="hero" class="demo-section" aria-labelledby="hero-heading"><h3 id="hero-heading">Hero</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">The banner at the top of this page is a live is-primary hero; here are the remaining color and size variants.</p><div class="ui-stack"><section class="ui-hero is-info is-small"><div class="ui-hero-body"><p class="ui-title">Info</p><p class="ui-subtitle">is-info hero variant.</p></div></section><section class="ui-hero is-success is-small"><div class="ui-hero-body"><p class="ui-title">Success</p><p class="ui-subtitle">is-success hero variant.</p></div></section><section class="ui-hero is-warning is-small"><div class="ui-hero-body"><p class="ui-title">Warning</p><p class="ui-subtitle">is-warning hero variant.</p></div></section><section class="ui-hero is-danger is-small"><div class="ui-hero-body"><p class="ui-title">Danger</p><p class="ui-subtitle">is-danger hero variant.</p></div></section><section class="ui-hero is-light is-small"><div class="ui-hero-body"><p class="ui-title">Light</p><p class="ui-subtitle">is-light hero variant.</p></div></section><section class="ui-hero is-dark is-small"><div class="ui-hero-body"><p class="ui-title">Dark</p><p class="ui-subtitle">is-dark hero variant.</p></div></section><section class="ui-hero is-primary is-medium"><div class="ui-hero-body"><p class="ui-title">Medium hero</p><p class="ui-subtitle">is-medium size.</p></div></section><section class="ui-hero is-primary is-large"><div class="ui-hero-body"><p class="ui-title">Large hero</p><p class="ui-subtitle">is-large size.</p></div></section></div></div></div></section><section id="title" class="demo-section" aria-labelledby="title-heading"><h3 id="title-heading">Title</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Typography title element, sizes 1 (largest) through 6 (smallest).</p><div class="ui-stack"><p class="ui-title is-1">Title, size 1</p><p class="ui-title is-2">Title, size 2</p><p class="ui-title is-3">Title, size 3</p><p class="ui-title is-4">Title, size 4</p><p class="ui-title is-5">Title, size 5</p><p class="ui-title is-6">Title, size 6</p></div></div></div></section><section id="media" class="demo-section" aria-labelledby="media-heading"><h3 id="media-heading">Media</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Image + text media object, image on the start or end side.</p><div class="ui-stack"><div class="ui-media"><div class="ui-media-left"><div class="demo-avatar" aria-hidden="true">AL</div></div><div class="ui-media-content"><strong>Ada Lovelace</strong><p>Posted 2 hours ago.</p></div></div><div class="ui-media"><div class="ui-media-right"><div class="demo-avatar" aria-hidden="true">AL</div></div><div class="ui-media-content"><strong>Alan Turing</strong><p>Posted 5 hours ago.</p></div></div></div></div></div></section><section id="tile" class="demo-section" aria-labelledby="tile-heading"><h3 id="tile-heading">Tile</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Hierarchical ancestor/parent/child tiling for complex nested layouts.</p><div class="ui-stack"><div class="ui-tiles"><div class="ui-tile is-ancestor"><div class="ui-tile is-8 is-parent"><div class="ui-tile is-child"><div class="ui-card"><div class="ui-card__body">Tile A</div></div></div></div><div class="ui-tile is-4 is-parent"><div class="ui-tile is-child"><div class="ui-card"><div class="ui-card__body">Tile B</div></div></div><div class="ui-tile is-child"><div class="ui-card"><div class="ui-card__body">Tile C</div></div></div></div></div></div></div></div></div></section><section id="footer" class="demo-section" aria-labelledby="footer-heading"><h3 id="footer-heading">Footer</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Page footer with centered content.</p><div class="ui-stack"><footer class="ui-footer"><p>FastBlocks UI -- HTML/CSS-first components for server-rendered Python apps.</p><p><a href="#top">Back to top</a></p></footer></div></div></div></section><section id="level" class="demo-section" aria-labelledby="level-heading"><h3 id="level-heading">Level</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Horizontal layout with left/right slots -- often used as a toolbar.</p><div class="ui-stack"><div class="ui-level"><div class="ui-level-left"><strong>Toolbar</strong> <span id="demo-action-status" class="ui-muted">No action taken yet.</span></div><div class="ui-level-right"><button class="ui-button is-primary" type="button" id="demo-action-button">Action</button></div></div></div></div></div></section><section id="columns" class="demo-section" aria-labelledby="columns-heading"><h3 id="columns-heading">Columns</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">12-column responsive grid.</p><div class="ui-stack"><div class="ui-columns is-multiline"><div class="ui-column is-8"><div class="ui-card"><div class="ui-card__body"><strong>8 cols</strong><p>Main content area.</p></div></div></div><div class="ui-column is-4"><div class="ui-card"><div class="ui-card__body"><strong>4 cols</strong><p>Sidebar.</p></div></div></div></div></div></div></div></section><section id="column" class="demo-section" aria-labelledby="column-heading"><h3 id="column-heading">Column</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Individual column modifiers: fixed size + offset, and narrow (content-sized).</p><div class="ui-stack"><div class="ui-columns is-multiline"><div class="ui-column is-4"><div class="ui-card"><div class="ui-card__body"><code>size="4"</code></div></div></div><div class="ui-column is-4 is-offset-4"><div class="ui-card"><div class="ui-card__body"><code>size="4" offset="4"</code></div></div></div></div><div class="ui-columns is-multiline"><div class="ui-column is-narrow"><div class="ui-card"><div class="ui-card__body"><code>narrow</code></div></div></div><div class="ui-column"><div class="ui-card"><div class="ui-card__body">Flexible remaining column.</div></div></div></div></div></div></div></section><h2 id="cat-navigation" class="demo-category-title">Navigation</h2><section id="navbar" class="demo-section" aria-labelledby="navbar-heading"><h3 id="navbar-heading">Navbar</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Navigation bar with brand, start/end slots, and color variants.</p><div class="ui-stack"><nav class="ui-navbar" aria-label="main navigation"><a class="ui-navbar-brand" href="#">FastBlocks UI</a><div class="ui-navbar-start"><a class="ui-navbar-item" href="#">Docs</a><a class="ui-navbar-item" href="#">Components</a></div><div class="ui-navbar-end"><a class="ui-button is-primary is-small" href="#">Sign in</a></div></nav><nav class="ui-navbar is-dark" aria-label="main navigation"><a class="ui-navbar-brand" href="#">Brand</a><div class="ui-navbar-start"><a class="ui-navbar-item" href="#">Home</a><a class="ui-navbar-item" href="#">About</a><a class="ui-navbar-item" href="#">Contact</a></div></nav></div></div></div></section><section id="breadcrumb" class="demo-section" aria-labelledby="breadcrumb-heading"><h3 id="breadcrumb-heading">Breadcrumb</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Navigation trail with the current page marked non-interactive.</p><div class="ui-stack"><nav class="ui-breadcrumb" aria-label="breadcrumb"><span class="ui-breadcrumb__item"><a class="ui-breadcrumb__link" href="#">Home</a></span><span class="ui-breadcrumb__item"><a class="ui-breadcrumb__link" href="#">Components</a></span><span class="ui-breadcrumb__item"><span class="ui-breadcrumb__current" aria-current="page">Pagination</span></span></nav></div></div></div></section><section id="pagination" class="demo-section" aria-labelledby="pagination-heading"><h3 id="pagination-heading">Pagination</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Pagination links with a sibling window and ellipses.</p><div class="ui-stack"><nav class="ui-pagination" aria-label="pagination"><a class="ui-pagination__item" href="#page-4">‹</a><a class="ui-pagination__item" href="#page-1">1</a><span class="ui-pagination__ellipsis">…</span><a class="ui-pagination__item" href="#page-4">4</a><a class="ui-pagination__item is-current" href="#page-5" aria-current="page">5</a><a class="ui-pagination__item" href="#page-6">6</a><span class="ui-pagination__ellipsis">…</span><a class="ui-pagination__item" href="#page-12">12</a><a class="ui-pagination__item" href="#page-6">›</a></nav></div></div></div></section><section id="menu" class="demo-section" aria-labelledby="menu-heading"><h3 id="menu-heading">Menu</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Disclosure menu; arrow keys navigate, Escape closes and restores focus.</p><div class="ui-stack"><div class="demo-panel"><button class="ui-button" type="button" data-ui-menu-trigger="true" aria-controls="demo-menu" aria-expanded="false">Toggle menu</button><nav class="ui-menu" data-ui-menu="true" id="demo-menu" hidden aria-label="Demo menu"><a class="ui-menu__item" href="#">Profile</a><a class="ui-menu__item" href="#">Settings</a><a class="ui-menu__item" href="#">Sign out</a></nav><p class="ui-muted">Arrow keys navigate; Escape closes and restores focus.</p></div></div></div></div></section><section id="tabs" class="demo-section" aria-labelledby="tabs-heading"><h3 id="tabs-heading">Tabs</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Keyboard-accessible tablist; state stays server-owned, switching is progressive enhancement.</p><div class="ui-stack"><div class="ui-tabs" data-ui-tabs="true" aria-label="Demo tabs"><div class="ui-tabs__list" role="tablist"><button class="ui-tabs__tab" type="button" role="tab" id="demo-overview" data-ui-tab-target="#demo-overview-panel" aria-controls="demo-overview-panel" aria-selected="true" tabindex="0">Overview</button><button class="ui-tabs__tab" type="button" role="tab" id="demo-details" data-ui-tab-target="#demo-details-panel" aria-controls="demo-details-panel" aria-selected="false" tabindex="-1">Details</button></div><section id="demo-overview-panel" class="ui-tabs__panel" data-ui-panel role="tabpanel" aria-labelledby="demo-overview" aria-hidden="false">Overview content lives in a normal server-rendered fragment.</section><section id="demo-details-panel" class="ui-tabs__panel" data-ui-panel role="tabpanel" aria-labelledby="demo-details" aria-hidden="true" hidden>Details content stays htmx-friendly and progressively enhanced.</section></div></div></div></div></section><h2 id="cat-forms" class="demo-category-title">Forms</h2><section id="field" class="demo-section" aria-labelledby="field-heading"><h3 id="field-heading">Field</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Label, help text, and control grouping.</p><div class="ui-stack"><div class="ui-field"><label class="ui-field__label" for="demo-email">Email address</label><div class="ui-field__control"><input class="ui-input" type="email" value="ada@example.com" id="demo-email" aria-describedby="demo-email-help"></div><div class="ui-field__help" id="demo-email-help">We&#x27;ll never share it.</div></div></div></div></div></section><section id="input" class="demo-section" aria-labelledby="input-heading"><h3 id="input-heading">Input</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Native text-like input styling across a few input types.</p><div class="ui-stack"><input class="ui-input" type="text" placeholder="Text input" id="demo-input-text" aria-label="Text input example"><input class="ui-input" type="password" placeholder="Password" id="demo-input-password" aria-label="Password input example"><input class="ui-input" type="text" value="Disabled" id="demo-input-disabled" disabled aria-label="Disabled input example"></div></div></div></section><section id="select" class="demo-section" aria-labelledby="select-heading"><h3 id="select-heading">Select</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Native select styling.</p><div class="ui-stack"><select class="ui-select" id="demo-select-standalone" aria-label="Size"><option value="sm">Small</option><option value="md" selected>Medium</option><option value="lg">Large</option></select></div></div></div></section><section id="checkbox" class="demo-section" aria-labelledby="checkbox-heading"><h3 id="checkbox-heading">Checkbox</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Checkbox label and control grouping.</p><div class="ui-stack"><label class="ui-checkbox"><input class="ui-checkbox__input" type="checkbox"><span>Unchecked option</span></label><label class="ui-checkbox"><input class="ui-checkbox__input" type="checkbox" checked><span>Checked option</span></label></div></div></div></section><section id="switch" class="demo-section" aria-labelledby="switch-heading"><h3 id="switch-heading">Switch</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Accessible toggle switch presentation.</p><div class="ui-stack"><label class="ui-switch"><input type="checkbox" role="switch"><span class="ui-switch__track" aria-hidden="true"><span class="ui-switch__thumb"></span></span><span>Off by default</span></label><label class="ui-switch"><input type="checkbox" role="switch" checked><span class="ui-switch__track" aria-hidden="true"><span class="ui-switch__thumb"></span></span><span>On by default</span></label></div></div></div></section><section id="validation_summary" class="demo-section" aria-labelledby="validation_summary-heading"><h3 id="validation_summary-heading">Validation Summary</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Aggregated form-error summary linking to individual fields.</p><div class="ui-stack"><div class="ui-alert is-danger ui-validation-summary" role="alert"><strong class="ui-validation-summary__title">Please correct the errors below.</strong><ul class="ui-validation-summary__list"><li><a href="#demo-standalone-field">This field is required.</a></li></ul></div></div></div></div></section><h2 id="cat-feedback" class="demo-category-title">Feedback &amp; actions</h2><section id="button" class="demo-section" aria-labelledby="button-heading"><h3 id="button-heading">Button</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Variants, sizes, and link buttons.</p><div class="ui-stack"><div class="ui-cluster"><button class="ui-button" type="button">Default</button> <button class="ui-button is-primary" type="button">Primary</button> <button class="ui-button is-success" type="button">Success</button> <button class="ui-button is-warning" type="button">Warning</button> <button class="ui-button is-danger" type="button">Danger</button> <a class="ui-button is-primary" href="#">Link button</a> <button class="ui-button is-primary" type="button" disabled>Disabled</button></div><div class="ui-cluster"><button class="ui-button is-primary is-small" type="button">Small</button> <button class="ui-button is-primary" type="button">Default size</button> <button class="ui-button is-primary is-large" type="button">Large</button></div></div></div></div></section><section id="alert" class="demo-section" aria-labelledby="alert-heading"><h3 id="alert-heading">Alert</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Inline notices and status messaging.</p><div class="ui-stack"><div class="ui-alert is-info">A neutral, informational note.</div><div class="ui-alert is-success">Saved successfully.</div><div class="ui-alert is-warning">Heads up — check your input.</div><div class="ui-alert is-danger">Something went wrong.</div></div></div></div></section><section id="progress" class="demo-section" aria-labelledby="progress-heading"><h3 id="progress-heading">Progress</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Native &lt;progress&gt; elements -- CSP-safe, no inline styles.</p><div class="ui-stack"><progress class="ui-progress is-primary" value="25" max="100" aria-label="25% complete">25%</progress><progress class="ui-progress is-info" value="50" max="100">50%</progress><progress class="ui-progress is-large is-success" value="75" max="100">75%</progress><progress class="ui-progress is-warning" value="90" max="100">90%</progress></div></div></div></section><section id="dialog" class="demo-section" aria-labelledby="dialog-heading"><h3 id="dialog-heading">Dialog</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Native &lt;dialog&gt; with enhancement-only open/close behavior.</p><div class="ui-stack"><div class="demo-panel"><button class="ui-button is-primary" type="button" data-ui-dialog-trigger="true" aria-controls="demo-dialog" aria-expanded="false">Open dialog</button><dialog class="ui-dialog" id="demo-dialog" data-ui-dialog="true" aria-hidden="true" aria-labelledby="demo-dialog-title"><div class="ui-dialog__surface"><h4 id="demo-dialog-title">Settings</h4><p>Native &lt;dialog&gt; with enhancement-only behavior.</p><button class="ui-button" type="button" data-ui-dialog-close="true">Close</button></div></dialog></div></div></div></div></section><h2 id="cat-data" class="demo-category-title">Data display</h2><section id="card" class="demo-section" aria-labelledby="card-heading"><h3 id="card-heading">Card</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Content container with optional header/body/footer slots.</p><div class="ui-stack"><div class="ui-card"><header class="ui-card__header">Card header</header><div class="ui-card__body"><p>Cards group related content with optional header and footer slots.</p></div><footer class="ui-card__footer"><button class="ui-button is-primary is-small" type="button">Action</button></footer></div></div></div></div></section><section id="table" class="demo-section" aria-labelledby="table-heading"><h3 id="table-heading">Table</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Styled table with optional striping, hover, and borders.</p><div class="ui-stack"><div class="ui-table-container"><table class="ui-table is-striped is-hoverable is-fullwidth"><thead><tr><th>Name</th><th>Email</th><th>Status</th></tr></thead><tbody><tr><td>Ada Lovelace</td><td>ada@example.com</td><td>Active</td></tr><tr><td>Alan Turing</td><td>alan@example.com</td><td>Active</td></tr><tr><td>Grace Hopper</td><td>grace@example.com</td><td>Pending</td></tr></tbody></table></div><div class="ui-table-container"><table class="ui-table is-bordered"><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody><tr><td>Uptime</td><td>99.98%</td></tr><tr><td>Latency</td><td>42ms</td></tr></tbody></table></div></div></div></div></section><h2 id="cat-extras" class="demo-category-title">Patterns &amp; extras</h2><section id="palette" class="demo-section" aria-labelledby="palette-heading"><h3 id="palette-heading">Color palette</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Every semantic --ui-color-* token, rendered live. Values track Tailwind v3&#x27;s palette; the labels sit on each fill using that family&#x27;s -contrast token, so anything hard to read here is a real contrast bug. Toggle the theme to see the dark ramp.</p><div class="ui-stack"><div class="demo-swatch-row"><p class="demo-swatch-family">Primary</p><div class="demo-swatch-grid"><div class="demo-swatch-cell"><div class="demo-swatch" data-token="primary-subtle"></div><code class="demo-swatch-name">--ui-color-primary-subtle</code></div><div class="demo-swatch-cell"><div class="demo-swatch demo-swatch-on-primary" data-token="primary"><span>base</span></div><code class="demo-swatch-name">--ui-color-primary</code></div><div class="demo-swatch-cell"><div class="demo-swatch demo-swatch-on-primary" data-token="primary-strong"><span>strong</span></div><code class="demo-swatch-name">--ui-color-primary-strong</code></div></div></div><div class="demo-swatch-row"><p class="demo-swatch-family">Info</p><div class="demo-swatch-grid"><div class="demo-swatch-cell"><div class="demo-swatch" data-token="info-subtle"></div><code class="demo-swatch-name">--ui-color-info-subtle</code></div><div class="demo-swatch-cell"><div class="demo-swatch demo-swatch-on-info" data-token="info"><span>base</span></div><code class="demo-swatch-name">--ui-color-info</code></div><div class="demo-swatch-cell"><div class="demo-swatch demo-swatch-on-info" data-token="info-strong"><span>strong</span></div><code class="demo-swatch-name">--ui-color-info-strong</code></div></div></div><div class="demo-swatch-row"><p class="demo-swatch-family">Success</p><div class="demo-swatch-grid"><div class="demo-swatch-cell"><div class="demo-swatch" data-token="success-subtle"></div><code class="demo-swatch-name">--ui-color-success-subtle</code></div><div class="demo-swatch-cell"><div class="demo-swatch demo-swatch-on-success" data-token="success"><span>base</span></div><code class="demo-swatch-name">--ui-color-success</code></div><div class="demo-swatch-cell"><div class="demo-swatch demo-swatch-on-success" data-token="success-strong"><span>strong</span></div><code class="demo-swatch-name">--ui-color-success-strong</code></div></div></div><div class="demo-swatch-row"><p class="demo-swatch-family">Warning</p><div class="demo-swatch-grid"><div class="demo-swatch-cell"><div class="demo-swatch" data-token="warning-subtle"></div><code class="demo-swatch-name">--ui-color-warning-subtle</code></div><div class="demo-swatch-cell"><div class="demo-swatch demo-swatch-on-warning" data-token="warning"><span>base</span></div><code class="demo-swatch-name">--ui-color-warning</code></div><div class="demo-swatch-cell"><div class="demo-swatch demo-swatch-on-warning" data-token="warning-strong"><span>strong</span></div><code class="demo-swatch-name">--ui-color-warning-strong</code></div></div></div><div class="demo-swatch-row"><p class="demo-swatch-family">Danger</p><div class="demo-swatch-grid"><div class="demo-swatch-cell"><div class="demo-swatch" data-token="danger-subtle"></div><code class="demo-swatch-name">--ui-color-danger-subtle</code></div><div class="demo-swatch-cell"><div class="demo-swatch demo-swatch-on-danger" data-token="danger"><span>base</span></div><code class="demo-swatch-name">--ui-color-danger</code></div><div class="demo-swatch-cell"><div class="demo-swatch demo-swatch-on-danger" data-token="danger-strong"><span>strong</span></div><code class="demo-swatch-name">--ui-color-danger-strong</code></div></div></div><div class="demo-swatch-row"><p class="demo-swatch-family">Neutrals</p><div class="demo-swatch-grid"><div class="demo-swatch-cell"><div class="demo-swatch" data-token="surface"></div><code class="demo-swatch-name">--ui-color-surface</code></div><div class="demo-swatch-cell"><div class="demo-swatch" data-token="surface-raised"></div><code class="demo-swatch-name">--ui-color-surface-raised</code></div><div class="demo-swatch-cell"><div class="demo-swatch" data-token="surface-muted"></div><code class="demo-swatch-name">--ui-color-surface-muted</code></div><div class="demo-swatch-cell"><div class="demo-swatch" data-token="surface-subtle"></div><code class="demo-swatch-name">--ui-color-surface-subtle</code></div><div class="demo-swatch-cell"><div class="demo-swatch" data-token="border"></div><code class="demo-swatch-name">--ui-color-border</code></div><div class="demo-swatch-cell"><div class="demo-swatch" data-token="border-strong"></div><code class="demo-swatch-name">--ui-color-border-strong</code></div><div class="demo-swatch-cell"><div class="demo-swatch" data-token="text-muted"></div><code class="demo-swatch-name">--ui-color-text-muted</code></div><div class="demo-swatch-cell"><div class="demo-swatch" data-token="text"></div><code class="demo-swatch-name">--ui-color-text</code></div><div class="demo-swatch-cell"><div class="demo-swatch" data-token="text-strong"></div><code class="demo-swatch-name">--ui-color-text-strong</code></div></div></div></div></div></div></section><section id="theme" class="demo-section" aria-labelledby="theme-heading"><h3 id="theme-heading">Theme</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Toggles the data-theme attribute on the document root; components restyle via semantic tokens.</p><div class="ui-stack"><div class="ui-cluster demo-toolbar"><button class="ui-button" type="button" data-theme-toggle="true">Toggle theme</button><span class="ui-muted">Light / dark via semantic tokens.</span></div></div></div></div></section><section id="forms-in-practice" class="demo-section" aria-labelledby="forms-in-practice-heading"><h3 id="forms-in-practice-heading">Complete form example</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Fields auto-wire labels, help, and aria-invalid; a validation summary links to the erroring field.</p><div class="ui-stack"><div class="ui-alert is-danger ui-validation-summary" role="alert"><strong class="ui-validation-summary__title">Please correct the errors below.</strong><ul class="ui-validation-summary__list"><li><a href="#demo-display-name">Display name must be at least 3 characters.</a></li></ul></div><form class="ui-stack" onsubmit="return false"><div class="ui-field"><label class="ui-field__label" for="demo-practice-email">Email address</label><div class="ui-field__control"><input class="ui-input" type="email" value="ada@example.com" id="demo-practice-email" aria-describedby="demo-practice-email-help"></div><div class="ui-field__help" id="demo-practice-email-help">We&#x27;ll never share it.</div></div><div class="ui-field"><label class="ui-field__label" for="demo-role">Role</label><div class="ui-field__control"><select class="ui-select" id="demo-role"><option value="dev" selected>Developer</option><option value="design">Designer</option></select></div></div><div class="ui-field"><label class="ui-field__label" for="demo-display-name">Display name</label><div class="ui-field__control"><input class="ui-input" type="text" value="Ada" id="demo-display-name" aria-describedby="demo-display-name-help demo-display-name-error" aria-invalid="true"></div><div class="ui-field__help" id="demo-display-name-help">Shown on your profile and in activity feeds.</div><div class="ui-field__error" id="demo-display-name-error" role="alert">Display name must be at least 3 characters.</div></div><label class="ui-checkbox"><input class="ui-checkbox__input" type="checkbox" checked><span>Remember me</span></label><label class="ui-switch"><input type="checkbox" role="switch" checked><span class="ui-switch__track" aria-hidden="true"><span class="ui-switch__thumb"></span></span><span>Enable notifications</span></label><div class="ui-cluster"><button class="ui-button is-primary" type="submit">Save</button></div></form></div></div></div></section><section id="rtl" class="demo-section" aria-labelledby="rtl-heading"><h3 id="rtl-heading">RTL layout (dir=&quot;rtl&quot;)</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Offsets and table text-alignment should flip to the start edge; the media-left/-right position stays fixed (see layout.css).</p><div class="ui-stack"><div dir="rtl" class="ui-cluster demo-panel"><div class="ui-columns is-multiline"><div class="ui-column is-4 is-offset-4"><div class="ui-card"><div class="ui-card__body"><strong>عمود مُزاح</strong></div></div></div></div><div class="ui-table-container"><table class="ui-table"><thead><tr><th>الاسم</th><th>الوظيفة</th></tr></thead><tbody><tr><td>أحمد</td><td>مهندس</td></tr><tr><td>فاطمة</td><td>طبيبة</td></tr></tbody></table></div></div></div></div></div></section><section id="container-queries" class="demo-section" aria-labelledby="container-queries-heading"><h3 id="container-queries-heading">Container queries (is-container)</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">Two fixed-width wrappers, same viewport: columns, tiles, and cards resize based on their own container&#x27;s width, not the browser window.</p><div class="ui-stack"><div class="cq-compare"><div id="cq-narrow" class="cq-panel" style="width:15rem"><p class="ui-muted">Narrow wrapper (15rem)</p><div class="ui-columns is-multiline is-container"><div class="ui-column is-6-cq"><div id="cq-narrow-column" class="ui-card">is-6-cq column</div></div></div><div class="ui-tiles is-container"><div class="ui-tile is-6"><div class="ui-card">is-6 tile</div></div></div><div class="ui-card is-container" id="cq-narrow-card"><header class="ui-card__header">is-container card</header><div class="ui-card__body">Padding grows past the 24rem threshold.</div></div></div><div id="cq-wide" class="cq-panel" style="width:31rem"><p class="ui-muted">Wide wrapper (31rem)</p><div class="ui-columns is-multiline is-container"><div class="ui-column is-6-cq"><div id="cq-wide-column" class="ui-card">is-6-cq column</div></div></div><div class="ui-tiles is-container"><div class="ui-tile is-6"><div class="ui-card">is-6 tile</div></div></div><div class="ui-card is-container" id="cq-wide-card"><header class="ui-card__header">is-container card</header><div class="ui-card__body">Padding grows past the 24rem threshold.</div></div></div></div></div></div></div></section><h2 id="cat-reference" class="demo-category-title">Reference</h2><section id="manifest" class="demo-section" aria-labelledby="manifest-heading"><h3 id="manifest-heading">Component manifest</h3><div class="ui-card"><div class="ui-card__body"><p class="ui-muted">This section is rendered client-side from manifest.json via manifest.js, so the enhancement layer&#x27;s fetch-and-render path gets exercised, not just the server-rendered table in demo/index.html.</p><div class="ui-stack"><div data-ui-component-list>Loading manifest…</div></div></div></div></section>
-<script type="application/json" id="fastblocks-ui-manifest-data">{"components": [{"class_name": "ui-alert", "description": "Inline notices and status messaging.", "helper": "alert", "name": "alert", "params": [{"name": "content", "kind": "positional_or_keyword", "type": "object", "required": true}, {"name": "variant", "kind": "keyword_only", "type": "Variant | None", "default": null}], "codegen": true}, {"class_name": "ui-breadcrumb", "description": "Navigation trail with links and current page.", "helper": "breadcrumb", "name": "breadcrumb", "params": [{"name": "items", "kind": "positional_or_keyword", "type": "list[tuple[object, str | None]]", "required": true}], "codegen": false}, {"class_name": "ui-button", "description": "Primary and secondary action buttons.", "helper": "button", "name": "button", "params": [{"name": "label", "kind": "positional_or_keyword", "type": "object", "required": true}, {"name": "variant", "kind": "keyword_only", "type": "Variant | None", "default": null}, {"name": "size", "kind": "keyword_only", "type": "Size | None", "default": null}, {"name": "href", "kind": "keyword_only", "type": "str | None", "default": null}, {"name": "type", "kind": "keyword_only", "type": "str", "default": "button"}], "codegen": false}, {"class_name": "ui-card", "description": "Content containers and panels.", "helper": "card", "name": "card", "params": [{"name": "header", "kind": "keyword_only", "type": "object | None", "default": null}, {"name": "body", "kind": "keyword_only", "type": "object | None", "default": null}, {"name": "footer", "kind": "keyword_only", "type": "object | None", "default": null}], "codegen": true}, {"class_name": "ui-checkbox", "description": "Checkbox label and control grouping.", "helper": "checkbox", "name": "checkbox", "params": [{"name": "label", "kind": "keyword_only", "type": "object", "required": true}, {"name": "checked", "kind": "keyword_only", "type": "bool", "default": false}], "codegen": true}, {"class_name": "ui-column", "description": "Individual column within a columns grid.", "helper": "column", "name": "column", "params": [{"name": "content", "kind": "positional_or_keyword", "type": "object", "default": null}, {"name": "size", "kind": "keyword_only", "type": "str | None", "default": null}, {"name": "offset", "kind": "keyword_only", "type": "str | None", "default": null}, {"name": "narrow", "kind": "keyword_only", "type": "bool", "default": false}, {"name": "full", "kind": "keyword_only", "type": "bool", "default": false}], "codegen": true}, {"class_name": "ui-columns", "description": "Flexible grid container for responsive column layouts.", "helper": "columns", "name": "columns", "params": [{"name": "children", "kind": "var_positional", "type": "object", "required": true}, {"name": "centered", "kind": "keyword_only", "type": "bool", "default": false}, {"name": "vcentered", "kind": "keyword_only", "type": "bool", "default": false}, {"name": "gapless", "kind": "keyword_only", "type": "bool", "default": false}, {"name": "multiline", "kind": "keyword_only", "type": "bool", "default": true}], "codegen": false}, {"class_name": "ui-container", "description": "Centered max-width container for page content.", "helper": "container", "name": "container", "params": [{"name": "content", "kind": "positional_or_keyword", "type": "object", "default": null}, {"name": "fluid", "kind": "keyword_only", "type": "bool", "default": false}, {"name": "widescreen", "kind": "keyword_only", "type": "bool", "default": false}, {"name": "fullhd", "kind": "keyword_only", "type": "bool", "default": false}], "codegen": false}, {"class_name": "ui-dialog", "description": "Native dialog styling and enhancement hooks.", "helper": "dialog", "name": "dialog", "params": [{"name": "content", "kind": "positional_or_keyword", "type": "object", "required": true}, {"name": "title", "kind": "keyword_only", "type": "object | None", "default": null}, {"name": "open", "kind": "keyword_only", "type": "bool", "default": false}, {"name": "custom_element", "kind": "keyword_only", "type": "bool", "default": false}], "codegen": true}, {"class_name": "ui-field", "description": "Label, help, and error grouping for form controls.", "helper": "field", "name": "field", "params": [{"name": "label", "kind": "keyword_only", "type": "object | None", "default": null}, {"name": "help_text", "kind": "keyword_only", "type": "object | None", "default": null}, {"name": "error_text", "kind": "keyword_only", "type": "object | None", "default": null}, {"name": "control_html", "kind": "keyword_only", "type": "object", "default": ""}, {"name": "control_id", "kind": "keyword_only", "type": "str | None", "default": null}], "codegen": false}, {"class_name": "ui-footer", "description": "Page footer with centered content.", "helper": "footer", "name": "footer", "params": [{"name": "content", "kind": "positional_or_keyword", "type": "object", "default": null}], "codegen": true}, {"class_name": "ui-hero", "description": "Full-width banner section with title and subtitle.", "helper": "hero", "name": "hero", "params": [{"name": "title", "kind": "positional_or_keyword", "type": "object", "required": true}, {"name": "subtitle", "kind": "keyword_only", "type": "object | None", "default": null}, {"name": "variant", "kind": "keyword_only", "type": "Variant | None", "default": null}, {"name": "size", "kind": "keyword_only", "type": "Size | None", "default": null}, {"name": "heading_level", "kind": "keyword_only", "type": "HeadingLevel | None", "default": null}], "codegen": true}, {"class_name": "ui-input", "description": "Native text-like input styling.", "helper": "input", "name": "input", "params": [{"name": "value", "kind": "keyword_only", "type": "object | None", "default": null}, {"name": "placeholder", "kind": "keyword_only", "type": "object | None", "default": null}, {"name": "type", "kind": "keyword_only", "type": "str", "default": "text"}], "codegen": true}, {"class_name": "ui-level", "description": "Horizontal layout with left and right sides.", "helper": "level", "name": "level", "params": [{"name": "left", "kind": "positional_or_keyword", "type": "object", "default": null}, {"name": "right", "kind": "positional_or_keyword", "type": "object", "default": null}, {"name": "centered", "kind": "keyword_only", "type": "bool", "default": false}], "codegen": true}, {"class_name": "ui-media", "description": "Image + text media object pattern.", "helper": "media", "name": "media", "params": [{"name": "content", "kind": "positional_or_keyword", "type": "object", "default": null}, {"name": "image", "kind": "keyword_only", "type": "object", "default": null}, {"name": "position", "kind": "keyword_only", "type": "str", "default": "start"}], "codegen": true}, {"class_name": "ui-menu", "description": "Disclosure and navigation menu styling.", "helper": "menu", "name": "menu", "params": [{"name": "items", "kind": "positional_or_keyword", "type": "list[tuple[object, object]] | None", "default": null}, {"name": "label", "kind": "keyword_only", "type": "str", "default": "Menu"}, {"name": "custom_element", "kind": "keyword_only", "type": "bool", "default": false}], "codegen": false}, {"class_name": "ui-navbar", "description": "Navigation bar with brand and menu items.", "helper": "navbar", "name": "navbar", "params": [{"name": "brand", "kind": "positional_or_keyword", "type": "object", "default": null}, {"name": "items", "kind": "positional_or_keyword", "type": "list[tuple[object, str]] | None", "default": null}, {"name": "brand_url", "kind": "keyword_only", "type": "str | None", "default": "/"}, {"name": "start", "kind": "keyword_only", "type": "object", "default": null}, {"name": "end", "kind": "keyword_only", "type": "object", "default": null}, {"name": "variant", "kind": "keyword_only", "type": "Variant | None", "default": null}, {"name": "label", "kind": "keyword_only", "type": "str", "default": "main navigation"}], "codegen": false}, {"class_name": "ui-pagination", "description": "Pagination links with current page indicator.", "helper": "pagination", "name": "pagination", "params": [{"name": "current", "kind": "positional_or_keyword", "type": "int", "required": true}, {"name": "total", "kind": "positional_or_keyword", "type": "int", "required": true}, {"name": "url_pattern", "kind": "keyword_only", "type": "str", "default": "?page={page}"}, {"name": "siblings", "kind": "keyword_only", "type": "int", "default": 2}], "codegen": true}, {"class_name": "ui-progress", "description": "Progress bar with value and variants.", "helper": "progress", "name": "progress", "params": [{"name": "value", "kind": "positional_or_keyword", "type": "int | float", "required": true}, {"name": "max_value", "kind": "keyword_only", "type": "int | float", "default": 100}, {"name": "size", "kind": "keyword_only", "type": "Size | None", "default": null}, {"name": "variant", "kind": "keyword_only", "type": "Variant", "default": "primary"}, {"name": "show_label", "kind": "keyword_only", "type": "bool", "default": false}], "codegen": true}, {"class_name": "ui-section", "description": "Vertical spacing container for page sections.", "helper": "section", "name": "section", "params": [{"name": "content", "kind": "positional_or_keyword", "type": "object", "default": null}, {"name": "size", "kind": "keyword_only", "type": "Size | None", "default": null}], "codegen": true}, {"class_name": "ui-select", "description": "Native select styling.", "helper": "select", "name": "select", "params": [{"name": "options", "kind": "positional_or_keyword", "type": "list[tuple[object, object]] | None", "default": null}, {"name": "value", "kind": "keyword_only", "type": "object | None", "default": null}], "codegen": false}, {"class_name": "ui-switch", "description": "Accessible toggle switch presentation.", "helper": "switch", "name": "switch", "params": [{"name": "label", "kind": "keyword_only", "type": "object", "required": true}, {"name": "checked", "kind": "keyword_only", "type": "bool", "default": false}], "codegen": true}, {"class_name": "ui-table", "description": "Styled table with optional striping and hover.", "helper": "table", "name": "table", "params": [{"name": "headers", "kind": "positional_or_keyword", "type": "list[str]", "required": true}, {"name": "rows", "kind": "positional_or_keyword", "type": "list[list[object]]", "required": true}, {"name": "striped", "kind": "keyword_only", "type": "bool", "default": false}, {"name": "hoverable", "kind": "keyword_only", "type": "bool", "default": false}, {"name": "bordered", "kind": "keyword_only", "type": "bool", "default": false}, {"name": "fullwidth", "kind": "keyword_only", "type": "bool", "default": false}], "codegen": false}, {"class_name": "ui-tabs", "description": "Accessible tablist, tab, and panel patterns.", "helper": "tabs", "name": "tabs", "params": [{"name": "items", "kind": "positional_or_keyword", "type": "list[tuple[str, str, object]]", "required": true}, {"name": "active_id", "kind": "keyword_only", "type": "str | None", "default": null}, {"name": "label", "kind": "keyword_only", "type": "str", "default": "Tabs"}, {"name": "custom_element", "kind": "keyword_only", "type": "bool", "default": false}], "codegen": false}, {"class_name": "ui-tile", "description": "Hierarchical tile for complex nested layouts.", "helper": "tile", "name": "tile", "params": [{"name": "content", "kind": "positional_or_keyword", "type": "object", "default": null}, {"name": "size", "kind": "keyword_only", "type": "str | None", "default": null}, {"name": "parent", "kind": "keyword_only", "type": "bool", "default": false}, {"name": "child", "kind": "keyword_only", "type": "bool", "default": false}, {"name": "ancestor", "kind": "keyword_only", "type": "bool", "default": false}], "codegen": true}, {"class_name": "ui-title", "description": "Typography title element.", "helper": "title", "name": "title", "params": [{"name": "content", "kind": "positional_or_keyword", "type": "object", "required": true}, {"name": "size", "kind": "keyword_only", "type": "Size | None", "default": null}, {"name": "heading_level", "kind": "keyword_only", "type": "HeadingLevel | None", "default": null}], "codegen": true}, {"name": "validation_summary", "class_name": "ui-validation-summary", "helper": "validation_summary", "description": "Aggregated form-error summary linking to individual fields.", "params": [{"name": "errors", "kind": "positional_or_keyword", "type": "dict[str, object] | list[object] | tuple[object, ...]", "required": true}, {"name": "title", "kind": "keyword_only", "type": "object", "default": "Please correct the errors below."}], "codegen": false}], "namespace": "ui-*", "public_name": "FastBlocks UI", "state_modifiers": ["is-primary", "is-info", "is-success", "is-warning", "is-danger", "is-light", "is-dark", "is-small", "is-medium", "is-large", "is-narrow", "is-full", "is-centered", "is-vcentered", "is-gapless", "is-multiline", "is-fluid", "is-widescreen", "is-fullhd", "is-offset-*", "is-striped", "is-hoverable", "is-bordered", "is-current", "is-disabled", "is-active", "is-container"]}</script>
+<script type="application/json" id="fastblocks-ui-manifest-data">{"components": [{"class_name": "ui-alert", "codegen": true, "description": "Inline notices and status messaging.", "helper": "alert", "name": "alert", "params": [{"kind": "positional_or_keyword", "name": "content", "required": true, "type": "object"}, {"default": null, "kind": "keyword_only", "name": "variant", "type": "Variant | None"}]}, {"class_name": "ui-breadcrumb", "codegen": false, "description": "Navigation trail with links and current page.", "helper": "breadcrumb", "name": "breadcrumb", "params": [{"kind": "positional_or_keyword", "name": "items", "required": true, "type": "list[tuple[object, str | None]]"}]}, {"class_name": "ui-burger", "codegen": true, "description": "Burger button that toggles a drawer via the Popover API.", "helper": "burger", "name": "burger", "params": [{"kind": "keyword_only", "name": "controls", "required": true, "type": "str"}, {"default": "Menu", "kind": "keyword_only", "name": "label", "type": "object"}]}, {"class_name": "ui-button", "codegen": false, "description": "Primary and secondary action buttons.", "helper": "button", "name": "button", "params": [{"kind": "positional_or_keyword", "name": "label", "required": true, "type": "object"}, {"default": null, "kind": "keyword_only", "name": "variant", "type": "Variant | None"}, {"default": null, "kind": "keyword_only", "name": "size", "type": "Size | None"}, {"default": null, "kind": "keyword_only", "name": "href", "type": "str | None"}, {"default": "button", "kind": "keyword_only", "name": "type", "type": "str"}]}, {"class_name": "ui-card", "codegen": true, "description": "Content containers and panels.", "helper": "card", "name": "card", "params": [{"default": null, "kind": "keyword_only", "name": "header", "type": "object | None"}, {"default": null, "kind": "keyword_only", "name": "body", "type": "object | None"}, {"default": null, "kind": "keyword_only", "name": "footer", "type": "object | None"}]}, {"class_name": "ui-checkbox", "codegen": true, "description": "Checkbox label and control grouping.", "helper": "checkbox", "name": "checkbox", "params": [{"kind": "keyword_only", "name": "label", "required": true, "type": "object"}, {"default": false, "kind": "keyword_only", "name": "checked", "type": "bool"}]}, {"class_name": "ui-column", "codegen": true, "description": "Individual column within a columns grid.", "helper": "column", "name": "column", "params": [{"default": null, "kind": "positional_or_keyword", "name": "content", "type": "object"}, {"default": null, "kind": "keyword_only", "name": "size", "type": "str | None"}, {"default": null, "kind": "keyword_only", "name": "offset", "type": "str | None"}, {"default": false, "kind": "keyword_only", "name": "narrow", "type": "bool"}, {"default": false, "kind": "keyword_only", "name": "full", "type": "bool"}]}, {"class_name": "ui-columns", "codegen": false, "description": "Flexible grid container for responsive column layouts.", "helper": "columns", "name": "columns", "params": [{"kind": "var_positional", "name": "children", "required": true, "type": "object"}, {"default": false, "kind": "keyword_only", "name": "centered", "type": "bool"}, {"default": false, "kind": "keyword_only", "name": "vcentered", "type": "bool"}, {"default": false, "kind": "keyword_only", "name": "gapless", "type": "bool"}, {"default": true, "kind": "keyword_only", "name": "multiline", "type": "bool"}]}, {"class_name": "ui-container", "codegen": false, "description": "Centered max-width container for page content.", "helper": "container", "name": "container", "params": [{"default": null, "kind": "positional_or_keyword", "name": "content", "type": "object"}, {"default": false, "kind": "keyword_only", "name": "fluid", "type": "bool"}, {"default": false, "kind": "keyword_only", "name": "widescreen", "type": "bool"}, {"default": false, "kind": "keyword_only", "name": "fullhd", "type": "bool"}]}, {"class_name": "ui-dialog", "codegen": true, "description": "Native dialog styling and enhancement hooks.", "helper": "dialog", "name": "dialog", "params": [{"kind": "positional_or_keyword", "name": "content", "required": true, "type": "object"}, {"default": null, "kind": "keyword_only", "name": "title", "type": "object | None"}, {"default": false, "kind": "keyword_only", "name": "open", "type": "bool"}, {"default": false, "kind": "keyword_only", "name": "custom_element", "type": "bool"}]}, {"class_name": "ui-drawer", "codegen": true, "description": "Off-canvas panel built on the Popover API.", "helper": "drawer", "name": "drawer", "params": [{"kind": "positional_or_keyword", "name": "content", "required": true, "type": "object"}, {"kind": "keyword_only", "name": "id", "required": true, "type": "str"}, {"default": null, "kind": "keyword_only", "name": "label", "type": "str | None"}, {"default": "end", "kind": "keyword_only", "name": "side", "type": "str"}, {"default": "div", "kind": "keyword_only", "name": "tag", "type": "str"}]}, {"class_name": "ui-field", "codegen": false, "description": "Label, help, and error grouping for form controls.", "helper": "field", "name": "field", "params": [{"default": null, "kind": "keyword_only", "name": "label", "type": "object | None"}, {"default": null, "kind": "keyword_only", "name": "help_text", "type": "object | None"}, {"default": null, "kind": "keyword_only", "name": "error_text", "type": "object | None"}, {"default": "", "kind": "keyword_only", "name": "control_html", "type": "object"}, {"default": null, "kind": "keyword_only", "name": "control_id", "type": "str | None"}]}, {"class_name": "ui-footer", "codegen": true, "description": "Page footer with centered content.", "helper": "footer", "name": "footer", "params": [{"default": null, "kind": "positional_or_keyword", "name": "content", "type": "object"}]}, {"class_name": "ui-hero", "codegen": true, "description": "Full-width banner section with title and subtitle.", "helper": "hero", "name": "hero", "params": [{"kind": "positional_or_keyword", "name": "title", "required": true, "type": "object"}, {"default": null, "kind": "keyword_only", "name": "subtitle", "type": "object | None"}, {"default": null, "kind": "keyword_only", "name": "variant", "type": "Variant | None"}, {"default": null, "kind": "keyword_only", "name": "size", "type": "Size | None"}, {"default": null, "kind": "keyword_only", "name": "heading_level", "type": "HeadingLevel | None"}]}, {"class_name": "ui-input", "codegen": true, "description": "Native text-like input styling.", "helper": "input", "name": "input", "params": [{"default": null, "kind": "keyword_only", "name": "value", "type": "object | None"}, {"default": null, "kind": "keyword_only", "name": "placeholder", "type": "object | None"}, {"default": "text", "kind": "keyword_only", "name": "type", "type": "str"}]}, {"class_name": "ui-level", "codegen": true, "description": "Horizontal layout with left and right sides.", "helper": "level", "name": "level", "params": [{"default": null, "kind": "positional_or_keyword", "name": "left", "type": "object"}, {"default": null, "kind": "positional_or_keyword", "name": "right", "type": "object"}, {"default": false, "kind": "keyword_only", "name": "centered", "type": "bool"}]}, {"class_name": "ui-media", "codegen": true, "description": "Image + text media object pattern.", "helper": "media", "name": "media", "params": [{"default": null, "kind": "positional_or_keyword", "name": "content", "type": "object"}, {"default": null, "kind": "keyword_only", "name": "image", "type": "object"}, {"default": "start", "kind": "keyword_only", "name": "position", "type": "str"}]}, {"class_name": "ui-menu", "codegen": false, "description": "Disclosure and navigation menu styling.", "helper": "menu", "name": "menu", "params": [{"default": null, "kind": "positional_or_keyword", "name": "items", "type": "list[tuple[object, object]] | None"}, {"default": "Menu", "kind": "keyword_only", "name": "label", "type": "str"}, {"default": false, "kind": "keyword_only", "name": "custom_element", "type": "bool"}]}, {"class_name": "ui-nav-groups", "codegen": false, "description": "Labelled groups of vertical navigation links.", "helper": "nav_group", "name": "nav_group", "params": [{"kind": "positional_or_keyword", "name": "groups", "required": true, "type": "list[tuple[object, list[tuple[object, str]]]]"}, {"default": null, "kind": "keyword_only", "name": "active", "type": "str | None"}, {"default": "true", "kind": "keyword_only", "name": "aria_current", "type": "str"}]}, {"class_name": "ui-nav-list", "codegen": false, "description": "Vertical navigation list for sidebars and drawers.", "helper": "nav_list", "name": "nav_list", "params": [{"kind": "positional_or_keyword", "name": "items", "required": true, "type": "list[tuple[object, str]]"}, {"default": null, "kind": "keyword_only", "name": "active", "type": "str | None"}, {"default": "true", "kind": "keyword_only", "name": "aria_current", "type": "str"}]}, {"class_name": "ui-navbar", "codegen": false, "description": "Navigation bar with brand and menu items.", "helper": "navbar", "name": "navbar", "params": [{"default": null, "kind": "positional_or_keyword", "name": "brand", "type": "object"}, {"default": null, "kind": "positional_or_keyword", "name": "items", "type": "list[tuple[object, str]] | None"}, {"default": "/", "kind": "keyword_only", "name": "brand_url", "type": "str | None"}, {"default": null, "kind": "keyword_only", "name": "start", "type": "object"}, {"default": null, "kind": "keyword_only", "name": "end", "type": "object"}, {"default": null, "kind": "keyword_only", "name": "variant", "type": "Variant | None"}, {"default": "main navigation", "kind": "keyword_only", "name": "label", "type": "str"}]}, {"class_name": "ui-pagination", "codegen": true, "description": "Pagination links with current page indicator.", "helper": "pagination", "name": "pagination", "params": [{"kind": "positional_or_keyword", "name": "current", "required": true, "type": "int"}, {"kind": "positional_or_keyword", "name": "total", "required": true, "type": "int"}, {"default": "?page={page}", "kind": "keyword_only", "name": "url_pattern", "type": "str"}, {"default": 2, "kind": "keyword_only", "name": "siblings", "type": "int"}]}, {"class_name": "ui-progress", "codegen": true, "description": "Progress bar with value and variants.", "helper": "progress", "name": "progress", "params": [{"kind": "positional_or_keyword", "name": "value", "required": true, "type": "int | float"}, {"default": 100, "kind": "keyword_only", "name": "max_value", "type": "int | float"}, {"default": null, "kind": "keyword_only", "name": "size", "type": "Size | None"}, {"default": "primary", "kind": "keyword_only", "name": "variant", "type": "Variant"}, {"default": false, "kind": "keyword_only", "name": "show_label", "type": "bool"}]}, {"class_name": "ui-section", "codegen": true, "description": "Vertical spacing container for page sections.", "helper": "section", "name": "section", "params": [{"default": null, "kind": "positional_or_keyword", "name": "content", "type": "object"}, {"default": null, "kind": "keyword_only", "name": "size", "type": "Size | None"}]}, {"class_name": "ui-select", "codegen": false, "description": "Native select styling.", "helper": "select", "name": "select", "params": [{"default": null, "kind": "positional_or_keyword", "name": "options", "type": "list[tuple[object, object]] | None"}, {"default": null, "kind": "keyword_only", "name": "value", "type": "object | None"}]}, {"class_name": "ui-shell", "codegen": true, "description": "Full-bleed page shell with optional sticky aside column.", "helper": "shell", "name": "shell", "params": [{"kind": "positional_or_keyword", "name": "main", "required": true, "type": "object"}, {"default": null, "kind": "positional_or_keyword", "name": "aside", "type": "object"}, {"default": null, "kind": "keyword_only", "name": "aside_width", "type": "str | None"}, {"default": null, "kind": "keyword_only", "name": "max_width", "type": "str | None"}, {"default": null, "kind": "keyword_only", "name": "main_id", "type": "str | None"}]}, {"class_name": "ui-switch", "codegen": true, "description": "Accessible toggle switch presentation.", "helper": "switch", "name": "switch", "params": [{"kind": "keyword_only", "name": "label", "required": true, "type": "object"}, {"default": false, "kind": "keyword_only", "name": "checked", "type": "bool"}]}, {"class_name": "ui-table", "codegen": false, "description": "Styled table with optional striping and hover.", "helper": "table", "name": "table", "params": [{"kind": "positional_or_keyword", "name": "headers", "required": true, "type": "list[str]"}, {"kind": "positional_or_keyword", "name": "rows", "required": true, "type": "list[list[object]]"}, {"default": false, "kind": "keyword_only", "name": "striped", "type": "bool"}, {"default": false, "kind": "keyword_only", "name": "hoverable", "type": "bool"}, {"default": false, "kind": "keyword_only", "name": "bordered", "type": "bool"}, {"default": false, "kind": "keyword_only", "name": "fullwidth", "type": "bool"}]}, {"class_name": "ui-tabs", "codegen": false, "description": "Accessible tablist, tab, and panel patterns.", "helper": "tabs", "name": "tabs", "params": [{"kind": "positional_or_keyword", "name": "items", "required": true, "type": "list[tuple[str, str, object]]"}, {"default": null, "kind": "keyword_only", "name": "active_id", "type": "str | None"}, {"default": "Tabs", "kind": "keyword_only", "name": "label", "type": "str"}, {"default": false, "kind": "keyword_only", "name": "custom_element", "type": "bool"}]}, {"class_name": "ui-tile", "codegen": true, "description": "Hierarchical tile for complex nested layouts.", "helper": "tile", "name": "tile", "params": [{"default": null, "kind": "positional_or_keyword", "name": "content", "type": "object"}, {"default": null, "kind": "keyword_only", "name": "size", "type": "str | None"}, {"default": false, "kind": "keyword_only", "name": "parent", "type": "bool"}, {"default": false, "kind": "keyword_only", "name": "child", "type": "bool"}, {"default": false, "kind": "keyword_only", "name": "ancestor", "type": "bool"}]}, {"class_name": "ui-title", "codegen": true, "description": "Typography title element.", "helper": "title", "name": "title", "params": [{"kind": "positional_or_keyword", "name": "content", "required": true, "type": "object"}, {"default": null, "kind": "keyword_only", "name": "size", "type": "Size | None"}, {"default": null, "kind": "keyword_only", "name": "heading_level", "type": "HeadingLevel | None"}]}, {"class_name": "ui-validation-summary", "codegen": false, "description": "Aggregated form-error summary linking to individual fields.", "helper": "validation_summary", "name": "validation_summary", "params": [{"kind": "positional_or_keyword", "name": "errors", "required": true, "type": "dict[str, object] | list[object] | tuple[object, ...]"}, {"default": "Please correct the errors below.", "kind": "keyword_only", "name": "title", "type": "object"}]}], "namespace": "ui-*", "public_name": "FastBlocks UI", "state_modifiers": ["is-primary", "is-info", "is-success", "is-warning", "is-danger", "is-light", "is-dark", "is-small", "is-medium", "is-large", "is-narrow", "is-full", "is-centered", "is-vcentered", "is-gapless", "is-multiline", "is-fluid", "is-widescreen", "is-fullhd", "is-offset-*", "is-striped", "is-hoverable", "is-bordered", "is-current", "is-disabled", "is-active", "is-container"]}</script>
 </main>
 </div>
 <script type="module">
@@ -3078,9 +3489,70 @@ export function enhanceMenus(root = document) {
   };
 }
 
+// The one drawer behaviour the Popover API cannot express declaratively. A
+// drawer left open while the viewport crosses its breakpoint stays in the top
+// layer, and the control that would dismiss it is gone by then -- `layout.css`
+// sets `.ui-burger { display: none }` inside `@media (min-width: 1024px)`, the
+// shell's own switch width. So the panel is stuck open with nothing visible to
+// close it. That is a dead end, not a cosmetic wrinkle, and it is the only
+// reason this module touches drawers at all: light dismiss, Escape, focus
+// return and the invoker's implicit expanded state are the platform's job and
+// are not duplicated here.
+//
+// Generalised over `data-ui-drawer-breakpoint` rather than one hard-coded id or
+// width, so any drawer can opt in at whatever width its own layout switches.
+export function enhanceDrawers(root = document) {
+  const teardowns = [];
+
+  // Bail before the loop rather than letting `window.matchMedia(...)` throw.
+  // `initFastBlocksUI` builds its cleanups in a single array literal, so an
+  // exception raised here does not merely disable drawers -- it abandons the
+  // whole literal and leaves tabs, dialogs and menus un-enhanced too. Real
+  // browsers have had `matchMedia` since ~2012; the realistic exposure is a
+  // non-browser DOM (this project's jsdom does not implement it).
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return () => {};
+  }
+
+  root.querySelectorAll('.ui-drawer[data-ui-drawer-breakpoint]').forEach((drawer) => {
+    const width = Number.parseInt(drawer.dataset.uiDrawerBreakpoint, 10);
+    if (!Number.isFinite(width)) {
+      return;
+    }
+
+    const query = window.matchMedia(`(min-width: ${width}px)`);
+    const onChange = (event) => {
+      // Feature-detect the Popover API before probing `:popover-open`: engines
+      // without it raise a selector syntax error on that pseudo-class rather
+      // than returning false, and there is no top layer to clear there anyway.
+      if (!event.matches || typeof drawer.hidePopover !== 'function') {
+        return;
+      }
+
+      // `hidePopover()` on a popover that is not showing throws
+      // InvalidStateError, so this check is load-bearing.
+      if (drawer.matches(':popover-open')) {
+        drawer.hidePopover();
+      }
+    };
+
+    query.addEventListener('change', onChange);
+    teardowns.push(() => query.removeEventListener('change', onChange));
+  });
+
+  return () => {
+    teardowns.forEach((teardown) => teardown());
+  };
+}
+
 export function initFastBlocksUI(root = document) {
   defineFastBlocksCustomElements(globalThis);
-  const cleanups = [enhanceTabs(root), enhanceDialogs(root), enhanceMenus(root)].filter(Boolean);
+  const cleanups = [
+    enhanceTabs(root),
+    enhanceDialogs(root),
+    enhanceMenus(root),
+    enhanceDrawers(root),
+  ].filter(Boolean);
 
   return () => {
     cleanups.forEach((cleanup) => cleanup());
@@ -3102,7 +3574,6 @@ if (typeof document !== 'undefined' && !window.__FASTBLOCKS_UI_NO_AUTO_INIT__) {
     boot();
   }
 }
-
 </script>
     <script type="module">
 async function loadManifestData(root) {
@@ -3126,6 +3597,22 @@ async function loadManifestData(root) {
   return response.json();
 }
 
+// Manifest values are interpolated into an HTML string, so they must be
+// escaped. `description` lands inside a quoted attribute (an unescaped `"`
+// alone breaks out of it) and `class_name` lands in text content. The bundled
+// manifest is trusted today, but `loadManifestData` will happily read a
+// `manifest.json` fetched from the host application, so the trust boundary is
+// not guaranteed.
+const _HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
+function escapeText(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (ch) => _HTML_ESCAPES[ch]);
+}
+
+function escapeAttr(value) {
+  return escapeText(value);
+}
+
 async function renderComponentManifest(root = document) {
   const container = root.querySelector?.('[data-ui-component-list]');
   if (!container) {
@@ -3137,7 +3624,8 @@ async function renderComponentManifest(root = document) {
     const items = manifest.components
       .map(
         (component) =>
-          `<li class="ui-badge" title="${component.description}">${component.class_name}</li>`,
+          `<li class="ui-badge" title="${escapeAttr(component.description)}">` +
+          `${escapeText(component.class_name)}</li>`,
       )
       .join('');
 
@@ -3164,7 +3652,6 @@ if (typeof document !== 'undefined') {
 }
 
 export { renderComponentManifest, loadManifestData };
-
 </script>
     <script type="module">
         const navTrigger = document.querySelector('[data-demo-nav-trigger]');
