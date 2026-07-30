@@ -76,7 +76,7 @@
 - `docs/components.md` — five new rows
 - `tests/test_fastblocks_ui.py` — helper unit tests
 - `tests/test_demo_parity.py` — updated selectors
-- `tests/js/enhance.test.js` — breakpoint listener tests
+- `tests/js/fastblocks-ui.test.js` — breakpoint listener tests
 - `tests/e2e/demo-layout.spec.js` — **new** responsive/drawer e2e
 - `tests/e2e/accessibility.spec.js` — breakpoint a11y assertions
 
@@ -1487,11 +1487,25 @@ git commit -m "feat(layout): add sticky navbar reveal and responsive aside switc
 
 **Files:**
 - Modify: `fastblocks_ui/static/js/enhance.js`
-- Test: `tests/js/enhance.test.js`
+- Test: `tests/js/fastblocks-ui.test.js`
 
 **Interfaces:**
 - Consumes: `.ui-drawer` markup from Task 3
-- Produces: `initDrawerBreakpoints(root = document)` — exported alongside the module's existing initialisers and called from its main init path.
+- Produces: `enhanceDrawers(root = document)` — exported alongside the existing initialisers, called from `initFastBlocksUI`, and re-exported from `fastblocks_ui/static/js/fastblocks-ui.js`.
+
+**Match the established contract exactly.** Every sibling (`enhanceTabs`,
+`enhanceDialogs`, `enhanceMenus`) is `export function enhanceX(root = document)`
+and **returns a cleanup function**. `initFastBlocksUI` collects those into a
+`cleanups` array and returns a combined teardown:
+
+```js
+const cleanups = [enhanceTabs(root), enhanceDialogs(root), enhanceMenus(root)].filter(Boolean);
+```
+
+`enhanceDrawers` must therefore return a function that removes every
+`matchMedia` listener it added, be added to that array, and be re-exported from
+`fastblocks-ui.js` alongside the others. A listener with no teardown leaks
+across re-inits and breaks the module's existing contract.
 
 This is the **only** JavaScript in the whole plan. It exists because CSS cannot express one thing: a drawer left open while the viewport crosses the breakpoint stays in the top layer, and above 1024px the burger is hidden, so the user has no visible way to dismiss it. That is a dead end, not a cosmetic wrinkle.
 
@@ -1507,10 +1521,10 @@ Note the export style, the root-parameter convention, and how the test file sets
 
 - [ ] **Step 2: Write the failing tests**
 
-Append to `tests/js/enhance.test.js`, adapting the import line to match the file's existing import style:
+Append to `tests/js/fastblocks-ui.test.js`, adapting the import line to match the file's existing import style:
 
 ```javascript
-describe('initDrawerBreakpoints', () => {
+describe('enhanceDrawers', () => {
   let listeners;
 
   beforeEach(() => {
@@ -1530,13 +1544,13 @@ describe('initDrawerBreakpoints', () => {
   });
 
   it('closes an open drawer when the viewport becomes wide', () => {
-    initDrawerBreakpoints();
+    enhanceDrawers();
     listeners.forEach((fn) => fn({ matches: true }));
     expect(document.getElementById('d').hidePopover).toHaveBeenCalledTimes(1);
   });
 
   it('does nothing when the viewport becomes narrow', () => {
-    initDrawerBreakpoints();
+    enhanceDrawers();
     listeners.forEach((fn) => fn({ matches: false }));
     expect(document.getElementById('d').hidePopover).not.toHaveBeenCalled();
   });
@@ -1544,20 +1558,20 @@ describe('initDrawerBreakpoints', () => {
   it('does not close a drawer that is already closed', () => {
     const drawer = document.getElementById('d');
     drawer.matches = () => false;
-    initDrawerBreakpoints();
+    enhanceDrawers();
     listeners.forEach((fn) => fn({ matches: true }));
     expect(drawer.hidePopover).not.toHaveBeenCalled();
   });
 
   it('ignores drawers without a breakpoint attribute', () => {
     document.body.innerHTML = '<div class="ui-drawer" id="e" popover></div>';
-    initDrawerBreakpoints();
+    enhanceDrawers();
     expect(listeners).toHaveLength(0);
   });
 
   it('does not throw when no drawers are present', () => {
     document.body.innerHTML = '';
-    expect(() => initDrawerBreakpoints()).not.toThrow();
+    expect(() => enhanceDrawers()).not.toThrow();
   });
 });
 ```
@@ -1565,10 +1579,10 @@ describe('initDrawerBreakpoints', () => {
 - [ ] **Step 3: Run the tests to verify they fail**
 
 ```bash
-npx vitest run tests/js/enhance.test.js -t initDrawerBreakpoints
+npx vitest run tests/js/enhance.test.js -t enhanceDrawers
 ```
 
-Expected: FAIL — `initDrawerBreakpoints is not defined`
+Expected: FAIL — `enhanceDrawers is not defined`
 
 - [ ] **Step 4: Implement the listener in `enhance.js`**
 
@@ -1582,7 +1596,7 @@ Expected: FAIL — `initDrawerBreakpoints is not defined`
 //
 // Generalised over `data-ui-drawer-breakpoint` rather than one hard-coded id
 // so any drawer can opt in.
-export function initDrawerBreakpoints(root = document) {
+export function enhanceDrawers(root = document) {
   const drawers = root.querySelectorAll('.ui-drawer[data-ui-drawer-breakpoint]');
 
   drawers.forEach((drawer) => {
@@ -1604,7 +1618,7 @@ Call it from the module's existing init entry point, matching how the other init
 - [ ] **Step 5: Run the tests to verify they pass**
 
 ```bash
-npx vitest run tests/js/enhance.test.js -t initDrawerBreakpoints
+npx vitest run tests/js/enhance.test.js -t enhanceDrawers
 ```
 
 Expected: PASS, 5 passed
@@ -2216,7 +2230,7 @@ No gaps.
 - `nav_group(groups, *, active, class_, **attrs)` — Task 2; called in Task 7 with a single positional ✓
 - `drawer(content, *, id, label, side, tag, class_, **attrs)` — Task 3; called in Task 7 with `id`, `label`, `tag="nav"`, `class_="ui-shell-aside"`, `data_ui_drawer_breakpoint="1024"` ✓
 - `burger(*, controls, label, class_, **attrs)` — Task 4; called in Task 7 with `controls="site-nav"`, matching `drawer`'s `id="site-nav"` ✓
-- `initDrawerBreakpoints(root)` — Task 6; reads `data-ui-drawer-breakpoint`, which Task 7 emits ✓
+- `enhanceDrawers(root)` — Task 6; reads `data-ui-drawer-breakpoint`, which Task 7 emits ✓
 - CSS class `ui-shell-aside` — introduced in Task 5's media query, applied in Task 7 via `drawer(class_=...)`, asserted in Task 8's parity selector and Task 9's e2e ✓
 - `--ui-navbar-height` — defined Task 5, consumed by `.ui-shell-aside[popover]`'s `top` in the same task ✓
 
