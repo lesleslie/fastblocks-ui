@@ -7,6 +7,7 @@
 export {
   defineFastBlocksCustomElements,
   enhanceDialogs,
+  enhanceDrawers,
   enhanceMenus,
   enhanceTabs,
   initFastBlocksUI,

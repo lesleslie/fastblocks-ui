@@ -1,7 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   defineFastBlocksCustomElements,
   enhanceDialogs,
+  enhanceDrawers,
   enhanceMenus,
   enhanceTabs,
   initFastBlocksUI,
@@ -548,5 +549,171 @@ describe('FastBlocks UI enhancement layer', () => {
     replacementMenuTrigger.click();
     expect(menuHost.hasAttribute('open')).toBe(true);
     expect(replacementMenu.hidden).toBe(false);
+  });
+});
+
+// jsdom (as of the version vitest pulls in here) implements neither
+// `window.matchMedia` -- it is `undefined`, not a no-op -- nor the Popover API:
+// `element.matches(':popover-open')` raises `SyntaxError: unknown pseudo-class
+// selector`, and `hidePopover` is absent. So both are stubbed per test.
+//
+// The stub records the *media string* and *event type* it was handed rather
+// than just counting calls, so these tests can assert the listener is
+// registered against each drawer's own `data-ui-drawer-breakpoint` rather than
+// merely re-proving that the stub works. `removeEventListener` really removes,
+// so the cleanup assertion has something to observe.
+describe('enhanceDrawers', () => {
+  let registrations;
+  let realMatchMedia;
+  let cleanup;
+
+  const fireChange = (matches) => {
+    registrations.forEach(({ handler }) => handler({ matches }));
+  };
+
+  // Stand in for a browser that supports the Popover API, for the given state.
+  const withPopoverSupport = (drawer, { open }) => {
+    drawer.hidePopover = vi.fn();
+    drawer.matches = (selector) => open && selector === ':popover-open';
+    return drawer;
+  };
+
+  beforeEach(() => {
+    registrations = [];
+    realMatchMedia = window.matchMedia;
+    window.matchMedia = (media) => ({
+      media,
+      matches: false,
+      addEventListener: (type, handler) => {
+        registrations.push({ media, type, handler });
+      },
+      removeEventListener: (type, handler) => {
+        const index = registrations.findIndex(
+          (entry) => entry.media === media && entry.type === type && entry.handler === handler,
+        );
+        if (index !== -1) {
+          registrations.splice(index, 1);
+        }
+      },
+    });
+  });
+
+  afterEach(() => {
+    cleanup?.();
+    cleanup = undefined;
+    window.matchMedia = realMatchMedia;
+  });
+
+  it('listens on a query built from each drawer\'s own breakpoint', () => {
+    document.body.innerHTML = `
+      <div class="ui-drawer" id="narrow" popover data-ui-drawer-breakpoint="900"></div>
+      <div class="ui-drawer" id="wide" popover data-ui-drawer-breakpoint="1216"></div>
+    `;
+
+    cleanup = enhanceDrawers();
+
+    expect(registrations.map((entry) => entry.media)).toEqual([
+      '(min-width: 900px)',
+      '(min-width: 1216px)',
+    ]);
+    expect(registrations.map((entry) => entry.type)).toEqual(['change', 'change']);
+  });
+
+  it('closes an open drawer when the viewport becomes wide', () => {
+    document.body.innerHTML =
+      '<div class="ui-drawer" id="d" popover data-ui-drawer-breakpoint="1024"></div>';
+    const drawer = withPopoverSupport(document.getElementById('d'), { open: true });
+
+    cleanup = enhanceDrawers();
+    fireChange(true);
+
+    expect(drawer.hidePopover).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves an open drawer alone when the viewport becomes narrow', () => {
+    document.body.innerHTML =
+      '<div class="ui-drawer" id="d" popover data-ui-drawer-breakpoint="1024"></div>';
+    const drawer = withPopoverSupport(document.getElementById('d'), { open: true });
+
+    cleanup = enhanceDrawers();
+    fireChange(false);
+
+    expect(drawer.hidePopover).not.toHaveBeenCalled();
+  });
+
+  // `hidePopover()` on a popover that is not showing throws InvalidStateError,
+  // so the open check is load-bearing, not a micro-optimisation.
+  it('does not close a drawer that is already closed', () => {
+    document.body.innerHTML =
+      '<div class="ui-drawer" id="d" popover data-ui-drawer-breakpoint="1024"></div>';
+    const drawer = withPopoverSupport(document.getElementById('d'), { open: false });
+
+    cleanup = enhanceDrawers();
+    fireChange(true);
+
+    expect(drawer.hidePopover).not.toHaveBeenCalled();
+  });
+
+  it('ignores drawers without a breakpoint attribute', () => {
+    document.body.innerHTML = '<div class="ui-drawer" id="e" popover></div>';
+
+    cleanup = enhanceDrawers();
+
+    expect(registrations).toHaveLength(0);
+  });
+
+  it('ignores a breakpoint that is not a number', () => {
+    document.body.innerHTML =
+      '<div class="ui-drawer" id="e" popover data-ui-drawer-breakpoint="wide"></div>';
+
+    cleanup = enhanceDrawers();
+
+    expect(registrations).toHaveLength(0);
+  });
+
+  it('does not throw when no drawers are present', () => {
+    document.body.innerHTML = '';
+
+    expect(() => {
+      cleanup = enhanceDrawers();
+    }).not.toThrow();
+  });
+
+  // Progressive enhancement: in an engine without the Popover API the drawer is
+  // never in the top layer, so there is nothing to dismiss -- and probing
+  // `:popover-open` there is a selector syntax error, not `false`.
+  it('does not throw in an engine without the Popover API', () => {
+    document.body.innerHTML =
+      '<div class="ui-drawer" id="legacy" data-ui-drawer-breakpoint="1024"></div>';
+
+    cleanup = enhanceDrawers();
+
+    expect(() => fireChange(true)).not.toThrow();
+  });
+
+  it('removes every listener it added on cleanup', () => {
+    document.body.innerHTML = `
+      <div class="ui-drawer" id="a" popover data-ui-drawer-breakpoint="900"></div>
+      <div class="ui-drawer" id="b" popover data-ui-drawer-breakpoint="1024"></div>
+    `;
+
+    const teardown = enhanceDrawers();
+    expect(registrations).toHaveLength(2);
+
+    teardown();
+
+    expect(registrations).toHaveLength(0);
+  });
+
+  it('is wired into initFastBlocksUI and torn down by its cleanup', () => {
+    document.body.innerHTML =
+      '<div class="ui-drawer" id="d" popover data-ui-drawer-breakpoint="1024"></div>';
+
+    const teardown = initFastBlocksUI(document);
+    expect(registrations).toHaveLength(1);
+
+    teardown();
+
+    expect(registrations).toHaveLength(0);
   });
 });

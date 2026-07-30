@@ -3520,9 +3520,60 @@ export function enhanceMenus(root = document) {
   };
 }
 
+// The one drawer behaviour the Popover API cannot express declaratively. A
+// drawer left open while the viewport crosses its breakpoint stays in the top
+// layer, and the control that would dismiss it is gone by then -- `layout.css`
+// sets `.ui-burger { display: none }` inside `@media (min-width: 1024px)`, the
+// shell's own switch width. So the panel is stuck open with nothing visible to
+// close it. That is a dead end, not a cosmetic wrinkle, and it is the only
+// reason this module touches drawers at all: light dismiss, Escape, focus
+// return and the invoker's implicit expanded state are the platform's job and
+// are not duplicated here.
+//
+// Generalised over `data-ui-drawer-breakpoint` rather than one hard-coded id or
+// width, so any drawer can opt in at whatever width its own layout switches.
+export function enhanceDrawers(root = document) {
+  const teardowns = [];
+
+  root.querySelectorAll('.ui-drawer[data-ui-drawer-breakpoint]').forEach((drawer) => {
+    const width = Number.parseInt(drawer.dataset.uiDrawerBreakpoint, 10);
+    if (!Number.isFinite(width)) {
+      return;
+    }
+
+    const query = window.matchMedia(`(min-width: ${width}px)`);
+    const onChange = (event) => {
+      // Feature-detect the Popover API before probing `:popover-open`: engines
+      // without it raise a selector syntax error on that pseudo-class rather
+      // than returning false, and there is no top layer to clear there anyway.
+      if (!event.matches || typeof drawer.hidePopover !== 'function') {
+        return;
+      }
+
+      // `hidePopover()` on a popover that is not showing throws
+      // InvalidStateError, so this check is load-bearing.
+      if (drawer.matches(':popover-open')) {
+        drawer.hidePopover();
+      }
+    };
+
+    query.addEventListener('change', onChange);
+    teardowns.push(() => query.removeEventListener('change', onChange));
+  });
+
+  return () => {
+    teardowns.forEach((teardown) => teardown());
+  };
+}
+
 export function initFastBlocksUI(root = document) {
   defineFastBlocksCustomElements(globalThis);
-  const cleanups = [enhanceTabs(root), enhanceDialogs(root), enhanceMenus(root)].filter(Boolean);
+  const cleanups = [
+    enhanceTabs(root),
+    enhanceDialogs(root),
+    enhanceMenus(root),
+    enhanceDrawers(root),
+  ].filter(Boolean);
 
   return () => {
     cleanups.forEach((cleanup) => cleanup());
