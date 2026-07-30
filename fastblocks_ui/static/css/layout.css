@@ -153,7 +153,7 @@
            `timeline` is `null` and the subject computes its un-animated values
            (`opacity: 1`, `translate: none`), where the same page with one
            subject yields a live `ViewTimeline` and `opacity: 0`. This library's
-           own demo renders nine `.ui-hero` variants below the fold, so an
+           own demo renders many `.ui-hero` variants below the fold, so an
            unscoped declaration would silently disable the reveal on the page
            the feature exists to serve. */
         body > .ui-hero {

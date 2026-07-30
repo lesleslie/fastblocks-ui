@@ -2098,12 +2098,26 @@ Expected: PASS, 7 passed. Do NOT assert `aria-expanded` on the burger — it is 
 Append to `tests/e2e/accessibility.spec.js`, matching the file's existing axe-builder setup:
 
 ```javascript
+// Baseline-relative, NOT `toEqual([])`. Task 7 measured pre-existing
+// violations on the UNTOUCHED demo page: `landmark-unique` x1 at every width
+// and `scrollable-region-focusable` x2-3 at 375px. A bare zero-violations
+// assertion fails immediately and tells you nothing about whether THIS change
+// regressed anything. Assert no NEW rule ids instead, and keep the known set
+// visible so it shrinks deliberately rather than silently growing.
+const KNOWN_AXE_VIOLATIONS = new Set([
+  'landmark-unique',            // pre-existing: multiple same-named landmarks
+  'scrollable-region-focusable', // pre-existing at 375px: scrollable demo panels
+]);
+
 for (const width of [375, 768, 1023, 1024, 1280]) {
-  test(`demo page has no axe violations at ${width}px`, async ({ page }) => {
+  test(`demo page introduces no new axe violations at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/demo/demo.html');
     const results = await new AxeBuilder({ page }).analyze();
-    expect(results.violations).toEqual([]);
+    const unexpected = results.violations
+      .map((v) => v.id)
+      .filter((id) => !KNOWN_AXE_VIOLATIONS.has(id));
+    expect(unexpected).toEqual([]);
   });
 }
 
@@ -2122,7 +2136,7 @@ test('drawer open has no axe violations', async ({ page }) => {
 npx playwright test tests/e2e/accessibility.spec.js --config=playwright.audit.config.js
 ```
 
-Expected: PASS, no violations. A `landmark-unique` violation means the navbar and the drawer nav share an accessible name — the navbar's `label="site navigation"` and the drawer's `label="Component sections"` must differ.
+Expected: PASS. `landmark-unique` and `scrollable-region-focusable` are pre-existing and allowlisted — Task 7 confirmed both fire on the untouched baseline page. Any OTHER rule id is a regression this change introduced. If `landmark-unique` count *increases*, check that the navbar's `label="site navigation"` and the drawer's `label="Component sections"` still differ.
 
 - [ ] **Step 5: Run everything**
 
