@@ -271,9 +271,11 @@ class TestDemoParity(unittest.TestCase):
 
     def test_page_navbar(self) -> None:
         # This page's own sticky bar, not a showcase sample (see test_navbar for
-        # those). `label="site navigation"` rather than the default: the drawer
-        # nav is named "Component sections", and two navigation landmarks
-        # sharing one accessible name fail axe's `landmark-unique`.
+        # those). `label="site navigation"` rather than the default because the
+        # default is "main navigation", which the two showcase navbars would
+        # otherwise also carry -- three navigation landmarks, one name. The
+        # drawer's "Component sections" was never the clash partner; every
+        # distinct name is enforced by test_navigation_landmarks_have_unique_names.
         html = str(
             navbar(
                 brand="FastBlocks UI",
@@ -289,20 +291,44 @@ class TestDemoParity(unittest.TestCase):
         self.assertFragmentInDemo(html)
 
     def test_navbar(self) -> None:
+        # Explicit `label=` on both: `navbar()` defaults to "main navigation",
+        # so the two showcase instances exposed two navigation landmarks under
+        # one accessible name -- ambiguous for landmark navigation, and axe's
+        # `landmark-unique`. Pinning the labels here is what stops the demo
+        # regressing to the default and reintroducing the clash.
         default_variant = navbar(
             "FastBlocks UI",
             brand_url="#",
             start=[("Docs", "#"), ("Components", "#")],
             end=button("Sign in", href="#", variant="primary", size="small"),
+            label="navbar example, default",
         )
         dark_variant = navbar(
             "Brand",
             brand_url="#",
             items=[("Home", "#"), ("About", "#"), ("Contact", "#")],
             variant="dark",
+            label="navbar example, dark",
         )
         self.assertFragmentInDemo(str(default_variant))
         self.assertFragmentInDemo(str(dark_variant))
+
+    def test_navigation_landmarks_have_unique_names(self) -> None:
+        """Every `<nav>` on the page must carry a distinct accessible name.
+
+        Landmark navigation is only useful if the names distinguish the
+        regions. `navbar()`'s `label` default is shared, so any two unlabelled
+        instances collide -- which is why this asserts on the rendered page
+        rather than on one helper call.
+        """
+        import re
+
+        body = DEMO_HTML[DEMO_HTML.index("<body>") :]
+        labels = re.findall(r'<nav[^>]*aria-label="([^"]+)"', body)
+        duplicates = {label for label in labels if labels.count(label) > 1}
+        self.assertEqual(
+            duplicates, set(), f"navigation landmarks share a name: {duplicates}"
+        )
 
     def test_field_standalone(self) -> None:
         html = str(

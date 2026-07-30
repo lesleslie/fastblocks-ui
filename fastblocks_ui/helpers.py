@@ -1452,8 +1452,18 @@ def table(
         for row in rows
     )
 
+    # `tabindex="0"` on the scroll container, not decoration. `layout.css` gives
+    # it `overflow-x: auto`, and a table wide enough to overflow has no focusable
+    # descendant of its own -- so without this a keyboard user cannot scroll to
+    # the columns beyond the fold at all. Measured with axe on this library's own
+    # demo at 375px: `scrollable-region-focusable`, one node per wide table.
+    #
+    # `role="region"` + a name is the fuller treatment, but a region needs an
+    # accessible name to be useful and `table()` has no caption argument to
+    # derive one from; `tabindex` alone makes the content reachable, which is
+    # the part that is currently broken.
     return _safe(
-        f'<div class="ui-table-container">'
+        f'<div class="ui-table-container" tabindex="0">'
         f"<table{attr_html}>"
         f"<thead><tr>{header_html}</tr></thead>"
         f"<tbody>{body_html}</tbody>"

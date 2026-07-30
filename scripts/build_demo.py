@@ -202,7 +202,9 @@ DEMO_CSS = """
    itself stretched by this very child, so the constraint is circular.
 
    Same answer as `.ui-table-container`: give the pair its own scroll
-   container. The panels keep their real widths, the overflow is contained
+   container -- with `tabindex="0"` on it, since a scrollable region that no
+   descendant can focus is unreachable by keyboard (axe:
+   scrollable-region-focusable). The panels keep their real widths, the overflow is contained
    and scrollable, and the comparison stays truthful at every viewport
    instead of silently collapsing into two identical panels. */
 .cq-compare {
@@ -425,17 +427,24 @@ def column_demo() -> SafeHTML:
 # Navigation
 # ---------------------------------------------------------------------------
 def navbar_demo() -> SafeHTML:
+    # Explicit labels: `navbar()` defaults to "main navigation", so two
+    # instances on one page expose two navigation landmarks under a single
+    # accessible name -- ambiguous for landmark navigation, and axe's
+    # `landmark-unique`. This is exactly the case the helper's `label`
+    # parameter was made overridable for (see its docstring).
     default_variant = navbar(
         "FastBlocks UI",
         brand_url="#",
         start=[("Docs", "#"), ("Components", "#")],
         end=button("Sign in", href="#", variant="primary", size="small"),
+        label="navbar example, default",
     )
     dark_variant = navbar(
         "Brand",
         brand_url="#",
         items=[("Home", "#"), ("About", "#"), ("Contact", "#")],
         variant="dark",
+        label="navbar example, dark",
     )
     return compose(default_variant, dark_variant)
 
@@ -913,7 +922,7 @@ def container_query_demo() -> SafeHTML:
         )
 
     return _safe(
-        '<div class="cq-compare">'
+        '<div class="cq-compare" tabindex="0">'
         + panel(
             "15rem", "Narrow wrapper", "cq-narrow", "cq-narrow-column", "cq-narrow-card"
         )

@@ -2109,36 +2109,25 @@ Expected: PASS, 7 passed. Do NOT assert `aria-expanded` on the burger — it is 
 Append to `tests/e2e/accessibility.spec.js`, matching the file's existing axe-builder setup:
 
 ```javascript
-// Baseline-relative, NOT `toEqual([])`. Task 7 measured pre-existing
-// violations on the UNTOUCHED demo page: `landmark-unique` x1 at every width
-// and `scrollable-region-focusable` x2-3 at 375px. A bare zero-violations
-// assertion fails immediately and tells you nothing about whether THIS change
-// regressed anything. Assert no NEW rule ids instead, and keep the known set
-// visible so it shrinks deliberately rather than silently growing.
-const KNOWN_AXE_VIOLATIONS = new Set([
-  'landmark-unique',            // pre-existing: multiple same-named landmarks
-  'scrollable-region-focusable', // pre-existing at 375px: scrollable demo panels
-]);
-
-for (const width of [375, 768, 1023, 1024, 1280]) {
-  test(`demo page introduces no new axe violations at ${width}px`, async ({ page }) => {
+// The demo pages are axe-clean: ZERO violations on both, at 375/768/1024/1280,
+// measured after Task 8. So assert zero -- the strongest form of this gate.
+//
+// It did not start here. The baseline carried `landmark-unique` (two showcase
+// navbars both taking `navbar()`'s default "main navigation", so two landmarks
+// shared one accessible name) and `scrollable-region-focusable` (three scroll
+// containers with no focusable descendant: the escaped-markup `<pre>`, the
+// container-query comparison strip, and `.ui-table-container` -- the last a
+// real defect in the shipped library, where a keyboard user could not scroll a
+// wide table at all). All were fixed rather than allowlisted. If this gate ever
+// needs an allowlist again, that is a regression to fix, not a list to grow.
+for (const width of [375, 768, 1024, 1280]) {
+  test(`demo page has no axe violations at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/demo/demo.html');
     const results = await new AxeBuilder({ page }).analyze();
-    const unexpected = results.violations
-      .map((v) => v.id)
-      .filter((id) => !KNOWN_AXE_VIOLATIONS.has(id));
-    expect(unexpected).toEqual([]);
+    expect(results.violations).toEqual([]);
   });
 }
-
-test('drawer open has no axe violations', async ({ page }) => {
-  await page.setViewportSize({ width: 768, height: 900 });
-  await page.goto('/demo/demo.html');
-  await page.locator('.ui-burger').click();
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations).toEqual([]);
-});
 ```
 
 - [ ] **Step 4: Run the accessibility suite**
@@ -2147,7 +2136,7 @@ test('drawer open has no axe violations', async ({ page }) => {
 npx playwright test tests/e2e/accessibility.spec.js --config=playwright.audit.config.js
 ```
 
-Expected: PASS. `landmark-unique` and `scrollable-region-focusable` are pre-existing and allowlisted — Task 7 confirmed both fire on the untouched baseline page. Any OTHER rule id is a regression this change introduced. If `landmark-unique` count *increases*, check that the navbar's `label="site navigation"` and the drawer's `label="Component sections"` still differ.
+Expected: PASS with zero violations. Both demo pages measured clean at 375/768/1024/1280 after Task 8. If `landmark-unique` reappears, two `<nav>` elements have collided on one accessible name — `tests/test_demo_parity.py::test_navigation_landmarks_have_unique_names` guards that from the Python side too. If `scrollable-region-focusable` reappears, a new `overflow` container lacks `tabindex="0"`.
 
 - [ ] **Step 5: Run everything**
 
