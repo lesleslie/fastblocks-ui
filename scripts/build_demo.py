@@ -86,6 +86,28 @@ DEMO_CSS = """
   left: var(--ui-space-4);
   top: var(--ui-space-4);
 }
+/* The nav skip link exists only above the drawer breakpoint, because below it
+   the target does not exist to skip to: `#site-nav` is a `[popover]`, and the
+   UA rule `[popover]:not(:popover-open) { display: none }` applies until
+   layout.css grants it `display: block` at 1024px. A skip link pointing at a
+   `display: none` target neither scrolls nor moves focus, so it was dead at
+   exactly the widths where "skip to nav" would earn its keep.
+
+   Hiding it there loses nothing: below the breakpoint the nav is reached
+   through the burger, which sits in the sticky bar within a couple of tabs of
+   the page top. Above the breakpoint the nav is a DOM-last sticky column
+   behind 30-odd sections, which is where the link genuinely helps.
+
+   Note axe reports a hidden skip-link target as *incomplete*, not a
+   violation -- a violations-only scan will not catch this class of bug. */
+.demo-skip-link[data-demo-skip="nav"] {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .demo-skip-link[data-demo-skip="nav"] {
+    display: revert;
+  }
+}
 .demo-category-title {
   margin: 0;
   padding-top: var(--ui-space-4);
@@ -1297,7 +1319,7 @@ def render_page() -> str:
 </head>
 <body>
 <a class="demo-skip-link" href="#demo-content">Skip to content</a>
-<a class="demo-skip-link" href="#site-nav">Skip to section navigation</a>
+<a class="demo-skip-link" data-demo-skip="nav" href="#site-nav">Skip to section navigation</a>
 {page_bar}
 {page_hero}
 {shell_markup}
