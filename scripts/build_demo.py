@@ -218,7 +218,12 @@ DEMO_CSS = """
   padding: var(--ui-space-3);
 }
 /* Only the shell section uses this: it shows escaped markup because a live
-   nested `shell()` would emit a second `<main>`, which is invalid HTML. */
+   nested `shell()` would emit a second `<main>`, which is invalid HTML.
+
+   `overflow-x: auto` makes this a scrollable region, and a scrollable region
+   has to be reachable by keyboard or its content cannot be scrolled without a
+   mouse -- hence `tabindex="0"` on the element itself (axe:
+   scrollable-region-focusable). */
 .demo-code {
   margin: 0;
   padding: var(--ui-space-3);
@@ -961,7 +966,7 @@ def shell_demo() -> SafeHTML:
     )
     return _safe(
         '<div class="ui-stack">'
-        f'<pre class="demo-code"><code>{_esc(markup)}</code></pre>'
+        f'<pre class="demo-code" tabindex="0"><code>{_esc(markup)}</code></pre>'
         '<p class="ui-muted">One column below 1024px; main plus a '
         "<code>--ui-shell-aside-width</code> track above it. "
         "<code>--ui-shell-max</code> defaults to <code>none</code>, so the "
