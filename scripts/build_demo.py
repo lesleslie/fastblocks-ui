@@ -7,7 +7,9 @@ directly in a browser -- no server required.
 
 The page is a full component showcase: every component in
 ``fastblocks_ui/manifest.json`` gets its own anchored section (grouped into
-categories), linked from a collapsible sidebar table of contents. See
+categories), linked from a table of contents that is a ``drawer()`` below
+1024px and the ``shell()``'s sticky right-hand column above it -- one element
+with one id, serving both roles. See
 ``docs/roadmap.md`` for the redesign rationale and ``demo/demo.html`` for the
 hand-written mirror this file is kept in parity with (via
 ``tests/test_demo_parity.py``).
@@ -25,6 +27,7 @@ from fastblocks_ui import (
     COMPONENT_MANIFEST,
     alert,
     breadcrumb,
+    burger,
     button,
     card,
     checkbox,
@@ -33,16 +36,19 @@ from fastblocks_ui import (
     compose,
     container,
     dialog,
+    drawer,
     field,
     footer,
     hero,
     level,
     media,
     menu,
+    nav_group,
     navbar,
     pagination,
     progress,
     section,
+    shell,
     switch,
     table,
     tabs,
@@ -80,79 +86,6 @@ DEMO_CSS = """
   left: var(--ui-space-4);
   top: var(--ui-space-4);
 }
-.demo-topbar {
-  display: flex;
-  justify-content: flex-end;
-  padding: var(--ui-space-3) var(--ui-space-4) 0;
-}
-.demo-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--ui-space-6);
-  max-width: 72rem;
-  margin-inline: auto;
-  padding: var(--ui-space-4) var(--ui-space-4) var(--ui-space-6);
-  align-items: start;
-}
-.demo-sidebar {
-  display: none;
-  border: var(--ui-border-width) solid var(--ui-color-border);
-  border-radius: var(--ui-radius-lg);
-  padding: var(--ui-space-4);
-  background: var(--ui-color-surface-raised);
-}
-.demo-sidebar.is-active {
-  display: block;
-}
-.demo-sidebar-title {
-  display: block;
-  font-weight: 600;
-  color: var(--ui-color-text-strong);
-  text-decoration: none;
-  margin-bottom: var(--ui-space-4);
-}
-.demo-sidebar-group + .demo-sidebar-group {
-  margin-top: var(--ui-space-4);
-}
-.demo-sidebar-heading {
-  font-weight: 600;
-  font-size: 0.8125rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--ui-color-text-muted);
-  margin: 0 0 var(--ui-space-2);
-}
-.demo-sidebar-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--ui-space-1);
-}
-.demo-sidebar-list a {
-  display: block;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--ui-radius-sm);
-  color: var(--ui-color-text);
-  text-decoration: none;
-}
-.demo-sidebar-list a:hover,
-.demo-sidebar-list a:focus-visible {
-  background: var(--ui-color-surface-muted);
-  color: var(--ui-color-text-strong);
-}
-.demo-content {
-  min-width: 0;
-  display: grid;
-  /* `minmax(0, 1fr)`, not the implicit `auto`. An auto-sized grid track
-     floors at the widest item's *min-content* width, and that floor is
-     then applied to every sibling -- so one un-shrinkable component (the
-     pagination row, historically ~419px) stretched all 32 sections past
-     the viewport. `min-width: 0` above only frees this element inside its
-     own parent; it says nothing about how this grid sizes its children. */
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--ui-space-6);
-}
 .demo-category-title {
   margin: 0;
   padding-top: var(--ui-space-4);
@@ -163,7 +96,17 @@ DEMO_CSS = """
   border-top: none;
 }
 .demo-section {
-  scroll-margin-top: var(--ui-space-6);
+  /* No `scroll-margin-top` here any more: the bundle's
+     `:root:has(> body > .ui-navbar.is-sticky) { scroll-padding-top }` offsets
+     every anchor on the page from one declaration, including the ones these
+     sections do not own (the navbar brand's `#top`, the skip links). */
+  content-visibility: auto;
+  /* Required alongside `content-visibility: auto`, which applies size
+     containment while a subtree is skipped. With no intrinsic size to fall
+     back on, every offscreen section measures 0px tall, so the scroll
+     position an anchor resolves to is computed against a document that is a
+     fraction of its real height. */
+  contain-intrinsic-size: auto 40rem;
 }
 .demo-section h3 {
   margin-block-end: var(--ui-space-3);
@@ -258,31 +201,6 @@ DEMO_CSS = """
   place-items: center;
   font-weight: 600;
   flex-shrink: 0;
-}
-
-@media (min-width: 769px) {
-  .demo-topbar {
-    display: none;
-  }
-  .demo-layout {
-    grid-template-columns: 16rem 1fr;
-    padding-top: var(--ui-space-6);
-  }
-  /* `top` must equal `.demo-layout`'s padding-top (both --ui-space-6).
-     A sticky element scrolls normally until its box reaches the `top`
-     threshold, so any gap between where it starts and where it sticks is
-     visible travel: with top at --ui-space-4 (16px) and the layout
-     padding at --ui-space-6 (32px), the sidebar slid up exactly 16px on
-     the first scroll before locking. Matching them makes it start already
-     at its threshold, so it never moves. max-height follows the same
-     offset on both edges to keep the gap symmetric. */
-  .demo-sidebar {
-    display: block;
-    position: sticky;
-    top: var(--ui-space-6);
-    max-height: calc(100vh - var(--ui-space-6) * 2);
-    overflow-y: auto;
-  }
 }
 """.strip()
 
@@ -993,9 +911,10 @@ def build_categories() -> list[
                 (
                     "container",
                     "Container",
-                    "A container's max-width only matters at full page width, "
-                    "wider than this demo column -- default/fluid/widescreen/"
-                    "fullhd render identically here but differ in a real page.",
+                    "Each variant caps at a different width (1200px, none, "
+                    "1344px, none), so the four only diverge once this column "
+                    "is wider than the cap -- on a narrow display they render "
+                    "identically.",
                     container_demo(),
                 ),
                 (
@@ -1240,23 +1159,32 @@ def build_categories() -> list[
 def build_sidebar(
     categories: list[tuple[str, str, list[tuple[str, str, str | None, SafeHTML]]]],
 ) -> SafeHTML:
-    groups: list[str] = []
-    for _cat_id, label, items in categories:
-        links = "".join(
-            f'<li><a href="#{anchor}">{_esc(heading)}</a></li>'
-            for anchor, heading, _lead, _body in items
-        )
-        groups.append(
-            '<div class="demo-sidebar-group">'
-            f'<p class="demo-sidebar-heading">{_esc(label)}</p>'
-            f'<ul class="demo-sidebar-list">{links}</ul>'
-            "</div>"
-        )
-    return _safe(
-        '<nav class="demo-sidebar" id="demo-sidebar" aria-label="Component sections">'
-        '<a class="demo-sidebar-title" href="#top">FastBlocks UI</a>'
-        f'<div class="demo-sidebar-groups">{"".join(groups)}</div>'
-        "</nav>"
+    """Render the section navigation as a drawer that doubles as the sticky column.
+
+    One element, one id, both roles -- see ``.ui-shell-aside[popover]`` in
+    layout.css. Duplicating the nav for desktop and mobile would break the
+    stable-id contract htmx swapping depends on, and would put two navigation
+    landmarks with the same accessible name in the page.
+    """
+    groups = [
+        (label, [(heading, f"#{anchor}") for anchor, heading, _lead, _body in items])
+        for _cat_id, label, items in categories
+    ]
+    # No `active=` is passed, so no `aria-current` is emitted at all. If this
+    # ever marks a current section, it must pass `aria_current="location"`:
+    # these hrefs are fragments that only move the viewport, and both the
+    # default `"true"` and a `"page"` token would announce something less
+    # accurate than what the link does.
+    return drawer(
+        nav_group(groups),
+        id="site-nav",
+        label="Component sections",
+        tag="nav",
+        class_="ui-shell-aside",
+        # Read by `enhanceDrawers`, which closes the panel when the viewport
+        # crosses this width. It must match the `min-width: 1024px` query in
+        # layout.css that turns this same element into the in-flow column.
+        data_ui_drawer_breakpoint="1024",
     )
 
 
@@ -1278,24 +1206,67 @@ def render_page() -> str:
     sidebar = build_sidebar(categories)
     content = build_content(categories)
     # heading_level=1: this hero is the page banner, so its title is the
-    # document's h1. The nine heroes inside the Hero showcase section below
-    # deliberately stay <p> -- they are samples of a component, not sections
-    # of this document, and promoting them would put nine h1s in the outline.
+    # document's h1. The eight heroes inside the Hero showcase section below
+    # (six colors + two sizes, see `hero_demo`) deliberately stay <p> -- they
+    # are samples of a component, not sections of this document, and promoting
+    # them would put eight more h1s in the outline.
+    #
+    # `id="top"` because this element is now the top of the page: it is a
+    # direct child of <body>, above the shell, so the navbar brand's `#top`
+    # lands on it. Placing it there is load-bearing beyond looks -- layout.css
+    # declares the navbar reveal's view timeline on `body > .ui-hero`
+    # specifically, and a named view timeline declared by more than one
+    # element resolves to an inactive timeline. Those eight showcase heroes
+    # are `.ui-hero` too, so nesting this one inside <main> would leave
+    # `body > .ui-hero` matching nothing and silently disable the reveal.
     page_hero = hero(
         "FastBlocks UI",
         subtitle="HTML/CSS-first components, semantic tokens, htmx-safe "
         "fragments, and optional enhancement JavaScript.",
         variant="primary",
         heading_level=1,
+        id="top",
+        # Moving the hero out of <main> put the document's h1 outside every
+        # landmark, which axe's `region` rule flags (measured: one violation
+        # on `#top`, gone once this role is present). `<header>` would be the
+        # usual fix, but wrapping the hero would stop `body > .ui-hero` from
+        # matching and take the reveal with it. `role="banner"` names the
+        # element it is already on: a unique, top-level banner carrying the
+        # site title.
+        role="banner",
+    )
+    page_bar = navbar(
+        brand="FastBlocks UI",
+        brand_url="#top",
+        end=SafeHTML(
+            str(button("Theme", type="button", data_theme_toggle=True))
+            + str(burger(controls="site-nav"))
+        ),
+        # Distinct from the drawer nav's "Component sections": two navigation
+        # landmarks sharing one accessible name are ambiguous to landmark
+        # navigation and fail axe's `landmark-unique`.
+        label="site navigation",
+        class_="is-sticky",
+    )
+    shell_markup = shell(
+        SafeHTML(content),
+        aside=sidebar,
+        main_id="demo-content",
     )
 
     css = CSS.read_text(encoding="utf-8")
     js = JS.read_text(encoding="utf-8")
+    # `querySelectorAll`, not `querySelector`: the page now carries two
+    # `[data-theme-toggle]` buttons -- one in the sticky navbar and the one
+    # the Theme section exists to demonstrate. Binding only the first match
+    # would leave the demonstrated button inert.
     toggle_js = (
         "const root=document.documentElement;"
-        "document.querySelector('[data-theme-toggle]')?.addEventListener('click',()=>{"
+        "document.querySelectorAll('[data-theme-toggle]').forEach((el)=>{"
+        "el.addEventListener('click',()=>{"
         "root.setAttribute('data-theme',"
         "root.getAttribute('data-theme')==='dark'?'light':'dark');});"
+        "});"
     )
     action_js = (
         "let demoActionCount=0;"
@@ -1306,28 +1277,11 @@ def render_page() -> str:
         "time${demoActionCount===1?'':'s'}.`;}"
         "});"
     )
-    nav_js = (
-        "const navTrigger=document.querySelector('[data-demo-nav-trigger]');"
-        "const sidebar=document.getElementById('demo-sidebar');"
-        "function closeDemoNav(){"
-        "sidebar?.classList.remove('is-active');"
-        "navTrigger?.setAttribute('aria-expanded','false');"
-        "}"
-        "navTrigger?.addEventListener('click',()=>{"
-        "const open=sidebar?.classList.toggle('is-active');"
-        "navTrigger.setAttribute('aria-expanded',String(Boolean(open)));"
-        "});"
-        "sidebar?.addEventListener('click',(event)=>{"
-        "if(event.target.closest('a')&&window.matchMedia('(max-width: 768px)').matches){"
-        "closeDemoNav();"
-        "}"
-        "});"
-        "document.addEventListener('keydown',(event)=>{"
-        "if(event.key==='Escape'&&sidebar?.classList.contains('is-active')){"
-        "closeDemoNav();navTrigger?.focus();"
-        "}"
-        "});"
-    )
+    # There is deliberately no nav-toggle script here. The drawer is a
+    # `[popover]` and `.ui-burger` its `popovertarget`, so open/close, light
+    # dismiss, Escape and focus return are the browser's job; `enhance.js`
+    # supplies only the one thing the Popover API cannot express, closing the
+    # panel when the viewport crosses `data-ui-drawer-breakpoint`.
 
     return f"""<!doctype html>
 <html lang="en" data-theme="light">
@@ -1343,22 +1297,15 @@ def render_page() -> str:
 </head>
 <body>
 <a class="demo-skip-link" href="#demo-content">Skip to content</a>
-<div class="demo-topbar">
-<button type="button" class="ui-button" data-demo-nav-trigger aria-controls="demo-sidebar" aria-expanded="false">Menu</button>
-</div>
-<div class="demo-layout" id="top">
-{sidebar}
-<main class="demo-content" id="demo-content">
+<a class="demo-skip-link" href="#site-nav">Skip to section navigation</a>
+{page_bar}
 {page_hero}
-{content}
-</main>
-</div>
+{shell_markup}
 <script type="module">
 {js}
 </script>
 <script type="module">{toggle_js}</script>
 <script type="module">{action_js}</script>
-<script type="module">{nav_js}</script>
 </body>
 </html>
 """
