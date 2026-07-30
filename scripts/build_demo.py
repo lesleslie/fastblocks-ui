@@ -7,7 +7,10 @@ directly in a browser -- no server required.
 
 The page is a full component showcase: every component in
 ``fastblocks_ui/manifest.json`` gets its own anchored section (grouped into
-categories), linked from a table of contents that is a ``drawer()`` below
+categories) -- ``tests/test_demo_parity.py`` enforces that, so adding a
+component to the manifest without a section here fails the suite. ``shell`` is
+the one section that shows escaped markup instead of a live instance: it
+renders a real ``<main>``, and a document may have only one that is not hidden, linked from a table of contents that is a ``drawer()`` below
 1024px and the ``shell()``'s sticky right-hand column above it -- one element
 with one id, serving both roles. See
 ``docs/roadmap.md`` for the redesign rationale and ``demo/demo.html`` for the
@@ -44,6 +47,7 @@ from fastblocks_ui import (
     media,
     menu,
     nav_group,
+    nav_list,
     navbar,
     pagination,
     progress,
@@ -212,6 +216,17 @@ DEMO_CSS = """
   flex: none;
   border: 1px dashed var(--ui-color-border);
   padding: var(--ui-space-3);
+}
+/* Only the shell section uses this: it shows escaped markup because a live
+   nested `shell()` would emit a second `<main>`, which is invalid HTML. */
+.demo-code {
+  margin: 0;
+  padding: var(--ui-space-3);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-muted);
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.5;
 }
 .demo-avatar {
   inline-size: 2.5rem;
@@ -922,6 +937,131 @@ def manifest_demo() -> SafeHTML:
 # coverage can be checked mechanically (see
 # tests/test_demo_parity.py::test_every_manifest_component_has_a_demo_section).
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Shell, navigation lists, drawer and burger
+#
+# These five components build this page's own chrome, so each section below
+# points at the live instance as well as showing the call.
+# ---------------------------------------------------------------------------
+def shell_demo() -> SafeHTML:
+    """Show `shell()` as escaped source rather than a live nested instance.
+
+    `shell()` renders its main column as a real `<main>`, and a document may
+    have only one of those that is not hidden. Rendering a second live shell
+    inside this page's own `<main>` would be invalid HTML and would trip axe's
+    `landmark-one-main` -- so the markup is shown, and the page you are reading
+    is the working example.
+    """
+    markup = str(
+        shell(
+            _safe("<p>Main column</p>"),
+            aside=_safe('<nav class="ui-shell-aside"><p>Aside</p></nav>'),
+            main_id="example-main",
+        )
+    )
+    return _safe(
+        '<div class="ui-stack">'
+        f'<pre class="demo-code"><code>{_esc(markup)}</code></pre>'
+        '<p class="ui-muted">One column below 1024px; main plus a '
+        "<code>--ui-shell-aside-width</code> track above it. "
+        "<code>--ui-shell-max</code> defaults to <code>none</code>, so the "
+        "shell is edge to edge -- cap prose with <code>ui-measure</code> "
+        "rather than narrowing the shell.</p>"
+        "</div>"
+    )
+
+
+def nav_list_demo() -> SafeHTML:
+    return _safe(
+        '<div class="ui-stack">'
+        + str(
+            nav_list(
+                [("Container", "#container"), ("Hero", "#hero"), ("Tile", "#tile")],
+                active="#hero",
+                aria_current="location",
+            )
+        )
+        + '<p class="ui-muted">The active item takes '
+        "<code>aria-current</code>; the token is a parameter because this list "
+        "cannot know whether its links change pages or only move the viewport. "
+        "These are in-page anchors, so they pass <code>location</code> -- "
+        "<code>page</code> would announce &quot;current page&quot; for a link "
+        "that never leaves it. Unrelated to <code>menu()</code>, which is an "
+        "absolutely positioned dropdown.</p>"
+        "</div>"
+    )
+
+
+def nav_group_demo() -> SafeHTML:
+    return _safe(
+        '<div class="ui-stack">'
+        + str(
+            nav_group(
+                [
+                    ("Layout", [("Container", "#container"), ("Hero", "#hero")]),
+                    ("Forms", [("Field", "#field"), ("Input", "#input")]),
+                ]
+            )
+        )
+        + '<p class="ui-muted">Labels are <code>&lt;p&gt;</code>, not headings, '
+        "so grouping a nav does not inject entries into the document outline. "
+        "Any <code>class_</code> or attributes land on one outer "
+        "<code>ui-nav-groups</code> wrapper -- per-group would emit the same "
+        "<code>id</code> more than once. This page&#39;s table of contents is a "
+        "live instance.</p>"
+        "</div>"
+    )
+
+
+def drawer_demo() -> SafeHTML:
+    """A second, independent drawer opening from the start edge.
+
+    Deliberately carries no `data-ui-drawer-breakpoint`: that attribute is what
+    makes `enhanceDrawers` auto-close a panel when the viewport crosses the
+    breakpoint, which is right for the table of contents and wrong for a
+    showcase the reader may be inspecting at the time.
+    """
+    return _safe(
+        '<div class="ui-stack">'
+        + str(burger(controls="demo-drawer", label="Open example drawer"))
+        + str(
+            drawer(
+                _safe(
+                    "<p><strong>Example drawer</strong></p>"
+                    "<p>Click the backdrop, or press Escape.</p>"
+                ),
+                id="demo-drawer",
+                label="Example drawer",
+                side="start",
+                tag="nav",
+            )
+        )
+        + '<p class="ui-muted">Built on the Popover API, so light dismiss, '
+        "Escape, top-layer stacking and focus return to the button are the "
+        "browser&#39;s job -- no JavaScript. Opens from the start edge so it "
+        "does not land on top of the table of contents.</p>"
+        "</div>"
+    )
+
+
+def burger_demo() -> SafeHTML:
+    return _safe(
+        '<div class="ui-stack">'
+        + str(burger(controls="demo-drawer"))
+        + '<p class="ui-muted">Targets the same panel as the '
+        '<a href="#drawer">drawer</a> section above. The accessible name is '
+        "a visually hidden <code>&lt;span&gt;</code> rather than "
+        "<code>aria-label</code>, so the control keeps a name if the stylesheet "
+        "fails to load. The bars cross via "
+        "<code>:has(.ui-drawer:popover-open)</code>: a popover invoker&#39;s "
+        "expanded state is implicit ARIA and never a DOM attribute, so CSS "
+        "cannot select on it. One consequence is visible here -- "
+        "<code>:has()</code> cannot bind a burger to one specific drawer, so "
+        "opening either panel crosses every burger on the page.</p>"
+        "</div>"
+    )
+
+
 def build_categories() -> list[
     tuple[str, str, list[tuple[str, str, str | None, SafeHTML]]]
 ]:
@@ -930,6 +1070,14 @@ def build_categories() -> list[
             "layout",
             "Layout",
             [
+                (
+                    "shell",
+                    "Shell",
+                    "The page grid: a full-bleed main column plus an optional "
+                    "aside that becomes a sticky column above 1024px. This "
+                    "page is a live instance.",
+                    shell_demo(),
+                ),
                 (
                     "container",
                     "Container",
@@ -1022,6 +1170,35 @@ def build_categories() -> list[
                     "Disclosure menu; arrow keys navigate, Escape closes and "
                     "restores focus.",
                     menu_demo(),
+                ),
+                (
+                    "nav_list",
+                    "Nav list",
+                    "Vertical navigation for sidebars and drawers -- not to be "
+                    "confused with the menu dropdown above.",
+                    nav_list_demo(),
+                ),
+                (
+                    "nav_group",
+                    "Nav group",
+                    "Labelled groups of nav links, as used by this page's own "
+                    "table of contents.",
+                    nav_group_demo(),
+                ),
+                (
+                    "drawer",
+                    "Drawer",
+                    "An off-canvas panel on the Popover API: light dismiss, "
+                    "Escape and focus return come from the browser, with no "
+                    "JavaScript.",
+                    drawer_demo(),
+                ),
+                (
+                    "burger",
+                    "Burger",
+                    "The button that opens a drawer, and the only thing needed "
+                    "to toggle one.",
+                    burger_demo(),
                 ),
                 (
                     "tabs",
