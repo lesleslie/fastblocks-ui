@@ -21,6 +21,7 @@ from fastblocks_ui import (
     COMPONENT_MANIFEST,
     alert,
     breadcrumb,
+    burger,
     button,
     card,
     checkbox,
@@ -110,6 +111,16 @@ class TestDemoParity(unittest.TestCase):
         # heading_level=1 -- this is the page banner, so its title is the
         # document's h1. The variant/size heroes in test_hero_variants stay
         # <p>: they are component samples, not document sections.
+        #
+        # `id="top"`: the hero is a direct child of <body>, above the shell, so
+        # it is what the navbar brand's `#top` lands on. It must stay a bare
+        # `.ui-hero` there rather than move inside a wrapper -- layout.css
+        # declares the sticky bar's view timeline on `body > .ui-hero`.
+        #
+        # `role="banner"`: being outside <main> puts this h1 outside every
+        # landmark, which axe's `region` rule flags. The role names the element
+        # the hero already is instead of adding a <header> the timeline
+        # selector would no longer match.
         html = str(
             hero(
                 "FastBlocks UI",
@@ -117,6 +128,8 @@ class TestDemoParity(unittest.TestCase):
                 "fragments, and optional enhancement JavaScript.",
                 variant="primary",
                 heading_level=1,
+                id="top",
+                role="banner",
             )
         )
         self.assertFragmentInDemo(html)
@@ -256,6 +269,25 @@ class TestDemoParity(unittest.TestCase):
         self.assertFragmentInDemo(str(offsets))
         self.assertFragmentInDemo(str(narrow))
 
+    def test_page_navbar(self) -> None:
+        # This page's own sticky bar, not a showcase sample (see test_navbar for
+        # those). `label="site navigation"` rather than the default: the drawer
+        # nav is named "Component sections", and two navigation landmarks
+        # sharing one accessible name fail axe's `landmark-unique`.
+        html = str(
+            navbar(
+                brand="FastBlocks UI",
+                brand_url="#top",
+                end=_safe(
+                    str(button("Theme", type="button", data_theme_toggle=True))
+                    + str(burger(controls="site-nav"))
+                ),
+                label="site navigation",
+                class_="is-sticky",
+            )
+        )
+        self.assertFragmentInDemo(html)
+
     def test_navbar(self) -> None:
         default_variant = navbar(
             "FastBlocks UI",
@@ -378,7 +410,7 @@ class TestDemoParity(unittest.TestCase):
         verbatim (see scripts/build_demo.py's build_categories())."""
         names = [c["name"] for c in COMPONENT_MANIFEST["components"]]
         self.assertEqual(
-            len(names), 27, "expected manifest to still have 27 components"
+            len(names), 32, "expected manifest to still have 32 components"
         )
         missing = [
             name
@@ -396,7 +428,9 @@ class TestDemoParity(unittest.TestCase):
 
     def test_sidebar_links_to_every_section(self) -> None:
         names = [c["name"] for c in COMPONENT_MANIFEST["components"]]
-        sidebar_start = DEMO_HTML.index('<nav class="demo-sidebar"')
+        # The table of contents is now one `drawer()` doubling as the shell's
+        # aside -- an off-canvas popover below 1024px, a sticky column above it.
+        sidebar_start = DEMO_HTML.index('<nav class="ui-drawer ui-shell-aside"')
         sidebar_end = DEMO_HTML.index("</nav>", sidebar_start)
         sidebar_html = DEMO_HTML[sidebar_start:sidebar_end]
         missing = [name for name in names if f'href="#{name}"' not in sidebar_html]
@@ -640,10 +674,6 @@ class TestDemoParity(unittest.TestCase):
         self.assertIn("tests/test_demo_parity.py", DEMO_HTML)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestEmbeddedManifestFreshness(unittest.TestCase):
     """`demo/demo.html` embeds a copy of manifest.json; it must not drift.
 
@@ -704,3 +734,67 @@ class TestInlinedBundleFreshness(unittest.TestCase):
             "demo/demo.html's inlined CSS has drifted from the built bundle -- "
             "re-inline it after running tools/build_css.py.",
         )
+
+
+class TestInlinedJsFreshness(unittest.TestCase):
+    """`demo/demo.html` inlines the JS modules the same way it inlines the CSS,
+    but only the CSS had a drift gate. Both inlined copies had gone stale:
+    `enhanceDrawers` was absent (added to `enhance.js` alongside the drawer
+    component) and so were `manifest.js`'s HTML-escaping helpers. Playwright
+    loads the hand-written page, so the e2e suite was exercising JavaScript that
+    no longer ships -- including a `manifest.js` that interpolated manifest
+    values into markup unescaped.
+
+    The modules are inlined verbatim by `scripts/build_demo.py` and hand-copied
+    here, so this asserts byte equality rather than probing for symbols: a
+    substring search for a name like `enhanceDrawers` also matches prose in an
+    HTML comment, and would keep passing against a partially updated copy.
+    """
+
+    JS_DIR = ROOT / "fastblocks_ui" / "static" / "js"
+
+    def test_inlined_modules_match_the_shipped_files(self) -> None:
+        for name in ("enhance.js", "manifest.js"):
+            with self.subTest(module=name):
+                source = (self.JS_DIR / name).read_text(encoding="utf-8").strip()
+                self.assertIn(
+                    source,
+                    DEMO_HTML,
+                    f"demo/demo.html's inlined copy of {name} has drifted from "
+                    "the shipped module -- re-inline it.",
+                )
+
+    def test_inlined_js_exports_the_public_entrypoint_symbols(self) -> None:
+        """Byte equality above pins the demo to whatever `enhance.js` happens to
+        contain; this pins it to what the package publicly promises. `enhance.js`
+        is the implementation, `fastblocks-ui.js` (what `get_js_path()` returns)
+        is the entrypoint host apps load, and it re-exports these four names.
+        """
+        import fastblocks_ui
+
+        entrypoint = Path(fastblocks_ui.get_js_path()).read_text(encoding="utf-8")
+        # Search the inlined module bodies, not the whole file: DEMO_HTML also
+        # holds HTML comments, and prose mentioning a symbol would satisfy a
+        # naive substring search over the document.
+        inlined = "\n".join(
+            re.findall(r'<script type="module">\n?(.*?)</script>', DEMO_HTML, re.S)
+        )
+        for symbol in (
+            "enhanceDrawers",
+            "enhanceTabs",
+            "enhanceDialogs",
+            "enhanceMenus",
+        ):
+            with self.subTest(symbol=symbol):
+                self.assertIn(symbol, entrypoint)
+                self.assertIn(
+                    f"export function {symbol}(",
+                    inlined,
+                    f"demo/demo.html's inlined JS does not define {symbol} -- "
+                    "the public entrypoint re-exports it, so the demo is "
+                    "running an older module.",
+                )
+
+
+if __name__ == "__main__":
+    unittest.main()
