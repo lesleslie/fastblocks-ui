@@ -1857,6 +1857,43 @@ Search the file for any other `demo-sidebar`, `demo-layout`, `demo-content`, or 
 
 Expected: FAIL — `demo.html` still has the old structure and a stale inlined bundle.
 
+- [ ] **Step 2b: Re-inline the JS module, and add the missing drift gate**
+
+`demo/demo.html` inlines the **JavaScript** as well as the CSS, and unlike the
+CSS there is no gate on it. Task 6 added `enhanceDrawers` to `enhance.js`;
+`demo/index.html` picked it up on regeneration but `demo/demo.html` did not, so
+its inlined module is stale. Playwright runs against `demo/demo.html`, which
+means the e2e suite in Task 9 would exercise **old JavaScript** — exactly the
+failure `test_inlined_css_matches_the_built_bundle` was added to prevent for
+CSS (see its docstring: a fix was live in the bundle and stale in demo.html, so
+every assertion ran against outdated styles).
+
+Re-inline the module, then add the symmetric gate beside the CSS one in
+`tests/test_demo_parity.py`:
+
+```python
+class TestInlinedJsFreshness(unittest.TestCase):
+    """`demo/demo.html` inlines the JS module the same way it inlines the CSS,
+    but only the CSS had a drift gate. Task 6's `enhanceDrawers` landed in the
+    bundle and in the generated demo while the hand-written page kept a stale
+    copy -- and Playwright loads the hand-written page, so the e2e suite would
+    have tested JavaScript that no longer ships."""
+
+    def test_inlined_js_matches_the_shipped_module(self) -> None:
+        import fastblocks_ui
+
+        module = Path(fastblocks_ui.get_js_path()).read_text(encoding="utf-8")
+        # Assert on a symbol the module actually exports rather than the whole
+        # file: demo.html inlines a bundled/edited form, not a byte copy.
+        for symbol in ("enhanceDrawers", "enhanceTabs", "enhanceDialogs", "enhanceMenus"):
+            with self.subTest(symbol=symbol):
+                self.assertIn(symbol, module)
+                self.assertIn(symbol, DEMO_HTML)
+```
+
+Verify the gate fails before you re-inline and passes after — if it passes
+against the stale page, it is not testing anything.
+
 - [ ] **Step 3: Re-inline the freshly built CSS bundle**
 
 ```bash
