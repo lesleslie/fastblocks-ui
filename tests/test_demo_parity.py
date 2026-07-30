@@ -745,10 +745,15 @@ class TestInlinedJsFreshness(unittest.TestCase):
     no longer ships -- including a `manifest.js` that interpolated manifest
     values into markup unescaped.
 
-    The modules are inlined verbatim by `scripts/build_demo.py` and hand-copied
-    here, so this asserts byte equality rather than probing for symbols: a
-    substring search for a name like `enhanceDrawers` also matches prose in an
-    HTML comment, and would keep passing against a partially updated copy.
+    Both are inlined verbatim rather than bundled or minified, so this asserts
+    byte equality rather than probing for symbols: a substring search for a name
+    like `enhanceDrawers` also matches prose in an HTML comment, and would keep
+    passing against a partially updated copy.
+
+    `demo/index.html` is unaffected. It inlines only `enhance.js` -- its manifest
+    table is rendered server-side by `build_demo.py`, where this page renders it
+    in the browser from `manifest.js` plus the embedded manifest JSON, so that it
+    still works when opened as a bare `file://` document.
     """
 
     JS_DIR = ROOT / "fastblocks_ui" / "static" / "js"
