@@ -973,6 +973,16 @@ export function enhanceMenus(root = document) {
 export function enhanceDrawers(root = document) {
   const teardowns = [];
 
+  // Bail before the loop rather than letting `window.matchMedia(...)` throw.
+  // `initFastBlocksUI` builds its cleanups in a single array literal, so an
+  // exception raised here does not merely disable drawers -- it abandons the
+  // whole literal and leaves tabs, dialogs and menus un-enhanced too. Real
+  // browsers have had `matchMedia` since ~2012; the realistic exposure is a
+  // non-browser DOM (this project's jsdom does not implement it).
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return () => {};
+  }
+
   root.querySelectorAll('.ui-drawer[data-ui-drawer-breakpoint]').forEach((drawer) => {
     const width = Number.parseInt(drawer.dataset.uiDrawerBreakpoint, 10);
     if (!Number.isFinite(width)) {

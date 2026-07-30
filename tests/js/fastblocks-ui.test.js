@@ -717,3 +717,30 @@ describe('enhanceDrawers', () => {
     expect(registrations).toHaveLength(0);
   });
 });
+
+describe('enhanceDrawers without matchMedia', () => {
+  it('does not take the other enhancers down with it', async () => {
+    const { enhanceDrawers, initFastBlocksUI } = await import(
+      '@fastblocks-ui/js/fastblocks-ui.js'
+    );
+    const saved = window.matchMedia;
+    // jsdom does not implement matchMedia; other suites stub it. Remove any
+    // stub so this reproduces a DOM that genuinely lacks it.
+    delete window.matchMedia;
+    try {
+      document.body.innerHTML =
+        '<div class="ui-drawer" id="d" popover data-ui-drawer-breakpoint="1024"></div>';
+      // Without the guard this throws, and initFastBlocksUI's single array
+      // literal is abandoned -- tabs, dialogs and menus never get enhanced.
+      expect(() => enhanceDrawers()).not.toThrow();
+      let teardown;
+      expect(() => {
+        teardown = initFastBlocksUI(document);
+      }).not.toThrow();
+      expect(typeof teardown).toBe('function');
+      teardown();
+    } finally {
+      if (saved) window.matchMedia = saved;
+    }
+  });
+});
