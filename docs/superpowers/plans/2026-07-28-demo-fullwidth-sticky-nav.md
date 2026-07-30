@@ -1922,6 +1922,17 @@ PY
 - [ ] **Step 4: Update `demo.html`'s body to match Task 7's structure**
 
 Apply the same structural changes by hand:
+- **Mirror Task 7's two structural fixes** — these are not cosmetic, and
+  `demo.html` is hand-written so it will not inherit them:
+  - **`role="banner"` on the page hero.** Moving the hero out of `<main>` puts
+    its `<h1>` outside every landmark, which axe flags as `region`. It cannot
+    be a `<header>` element instead: Task 5's view timeline binds to
+    `body > .ui-hero` and a wrapper would break the selector, silently
+    disabling the reveal.
+  - **The theme-toggle script must bind ALL `[data-theme-toggle]` elements**,
+    not the first. The sticky navbar now carries one, and the demo's own Theme
+    section demonstrates another — binding only the first shadows the one the
+    section exists to show.
 - Add the second skip link (`href="#site-nav"`).
 - Replace `<div class="demo-topbar">…</div>` with the sticky navbar markup.
 - Move the hero out of `<main>` to be a direct child of `<body>`, with `id="top"`.
