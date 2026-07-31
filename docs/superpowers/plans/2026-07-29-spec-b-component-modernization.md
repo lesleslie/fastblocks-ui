@@ -15,7 +15,7 @@
 
 Every task's requirements implicitly include this section.
 
-- **HARD GATE — Spec A must be merged to `main` before Task 2.** Confirm with `git log --oneline -5`. Tasks 2–12 all edit files Spec A owns (`components.css`, `layout.css`, `fastblocks-ui.css`, `enhance.js`, `helpers.py`, `__init__.py`, `manifest.json`, `build_demo.py`, `demo/*.html`, `tests/`). Task 1 touches only `tests/` and may run as soon as Spec A lands.
+- **HARD GATE — SATISFIED 2026-07-31.** Spec A merged to `main` at `50503b2`; Spec B tooling merged at `b90b0d5`. Tasks 2–12 are unblocked. The files Spec A owned (`components.css`, `layout.css`, `fastblocks-ui.css`, `enhance.js`, `helpers.py`, `__init__.py`, `manifest.json`, `build_demo.py`, `demo/*.html`, `tests/`) are now shared; re-read them before editing, since Spec A changed all of them substantially.
 - **Never edit a version field.** Not `pyproject.toml` `version`, not `package.json` `version`. Les bumps and publishes manually through crackerjack. Report readiness instead.
 - **`fastblocks_ui/static/css/fastblocks-ui.css` is GENERATED.** After every CSS module edit run `python tools/build_css.py`. `tests/test_fastblocks_ui.py` fails if the committed bundle is stale.
 - **`static/js/enhance.js` and `static/css/fastblocks-ui.css` must keep their exact paths.** `fastblocks-htmy`'s `asset_urls()` and `inline_js()` hardcode them. Empty the file of retired handlers; never rename or delete it.
@@ -39,7 +39,7 @@ Three roadmap items are already implemented in the current source. Confirm, do n
 
 ---
 
-### Task 1: Wire the Baseline gate into the pytest suite
+### Task 1: Wire the Baseline gate into the pytest suite  ✅ DONE (`737911f`)
 
 Closes the one B0 item that Spec A's ownership of `tests/` blocked. The repo's established pattern for a non-Python gate is a pytest test that shells out — `tests/test_fastblocks_ui.py:341` already does this for `tools/build_css.py --check`.
 
@@ -50,7 +50,7 @@ Closes the one B0 item that Spec A's ownership of `tests/` blocked. The repo's e
 - Consumes: `scripts/check-baseline.mjs` (exit 0 = pass, 1 = violation), `.baseline-allowlist.json`
 - Produces: nothing later tasks import
 
-- [ ] **Step 1: Unbreak the gate that Spec A's merge turns red**
+- [x] **Step 1: Unbreak the gate that Spec A's merge turns red**
 
 **Do this before anything else in this task.** Spec A's `.ui-drawer` uses
 `overscroll-behavior: contain` unguarded, at two sites. Verified against the
@@ -80,7 +80,7 @@ Add to `.baseline-allowlist.json`'s `allow` array:
 Run: `npm run check:baseline`
 Expected: `check-baseline: OK`
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Add to `tests/test_fastblocks_ui.py`:
 
@@ -107,12 +107,12 @@ class TestBaselineFloor(unittest.TestCase):
 
 Confirm `shutil`, `subprocess`, `Path`, and `unittest` are already imported at the top of the file; add `import shutil` if absent.
 
-- [ ] **Step 3: Run it and confirm it passes against current CSS**
+- [x] **Step 3: Run it and confirm it passes against current CSS**
 
 Run: `uv run pytest tests/test_fastblocks_ui.py::TestBaselineFloor -q --no-cov`
 Expected: `1 passed`
 
-- [ ] **Step 4: Prove the gate actually fails when it should**
+- [x] **Step 4: Prove the gate actually fails when it should**
 
 Temporarily append to `fastblocks_ui/static/css/utilities.css` inside the `@layer utilities` block:
 
@@ -132,12 +132,12 @@ Run: `uv run pytest tests/test_fastblocks_ui.py::TestBaselineFloor -q --no-cov`
 Expected: FAIL, message contains
 `css.properties.text-wrap.pretty is not Baseline (feature: text-wrap-pretty)`
 
-- [ ] **Step 5: Revert the probe**
+- [x] **Step 5: Revert the probe**
 
 Run: `git checkout fastblocks_ui/static/css/utilities.css`
 Then re-run Step 3 and confirm `1 passed`.
 
-- [ ] **Step 6: Add the version-parity guard**
+- [x] **Step 6: Add the version-parity guard**
 
 Three files carry the project version and crackerjack bumps only one of them.
 Between 0.7.0 and 0.7.1 both `package.json` and `uv.lock` were left behind with
@@ -186,12 +186,12 @@ class TestVersionParity(unittest.TestCase):
 
 Add `import json` and `import tomllib` at the top of the file if absent.
 
-- [ ] **Step 7: Run both new tests**
+- [x] **Step 7: Run both new tests**
 
 Run: `uv run pytest tests/test_fastblocks_ui.py::TestBaselineFloor tests/test_fastblocks_ui.py::TestVersionParity -q --no-cov`
 Expected: `2 passed`
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add tests/test_fastblocks_ui.py
