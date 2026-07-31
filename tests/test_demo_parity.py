@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import re
 import unittest
+from html import escape
 from pathlib import Path
 
 from fastblocks_ui import (
@@ -36,10 +37,13 @@ from fastblocks_ui import (
     level,
     media,
     menu,
+    nav_groups,
+    nav_list,
     navbar,
     pagination,
     progress,
     section,
+    shell,
     switch,
     table,
     tabs,
@@ -312,6 +316,51 @@ class TestDemoParity(unittest.TestCase):
         )
         self.assertFragmentInDemo(str(default_variant))
         self.assertFragmentInDemo(str(dark_variant))
+
+    def test_shell(self) -> None:
+        # shell() cannot be nested live: a document may have only one <main>
+        # that is not hidden, and rendering a second inside this page's own
+        # would be invalid HTML. build_demo.py's shell_demo() shows the
+        # escaped source instead of a live instance -- see the comment there.
+        # Only the escaped call is pinned here (burger and drawer are already
+        # pinned via test_page_navbar and test_sidebar_links_to_every_section,
+        # and the wrapper prose is presentation, not helper output).
+        markup = str(
+            shell(
+                _safe("<p>Main column</p>"),
+                aside=_safe('<nav class="ui-shell-aside"><p>Aside</p></nav>'),
+                main_id="example-main",
+            )
+        )
+        self.assertFragmentInDemo(
+            f'<pre class="demo-code" tabindex="0"><code>{escape(markup)}</code></pre>'
+        )
+
+    def test_nav_list_showcase(self) -> None:
+        # This page's own table of contents is a live nav_list()/nav_groups()
+        # instance (see test_sidebar_links_to_every_section), but the Nav list
+        # showcase section renders a second, independent sample -- previously
+        # unpinned, so its markup could drift from what nav_list() emits
+        # without either the manifest-section or sidebar-link checks noticing.
+        html = str(
+            nav_list(
+                [("Container", "#container"), ("Hero", "#hero"), ("Tile", "#tile")],
+                active="#hero",
+                aria_current="location",
+            )
+        )
+        self.assertFragmentInDemo(html)
+
+    def test_nav_groups_showcase(self) -> None:
+        html = str(
+            nav_groups(
+                [
+                    ("Layout", [("Container", "#container"), ("Hero", "#hero")]),
+                    ("Forms", [("Field", "#field"), ("Input", "#input")]),
+                ]
+            )
+        )
+        self.assertFragmentInDemo(html)
 
     def test_navigation_landmarks_have_unique_names(self) -> None:
         """Every `<nav>` on the page must carry a distinct accessible name.
