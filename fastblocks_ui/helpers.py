@@ -160,6 +160,17 @@ def _has_attr(attrs: dict[str, object], attr_name: str) -> bool:
     missed the rest -- the helper then set its own value too and the opening
     tag carried the attribute twice. That is invalid HTML, and browsers keep
     the first, silently discarding whichever value the caller meant.
+
+    This checks *presence*, not value: `aria_label=None` counts as "the
+    caller supplied it" exactly like `aria_label="x"` does, even though a bare
+    `None` never survives into the rendered tag (`_render_attrs` drops
+    `None`/`False` values). So passing `aria_label=None` is a valid, silent
+    way to suppress a helper's own `aria-label` entirely -- the tag gets no
+    `aria-label` at all, neither the caller's nor the helper's. `tabs()`,
+    `menu()`, `navbar()` and `drawer()` gate their `label=` convenience
+    argument through this check; `breadcrumb()` gates its hardcoded
+    `"breadcrumb"` default the same way with no `label=` param to opt out of
+    instead. All five share the `aria_label=None` opt-out.
     """
     return any(_normalise_attr_name(key) == attr_name for key in attrs)
 

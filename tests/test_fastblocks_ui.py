@@ -2102,6 +2102,21 @@ class TestAriaLabelGuardAcrossHelpers(unittest.TestCase):
             'aria-label="breadcrumb"', fastblocks_ui.breadcrumb([("A", "/a")])
         )
 
+    def test_aria_label_none_opts_out_of_the_landmark_name_entirely(self):
+        # `_has_attr` keys on presence, not value: `aria_label=None` counts as
+        # "the caller supplied it" exactly like a real string does, so it
+        # silently suppresses the helper's own default -- see `_has_attr`'s
+        # docstring. The tag ends up with no `aria-label` at all, not the
+        # helper's default, even for `tabs`/`menu`/`navbar` which otherwise
+        # always carry one. `aria-label="` (not the bare substring
+        # `"aria-label"`) is what must be absent: `tabs()` always emits
+        # `aria-labelledby` on its panels, which contains `aria-label` as a
+        # substring and would otherwise produce a false failure here -- the
+        # same trap the project's CSS tests strip comments to avoid.
+        for name, render in self._cases():
+            with self.subTest(helper=name):
+                self.assertNotIn('aria-label="', render(aria_label=None))
+
 
 class TestAttrNameNormalisation(unittest.TestCase):
     def test_normalise_collapses_unbounded_trailing_underscores(self):
