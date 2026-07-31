@@ -1281,7 +1281,19 @@
       background: none;
     }
 
-    .ui-burger {
+    /* Scoped to the bar's own burger, NOT every `.ui-burger` on the page.
+       This rule exists because the shell's aside stops being a drawer at this
+       width and becomes an in-flow column, so the control that opens it is
+       redundant. That reasoning applies to the burger paired with the shell --
+       which in this layout lives in the sticky bar -- and to no other.
+
+       Unscoped, it hid every burger a consumer had, whatever each one
+       controlled. This library's own demo proved it: the `drawer` and `burger`
+       showcase sections each render a burger for `#demo-drawer`, and both
+       disappeared above 1024px, so a reader on a laptop could not open the
+       example drawer at all. Measured in Chrome at 1280px: all three burgers
+       computed `display: none`. */
+    .ui-navbar .ui-burger {
       display: none;
     }
   }
