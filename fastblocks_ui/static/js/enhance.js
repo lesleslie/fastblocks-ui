@@ -984,7 +984,33 @@ export function enhanceDrawers(root = document) {
     return () => {};
   }
 
-  root.querySelectorAll('.ui-drawer[data-ui-drawer-breakpoint]').forEach((drawer) => {
+  // Direct feature detect for the capability the callback below actually
+  // uses, not a proxy. `typeof drawer.hidePopover === 'function'` used to
+  // stand in for `:popover-open` selector support, but the two are
+  // independent capabilities -- an engine can implement the Popover API's
+  // imperative methods before its selector engine understands the
+  // pseudo-class (this project's own jsdom/nwsapi pairing is exactly that
+  // split), and probing an unsupported pseudo-class throws a SyntaxError
+  // rather than returning false.
+  const supportsPopoverOpenSelector =
+    typeof CSS !== 'undefined' &&
+    typeof CSS.supports === 'function' &&
+    CSS.supports('selector(:popover-open)');
+
+  const drawerSelector = '.ui-drawer[data-ui-drawer-breakpoint]';
+  // `querySelectorAll` only matches descendants, never `root` itself --
+  // unlike enhanceTabs/enhanceDialogs/enhanceMenus, which delegate clicks via
+  // `closest()` + `isWithinRoot()` and so keep working when `root` IS the
+  // matched element, this function has no click delegation to fall back on:
+  // its whole job is registering a matchMedia listener per drawer up front.
+  // Without this, an htmx swap that re-initialises with a drawer node as
+  // `root` would silently skip that one drawer.
+  const drawers = Array.from(root.querySelectorAll(drawerSelector));
+  if (typeof root.matches === 'function' && root.matches(drawerSelector)) {
+    drawers.push(root);
+  }
+
+  drawers.forEach((drawer) => {
     const width = Number.parseInt(drawer.dataset.uiDrawerBreakpoint, 10);
     if (!Number.isFinite(width)) {
       return;
@@ -992,10 +1018,7 @@ export function enhanceDrawers(root = document) {
 
     const query = window.matchMedia(`(min-width: ${width}px)`);
     const onChange = (event) => {
-      // Feature-detect the Popover API before probing `:popover-open`: engines
-      // without it raise a selector syntax error on that pseudo-class rather
-      // than returning false, and there is no top layer to clear there anyway.
-      if (!event.matches || typeof drawer.hidePopover !== 'function') {
+      if (!event.matches || !supportsPopoverOpenSelector) {
         return;
       }
 

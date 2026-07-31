@@ -565,14 +565,21 @@ describe('FastBlocks UI enhancement layer', () => {
 describe('enhanceDrawers', () => {
   let registrations;
   let realMatchMedia;
+  let realCSS;
   let cleanup;
 
   const fireChange = (matches) => {
     registrations.forEach(({ handler }) => handler({ matches }));
   };
 
-  // Stand in for a browser that supports the Popover API, for the given state.
+  // Stand in for a browser that supports the Popover API *and* can select
+  // `:popover-open`, for the given state. Both are stubbed because the two
+  // capabilities come from independent implementations in this project's own
+  // test stack (jsdom for the element API, nwsapi for the selector engine) --
+  // see the "even if hidePopover exists" test below for why that split
+  // matters.
   const withPopoverSupport = (drawer, { open }) => {
+    window.CSS = { supports: (condition) => condition === 'selector(:popover-open)' };
     drawer.hidePopover = vi.fn();
     drawer.matches = (selector) => open && selector === ':popover-open';
     return drawer;
@@ -581,6 +588,7 @@ describe('enhanceDrawers', () => {
   beforeEach(() => {
     registrations = [];
     realMatchMedia = window.matchMedia;
+    realCSS = window.CSS;
     window.matchMedia = (media) => ({
       media,
       matches: false,
@@ -602,6 +610,7 @@ describe('enhanceDrawers', () => {
     cleanup?.();
     cleanup = undefined;
     window.matchMedia = realMatchMedia;
+    window.CSS = realCSS;
   });
 
   it('listens on a query built from each drawer\'s own breakpoint', () => {
@@ -689,6 +698,42 @@ describe('enhanceDrawers', () => {
     cleanup = enhanceDrawers();
 
     expect(() => fireChange(true)).not.toThrow();
+  });
+
+  // The exact failure mode the old `typeof drawer.hidePopover === 'function'`
+  // proxy risked: an engine can implement the Popover API's imperative
+  // methods before its selector engine understands `:popover-open`, so
+  // `hidePopover` existing must never be read as selector support. Real
+  // `.matches(':popover-open')` throws a SyntaxError in that situation rather
+  // than returning false -- this drawer's `matches` reproduces that.
+  it('does not probe :popover-open when the engine cannot select it, even if hidePopover exists', () => {
+    document.body.innerHTML =
+      '<div class="ui-drawer" id="d" popover data-ui-drawer-breakpoint="1024"></div>';
+    const drawer = document.getElementById('d');
+    drawer.hidePopover = vi.fn();
+    drawer.matches = () => {
+      throw new Error('unknown pseudo-class selector ":popover-open"');
+    };
+
+    cleanup = enhanceDrawers();
+
+    expect(() => fireChange(true)).not.toThrow();
+    expect(drawer.hidePopover).not.toHaveBeenCalled();
+  });
+
+  // Unlike enhanceTabs/enhanceDialogs/enhanceMenus, which delegate clicks via
+  // `closest()` + `isWithinRoot()` and so keep working when `root` IS the
+  // matched element, this function has no click delegation -- its whole job
+  // is registering a matchMedia listener per drawer up front via
+  // `querySelectorAll`, which never matches the element it was called on.
+  it('enhances the root element itself when it is a drawer, not only its descendants', () => {
+    document.body.innerHTML =
+      '<div class="ui-drawer" id="d" popover data-ui-drawer-breakpoint="1024"></div>';
+    const root = document.getElementById('d');
+
+    cleanup = enhanceDrawers(root);
+
+    expect(registrations).toHaveLength(1);
   });
 
   it('removes every listener it added on cleanup', () => {
