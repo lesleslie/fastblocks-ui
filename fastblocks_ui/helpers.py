@@ -164,16 +164,44 @@ def _has_attr(attrs: dict[str, object], attr_name: str) -> bool:
     return any(_normalise_attr_name(key) == attr_name for key in attrs)
 
 
-def _render_attrs(**attrs: object) -> str:
-    rendered: list[str] = []
+def _render_attrs(attrs: dict[str, object] | None = None, /, **defaults: object) -> str:
+    """Render an attribute dict, layering helper-computed ``defaults`` beneath it.
 
-    class_name = attrs.pop("class_", None)
-    legacy_class = attrs.pop("class", None)
+    ``attrs`` is the raw caller-forwarded ``**attrs`` a helper received;
+    ``defaults`` are values the helper computes itself (``burger``'s
+    ``type="button"``, ``dialog``'s ``open=open or None``, and so on). A
+    default is applied only when ``attrs`` does not already supply the same
+    attribute under *any* spelling (see ``_has_attr``), so a caller's own
+    value always wins and a helper default can never collide with it -- not
+    as a Python argument-binding crash (the identical spelling passed twice
+    to one call, e.g. two literal ``popovertarget=``), and not as invalid
+    duplicate HTML (a different spelling, e.g. ``type`` vs ``type_``, with
+    both surviving into the rendered tag and the caller's value silently
+    discarded -- browsers keep only the first).
+    """
+    caller_attrs = dict(attrs or {})
+
+    class_name = defaults.pop("class_", None)
+    legacy_class = caller_attrs.pop("class", None)
     class_value = _flatten_classes(class_name, legacy_class)
+
+    # Defaults come first in the merged mapping -- matching the pre-fix
+    # attribute order, where the helper's own explicit keywords preceded
+    # `**attrs` in a single Python-merged call -- and any default overridden
+    # under any spelling is dropped rather than shadowed, so it can never
+    # reach the render loop below as a second, duplicate entry.
+    live_defaults = {
+        name: value
+        for name, value in defaults.items()
+        if not _has_attr(caller_attrs, _normalise_attr_name(name))
+    }
+    merged = {**live_defaults, **caller_attrs}
+
+    rendered: list[str] = []
     if class_value:
         rendered.append(f'class="{escape(class_value, quote=True)}"')
 
-    for name, value in attrs.items():
+    for name, value in merged.items():
         if value is None or value is False:
             continue
 
@@ -250,7 +278,7 @@ def _inject_attrs(markup: object, **attrs: object) -> SafeHTML | str:
         match.group(1),
         match.group(2),
     )
-    attr_html = _render_attrs(**attrs)
+    attr_html = _render_attrs(attrs)
     if not attr_html:
         return SafeHTML(rendered_markup) if _is_safe_html(markup) else rendered_markup
 
@@ -300,10 +328,10 @@ def button(
         class_,
     )
     attr_html = _render_attrs(
+        attrs,
         class_=classes,
         href=_safe_url(href) if href is not None else None,
         type=type if href is None else None,
-        **attrs,
     )
     tag = "a" if href else "button"
     return _safe(f"<{tag}{attr_html}>{_render_fragment(label)}</{tag}>")
@@ -317,7 +345,7 @@ def card(
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
-    attr_html = _render_attrs(class_=_flatten_classes("ui-card", class_), **attrs)
+    attr_html = _render_attrs(attrs, class_=_flatten_classes("ui-card", class_))
     parts = [f"<div{attr_html}>"]
 
     if header is not None:
@@ -345,7 +373,7 @@ def field(
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
-    attr_html = _render_attrs(class_=_flatten_classes("ui-field", class_), **attrs)
+    attr_html = _render_attrs(attrs, class_=_flatten_classes("ui-field", class_))
     parts = [f"<div{attr_html}>"]
 
     control_markup_source = _render_fragment(control_html)
@@ -433,11 +461,11 @@ def text_input(
     **attrs: object,
 ) -> SafeHTML:
     attr_html = _render_attrs(
+        attrs,
         class_=_flatten_classes("ui-input", class_),
         type=type,
         value=value,
         placeholder=placeholder,
-        **attrs,
     )
     return _safe(f"<input{attr_html}>")
 
@@ -472,7 +500,7 @@ def select(
             f'<option value="{escape(str(option_value), quote=True)}"{selected}>{_render_fragment(label)}</option>'
         )
 
-    attr_html = _render_attrs(class_=_flatten_classes("ui-select", class_), **attrs)
+    attr_html = _render_attrs(attrs, class_=_flatten_classes("ui-select", class_))
     return _safe(f"<select{attr_html}>{''.join(option_html)}</select>")
 
 
@@ -485,10 +513,10 @@ def checkbox(
 ) -> SafeHTML:
     wrapper_classes = _flatten_classes("ui-checkbox", class_)
     attr_html = _render_attrs(
+        attrs,
         type="checkbox",
         checked=checked or None,
         class_="ui-checkbox__input",
-        **attrs,
     )
     return _safe(
         f'<label class="{escape(wrapper_classes, quote=True)}">'
@@ -506,6 +534,7 @@ def switch(
     **attrs: object,
 ) -> SafeHTML:
     input_attrs = _render_attrs(
+        attrs,
         type="checkbox",
         role="switch",
         # No `aria-checked`: it was rendered once server-side and nothing ever
@@ -515,7 +544,6 @@ def switch(
         # state correctly, ARIA-in-HTML says not to duplicate it, and the CSS
         # styles from `:checked`.
         checked=checked or None,
-        **attrs,
     )
     classes = _flatten_classes("ui-switch", class_)
     return _safe(
@@ -535,7 +563,7 @@ def alert(
     **attrs: object,
 ) -> SafeHTML:
     classes = _flatten_classes("ui-alert", variant and f"is-{variant}", class_)
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
     return _safe(f"<div{attr_html}>{_render_fragment(content)}</div>")
 
 
@@ -547,7 +575,7 @@ def validation_summary(
     **attrs: object,
 ) -> SafeHTML:
     classes = _flatten_classes("ui-alert", "is-danger", "ui-validation-summary", class_)
-    attr_html = _render_attrs(class_=classes, role="alert", **attrs)
+    attr_html = _render_attrs(attrs, class_=classes, role="alert")
 
     items: list[str] = []
     if isinstance(errors, dict):
@@ -584,7 +612,7 @@ def dialog(
     **attrs: object,
 ) -> SafeHTML:
     classes = _flatten_classes("ui-dialog", class_)
-    attr_html = _render_attrs(class_=classes, open=open or None, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes, open=open or None)
     # Link the visible title to the dialog. Previously the title rendered as a
     # bare `<h2>` with no id and nothing referenced it, so the dialog had no
     # accessible name at all -- screen readers announced an unnamed dialog.
@@ -595,7 +623,7 @@ def dialog(
             + sha256(_render_fragment(title).encode("utf-8")).hexdigest()[:10]
         )
         attrs.setdefault("aria_labelledby", title_id)
-        attr_html = _render_attrs(class_=classes, open=open or None, **attrs)
+        attr_html = _render_attrs(attrs, class_=classes, open=open or None)
 
     parts = [f"<dialog{attr_html}>", '<div class="ui-dialog__surface">']
     if title is not None:
@@ -669,7 +697,7 @@ def drawer(
     if label is not None and not _has_attr(attrs, "aria-label"):
         attrs["aria_label"] = label
 
-    attr_html = _render_attrs(class_=classes, id=id, popover=True, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes, id=id, popover=True)
     return _safe(f"<{tag}{attr_html}>{_render_fragment(content)}</{tag}>")
 
 
@@ -698,7 +726,7 @@ def burger(
     """
     classes = _flatten_classes("ui-burger", class_)
     attr_html = _render_attrs(
-        class_=classes, type="button", popovertarget=controls, **attrs
+        attrs, class_=classes, type="button", popovertarget=controls
     )
     bars = '<span class="ui-burger__bar" aria-hidden="true"></span>' * 3
     return _safe(
@@ -724,7 +752,7 @@ def tabs(
     # (browsers keep the first occurrence). Mirrors `breadcrumb()`'s guard.
     if not _has_attr(attrs, "aria-label"):
         attrs["aria_label"] = label
-    attr_html = _render_attrs(class_=classes, data_ui_tabs=True, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes, data_ui_tabs=True)
     tab_buttons: list[str] = []
     panels: list[str] = []
 
@@ -780,7 +808,7 @@ def menu(
     # See tabs() above -- appending the label duplicated `aria-label`.
     if not _has_attr(attrs, "aria-label"):
         attrs["aria_label"] = label
-    attr_html = _render_attrs(class_=classes, data_ui_menu=True, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes, data_ui_menu=True)
     links = [
         f'<a class="ui-menu__item" href="{escape(_safe_url(href), quote=True)}">{_render_fragment(text)}</a>'
         for text, href in (items or [])
@@ -844,7 +872,7 @@ def nav_list(
         raise ValueError(msg)
 
     classes = _flatten_classes("ui-nav-list", class_)
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
 
     rendered: list[str] = []
     for label, href in items:
@@ -894,7 +922,7 @@ def nav_groups(
     reasoning as `_heading_tag`'s `<p>` default.
     """
     classes = _flatten_classes("ui-nav-groups", class_)
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
 
     rendered = [
         f'<div class="ui-nav-group">'
@@ -929,7 +957,7 @@ def container(
         fullhd and "is-fullhd",
         class_,
     )
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
     inner = _render_fragment(content) if content is not None else ""
     return _safe(f"<div{attr_html}>{inner}</div>")
 
@@ -978,7 +1006,7 @@ def shell(
         ]
         attrs["style"] = ";".join([*declarations, *existing])
 
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
     main_attr_html = _render_attrs(class_="ui-shell-main", id=main_id)
     aside_html = _render_fragment(aside) if aside is not None else ""
 
@@ -1003,7 +1031,7 @@ def section(
         size and f"is-{size}",
         class_,
     )
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
     inner = _render_fragment(content) if content is not None else ""
     return _safe(f"<section{attr_html}>{inner}</section>")
 
@@ -1016,7 +1044,7 @@ def footer(
 ) -> SafeHTML:
     """Page footer with centered content."""
     classes = _flatten_classes("ui-footer", class_)
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
     inner = _render_fragment(content) if content is not None else ""
     return _safe(f"<footer{attr_html}>{inner}</footer>")
 
@@ -1039,7 +1067,7 @@ def columns(
         multiline and "is-multiline",
         class_,
     )
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
     parts = [f"<div{attr_html}>"]
     for child in children:
         parts.append(_render_fragment(child))
@@ -1068,7 +1096,7 @@ def column(
         full and "is-full",
         class_,
     )
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
     inner = _render_fragment(content) if content is not None else ""
     return _safe(f"<div{attr_html}>{inner}</div>")
 
@@ -1083,7 +1111,7 @@ def level(
 ) -> SafeHTML:
     """Horizontal level layout with optional left and right sides."""
     classes = _flatten_classes("ui-level", centered and "is-centered", class_)
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
 
     left_content = ""
     if left is not None:
@@ -1149,7 +1177,7 @@ def hero(
     variant_class = f"is-{variant}" if variant else None
     size_class = f"is-{size}" if size else None
     hero_classes = _flatten_classes("ui-hero", variant_class, size_class, class_)
-    hero_attr_html = _render_attrs(class_=hero_classes, **attrs)
+    hero_attr_html = _render_attrs(attrs, class_=hero_classes)
 
     tag = _heading_tag(heading_level)
     title_html = f'<{tag} class="ui-title">{_render_fragment(title)}</{tag}>'
@@ -1187,7 +1215,7 @@ def title(
     """
     size_class = f"is-{size}" if size else None
     classes = _flatten_classes("ui-title", size_class, class_)
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
     tag = _heading_tag(heading_level)
     return _safe(f"<{tag}{attr_html}>{_render_fragment(content)}</{tag}>")
 
@@ -1202,7 +1230,7 @@ def media(
 ) -> SafeHTML:
     """Create a media object with image and content."""
     classes = _flatten_classes("ui-media", class_)
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
 
     position_class = "ui-media-left" if position == "start" else "ui-media-right"
     image_html = (
@@ -1239,7 +1267,7 @@ def tile(
         ancestor and "is-ancestor",
         class_,
     )
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
     inner = _render_fragment(content) if content is not None else ""
     return _safe(f"<div{attr_html}>{inner}</div>")
 
@@ -1283,7 +1311,7 @@ def navbar(
     # and flagged by axe's `landmark-unique`.
     if not _has_attr(attrs, "aria-label"):
         attrs["aria_label"] = label
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
 
     def _render_navbar_slot(value: object) -> str:
         if isinstance(value, (list, tuple)):
@@ -1344,7 +1372,7 @@ def breadcrumb(
     classes = _flatten_classes("ui-breadcrumb", class_)
     if not _has_attr(attrs, "aria-label"):
         attrs["aria_label"] = "breadcrumb"
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
 
     parts = [f"<nav{attr_html}>"]
     for label, url in items:
@@ -1403,11 +1431,11 @@ def progress(
     )
 
     attr_html = _render_attrs(
+        attrs,
         class_=classes,
         value=_format_number(value_f),
         max=_format_number(max_f),
         aria_label=f"{percentage:.0f}% complete" if show_label else None,
-        **attrs,
     )
 
     return _safe(f"<progress{attr_html}>{percentage:.0f}%</progress>")
@@ -1442,7 +1470,7 @@ def table(
         fullwidth and "is-fullwidth",
         class_,
     )
-    attr_html = _render_attrs(class_=classes, **attrs)
+    attr_html = _render_attrs(attrs, class_=classes)
 
     header_html = "".join(f"<th>{_render_fragment(h)}</th>" for h in headers)
 
@@ -1491,7 +1519,7 @@ def pagination(
         return _safe("")
 
     classes = _flatten_classes("ui-pagination", class_)
-    attr_html = _render_attrs(class_=classes, aria_label="pagination", **attrs)
+    attr_html = _render_attrs(attrs, class_=classes, aria_label="pagination")
 
     def page_link(page: int, label: str | int | None = None) -> str:
         link_label = page if label is None else label

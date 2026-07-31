@@ -2127,6 +2127,39 @@ class TestAttrNameNormalisation(unittest.TestCase):
         self.assertFalse(fastblocks_ui.helpers._has_attr({}, "aria-label"))
 
 
+class TestRenderAttrsDefaultCollisions(unittest.TestCase):
+    """A helper that sets an attribute positionally (`type="button"`,
+    `popovertarget=controls`) can collide with the same attribute arriving
+    through the caller's `**attrs`, either under a different spelling
+    (`type_`) or the identical one (`popovertarget`). Both used to corrupt
+    the render: differently-spelled collisions emitted the attribute twice
+    (invalid HTML; browsers keep the first, silently discarding the
+    caller's value), and identically-spelled ones raised a bare `TypeError`
+    from Python's own keyword-argument binding before `_render_attrs` ran.
+    """
+
+    def test_burger_type_positional_default_does_not_collide_with_type_(self):
+        markup = fastblocks_ui.burger(controls="d", type_="submit")
+        self.assertEqual(markup.count("type="), 1)
+        self.assertIn('type="submit"', markup)
+
+    def test_burger_popovertarget_default_does_not_collide_with_explicit_popovertarget(
+        self,
+    ):
+        markup = fastblocks_ui.burger(controls="d", popovertarget="explicit")
+        self.assertEqual(markup.count("popovertarget="), 1)
+        self.assertIn('popovertarget="explicit"', markup)
+
+    def test_button_type_param_default_does_not_collide_with_type_(self):
+        markup = fastblocks_ui.button("Go", type_="submit")
+        self.assertEqual(markup.count("type="), 1)
+        self.assertIn('type="submit"', markup)
+
+    def test_dialog_open_param_default_does_not_collide_with_open_(self):
+        markup = fastblocks_ui.dialog("Body", open=True, open_=True)
+        self.assertEqual(markup.count(" open"), 1)
+
+
 class TestStickyLayoutCss(unittest.TestCase):
     """These assert on the built bundle: the responsive switch is pure CSS with
     no Python surface, so the bundle is the only place the contract exists."""
