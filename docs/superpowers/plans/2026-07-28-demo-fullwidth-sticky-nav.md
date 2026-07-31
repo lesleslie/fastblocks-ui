@@ -13,19 +13,30 @@
 ## Global Constraints
 
 - `ui-*` is the stable public CSS namespace. Class names **are** public API — never rename an existing one.
+
 - `fastblocks_ui/static/css/fastblocks-ui.css` is a **GENERATED FILE**. Never hand-edit it. Edit the source modules under `fastblocks_ui/static/css/` and run `.venv/bin/python tools/build_css.py`.
+
 - CSS source modules wrap rules in `@layer components { … }`. New rules go inside that block.
+
 - `ui-shell` and `.ui-navbar.is-sticky` belong in `layout.css` (where `.ui-navbar`, `.ui-hero`, `.ui-container` live). `ui-nav-list`, `ui-drawer`, `ui-burger` belong in `components.css` (where `.ui-menu`, `.ui-tabs`, `.ui-dialog` live).
+
 - Component element classes use the `__` convention (`.ui-menu__item`, `.ui-tabs__panel`). Layout sub-parts use `-` (`.ui-hero-body`, `.ui-navbar-item`).
+
 - Every helper returns `SafeHTML`. Interpolated content goes through `_render_fragment`; URLs through `_safe_url`; attributes through `_render_attrs`.
+
 - Every manifest component must: be in `fastblocks_ui.__all__`, be a callable attribute of `fastblocks_ui`, have a `.class_name` rule in the built bundle, and appear in `docs/components.md` as `| name |`. Four tests enforce this (`TestManifestContract`).
+
 - After changing any helper signature, run `.venv/bin/python scripts/sync_manifest_params.py`.
+
 - Breakpoint for the drawer/column switch is **1024px** exactly. The project's three breakpoints are 769/1024/1216.
+
 - Tests use `unittest.TestCase` style (`self.assertIn`, not bare pytest asserts).
+
 - **`tests/test_demo_parity.py` is expected-red from Task 1 until Task 8.**
   Adding a component immediately invalidates the hand-written `demo/demo.html`,
   which cannot be updated until every component exists. Exactly these four
   tests, and no others, may fail in Tasks 1–7:
+
   - `TestDemoParity::test_every_manifest_component_has_a_demo_section`
   - `TestDemoParity::test_sidebar_links_to_every_section`
   - `TestEmbeddedManifestFreshness::test_embedded_copy_matches_the_real_manifest`
@@ -34,15 +45,17 @@
   Gate Tasks 1–7 on `tests/test_fastblocks_ui.py`, which must stay at **0
   failures**. A fifth failing parity test, or any failure in the unit file, is
   new breakage — stop and report it. Task 8 must return all four to green.
+
 - **`python` is NOT on this machine's PATH.** Every Python command must use
   `.venv/bin/python` (Python 3.13.11, has the package installed). `python3`
   exists at `/usr/local/bin/python3` but is the wrong interpreter — it lacks
   the project venv. Never write a bare `python …` command.
+
 - Both demo pages must remain fully self-contained (inlined CSS/JS) so either opens as a bare local file.
+
 - **Do NOT add `prefers-reduced-motion` rules for `animation-duration` or
   `transition-duration` on ordinary elements.** `base.css` already declares
-  `*, *::before, *::after { animation-duration: .01ms !important;
-  transition-duration: .01ms !important }` inside that media query. Because
+  `*, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important }` inside that media query. Because
   `!important` **reverses** cascade-layer precedence, `@layer base` — the
   lowest layer — beats anything `@layer components` can declare, important or
   not. Such a rule is dead CSS.
@@ -55,24 +68,29 @@
 ## File Structure
 
 **Modified — CSS sources (then regenerate bundle):**
+
 - `fastblocks_ui/static/css/layout.css` — `ui-shell`, `.ui-navbar.is-sticky`, `:root` tokens, `text-wrap` on titles
 - `fastblocks_ui/static/css/components.css` — `ui-nav-list`, `ui-drawer`, `ui-burger`
 - `fastblocks_ui/static/css/fastblocks-ui.css` — **generated**, via `.venv/bin/python tools/build_css.py`
 
 **Modified — Python:**
+
 - `fastblocks_ui/helpers.py` — `_safe_css_length`, `_drawer_tag`, `shell`, `nav_list`, `nav_group`, `drawer`, `burger`
 - `fastblocks_ui/__init__.py` — re-export the five new helpers
 - `fastblocks_ui/manifest.json` — five new component entries
 
 **Modified — JS:**
+
 - `fastblocks_ui/static/js/enhance.js` — drawer breakpoint listener
 
 **Modified — demo pipeline:**
+
 - `scripts/build_demo.py` — `DEMO_CSS`, body template, sidebar/content builders; delete `nav_js`
 - `demo/index.html` — regenerated
 - `demo/demo.html` — hand-updated, CSS re-inlined
 
 **Modified — docs & tests:**
+
 - `docs/components.md` — five new rows
 - `tests/test_fastblocks_ui.py` — helper unit tests
 - `tests/test_demo_parity.py` — updated selectors
@@ -80,15 +98,17 @@
 - `tests/e2e/demo-layout.spec.js` — **new** responsive/drawer e2e
 - `tests/e2e/accessibility.spec.js` — breakpoint a11y assertions
 
----
+______________________________________________________________________
 
 ### Task 0: Fix `sync_manifest_params.py` key ordering (pre-existing)
 
 **Files:**
+
 - Modify: `scripts/sync_manifest_params.py` — **the only file this task commits**
 - Read-only: `fastblocks_ui/manifest.json` — must NOT change; if the sync produces a diff here, stop and report
 
 **Interfaces:**
+
 - Produces: a green `.venv/bin/python scripts/sync_manifest_params.py --check`, which Tasks 1–4 each depend on.
 
 This is a **pre-existing failure on main**, not caused by this feature. It is
@@ -177,11 +197,12 @@ sync_manifest_params.py wrote them in insertion order, so --check reported
 874 lines of stale-but-identical output and the sync test failed on main."
 ```
 
----
+______________________________________________________________________
 
 ### Task 1: `ui-shell` — full-bleed grid shell
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/layout.css`
 - Modify: `fastblocks_ui/helpers.py`
 - Modify: `fastblocks_ui/__init__.py`
@@ -190,8 +211,11 @@ sync_manifest_params.py wrote them in insertion order, so --check reported
 - Test: `tests/test_fastblocks_ui.py`
 
 **Interfaces:**
+
 - Consumes: `_flatten_classes`, `_render_attrs`, `_render_fragment`, `SafeHTML` (existing, `helpers.py`)
+
 - Produces:
+
   - `_safe_css_length(value: object) -> str` — raises `ValueError` on anything that is not a bare CSS length/percentage. Used by Task 3.
   - `shell(main: object, aside: object = None, *, aside_width: str | None = None, max_width: str | None = None, main_id: str | None = None, class_: object = None, **attrs: object) -> SafeHTML`
 
@@ -448,11 +472,12 @@ git add fastblocks_ui/static/css/layout.css fastblocks_ui/static/css/fastblocks-
 git commit -m "feat(layout): add ui-shell full-bleed page shell"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: `ui-nav-list` and `ui-nav-group` — vertical navigation
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/components.css`
 - Modify: `fastblocks_ui/helpers.py`
 - Modify: `fastblocks_ui/__init__.py`
@@ -461,6 +486,7 @@ git commit -m "feat(layout): add ui-shell full-bleed page shell"
 - Test: `tests/test_fastblocks_ui.py`
 
 **Interfaces:**
+
 - Consumes: `_flatten_classes`, `_render_attrs`, `_render_fragment`, `_safe_url`, `SafeHTML`
 - Produces:
   - `nav_list(items: list[tuple[object, str]], *, active: str | None = None, class_: object = None, **attrs: object) -> SafeHTML`
@@ -737,11 +763,12 @@ git add fastblocks_ui/static/css/components.css fastblocks_ui/static/css/fastblo
 git commit -m "feat(nav): add ui-nav-list and ui-nav-group vertical navigation"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: `ui-drawer` — Popover-based off-canvas panel
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/components.css`
 - Modify: `fastblocks_ui/helpers.py`
 - Modify: `fastblocks_ui/__init__.py`
@@ -750,6 +777,7 @@ git commit -m "feat(nav): add ui-nav-list and ui-nav-group vertical navigation"
 - Test: `tests/test_fastblocks_ui.py`
 
 **Interfaces:**
+
 - Consumes: `_flatten_classes`, `_render_attrs`, `_render_fragment`, `SafeHTML`
 - Produces:
   - `drawer(content: object, *, id: str, label: str | None = None, side: str = "end", tag: str = "div", class_: object = None, **attrs: object) -> SafeHTML` — used by Task 7.
@@ -1024,11 +1052,12 @@ git add fastblocks_ui/static/css/components.css fastblocks_ui/static/css/fastblo
 git commit -m "feat(drawer): add ui-drawer off-canvas panel on the Popover API"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: `ui-burger` — popover toggle button
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/components.css`
 - Modify: `fastblocks_ui/helpers.py`
 - Modify: `fastblocks_ui/__init__.py`
@@ -1037,8 +1066,11 @@ git commit -m "feat(drawer): add ui-drawer off-canvas panel on the Popover API"
 - Test: `tests/test_fastblocks_ui.py`
 
 **Interfaces:**
+
 - Consumes: `_flatten_classes`, `_render_attrs`, `_render_fragment`, `SafeHTML`
+
 - Produces:
+
   - `burger(*, controls: str, label: object = "Menu", class_: object = None, **attrs: object) -> SafeHTML` — used by Task 7.
 
 - [ ] **Step 1: Write the failing tests**
@@ -1272,15 +1304,17 @@ git add fastblocks_ui/static/css/components.css fastblocks_ui/static/css/fastblo
 git commit -m "feat(burger): add ui-burger popover toggle button"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Responsive switch, sticky navbar, and scroll-driven reveal
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/layout.css`
 - Test: `tests/test_fastblocks_ui.py`
 
 **Interfaces:**
+
 - Consumes: `.ui-shell` / `.ui-shell-main` (Task 1), `.ui-drawer` (Task 3), `.ui-burger` (Task 4)
 - Produces: `.ui-shell-aside` class and the `--ui-navbar-height` custom property, both consumed by Task 7.
 
@@ -1481,15 +1515,17 @@ git add fastblocks_ui/static/css/layout.css fastblocks_ui/static/css/fastblocks-
 git commit -m "feat(layout): add sticky navbar reveal and responsive aside switch"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: `enhance.js` drawer breakpoint listener
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/js/enhance.js`
 - Test: `tests/js/fastblocks-ui.test.js`
 
 **Interfaces:**
+
 - Consumes: `.ui-drawer` markup from Task 3
 - Produces: `enhanceDrawers(root = document)` — exported alongside the existing initialisers, called from `initFastBlocksUI`, and re-exported from `fastblocks_ui/static/js/fastblocks-ui.js`.
 
@@ -1638,16 +1674,19 @@ git add fastblocks_ui/static/js/enhance.js tests/js/enhance.test.js
 git commit -m "feat(drawer): close drawer when viewport crosses its breakpoint"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Rebuild the generated demo page
 
 **Files:**
+
 - Modify: `scripts/build_demo.py`
 - Modify: `demo/index.html` (regenerated)
 
 **Interfaces:**
+
 - Consumes: `shell` (Task 1), `nav_group` (Task 2), `drawer` (Task 3), `burger` (Task 4), `.ui-shell-aside` and `--ui-navbar-height` (Task 5), `data-ui-drawer-breakpoint` (Task 6)
+
 - Produces: the demo markup shape that Task 8 mirrors into `demo/demo.html` and Task 9 tests in the browser.
 
 - [ ] **Step 1: Read the current builder end to end**
@@ -1803,15 +1842,17 @@ git add scripts/build_demo.py demo/index.html
 git commit -m "feat(demo): rebuild generated demo on the public shell and drawer"
 ```
 
----
+______________________________________________________________________
 
 ### Task 8: Update the hand-written demo and re-inline the bundle
 
 **Files:**
+
 - Modify: `demo/demo.html`
 - Modify: `tests/test_demo_parity.py`
 
 **Interfaces:**
+
 - Consumes: the markup shape produced by Task 7
 - Produces: a `demo.html` whose first `<style>` block byte-matches the built bundle and whose helper fragments match real helper output.
 
@@ -1922,6 +1963,7 @@ PY
 - [ ] **Step 4: Update `demo.html`'s body to match Task 7's structure**
 
 Apply the same structural changes by hand:
+
 - **Mirror Task 7's two structural fixes** — these are not cosmetic, and
   `demo.html` is hand-written so it will not inherit them:
   - **`role="banner"` on the page hero.** Moving the hero out of `<main>` puts
@@ -1977,15 +2019,17 @@ git add demo/demo.html tests/test_demo_parity.py
 git commit -m "feat(demo): rebuild hand-written demo on the public shell and drawer"
 ```
 
----
+______________________________________________________________________
 
 ### Task 9: Browser and accessibility coverage
 
 **Files:**
+
 - Create: `tests/e2e/demo-layout.spec.js`
 - Modify: `tests/e2e/accessibility.spec.js`
 
 **Interfaces:**
+
 - Consumes: both demo pages as rebuilt in Tasks 7 and 8.
 
 Use `playwright.audit.config.js`, not `playwright.config.js` — the committed config's bundled Chromium fails to extract on this machine and its video/trace capture dies in ffmpeg, masking real passes as failures.
@@ -2155,15 +2199,20 @@ git add tests/e2e/demo-layout.spec.js tests/e2e/accessibility.spec.js
 git commit -m "test(e2e): cover drawer, sticky column, and anchor offsets"
 ```
 
----
+______________________________________________________________________
 
 ### Task 10: Documentation and quality gate
 
 **Files:**
+
 - Modify: `README.md`
+
 - Modify: `PACKAGE_README.md`
+
 - Modify: `CLAUDE.md`
+
 - Modify: `CHANGELOG.md`
+
 - Modify: `docs/usage.md`
 
 - [ ] **Step 1: Update the component lists**
@@ -2245,7 +2294,7 @@ git add README.md PACKAGE_README.md CLAUDE.md CHANGELOG.md docs/usage.md
 git commit -m "docs: document ui-shell, ui-drawer, ui-burger, and ui-nav-list"
 ```
 
----
+______________________________________________________________________
 
 ## Self-Review
 
@@ -2287,7 +2336,7 @@ No gaps.
 
 One inconsistency found and fixed inline: Task 8's parity selector originally read `<nav class="ui-drawer">`, but `drawer(class_="ui-shell-aside")` renders `class="ui-drawer ui-shell-aside"` via `_flatten_classes`. Corrected to the full string.
 
----
+______________________________________________________________________
 
 ## Execution Handoff
 

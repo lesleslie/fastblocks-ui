@@ -896,14 +896,13 @@ def nav_group(
     classes = _flatten_classes("ui-nav-groups", class_)
     attr_html = _render_attrs(class_=classes, **attrs)
 
-    rendered: list[str] = []
-    for label, items in groups:
-        rendered.append(
-            f'<div class="ui-nav-group">'
-            f'<p class="ui-nav-group__label">{_render_fragment(label)}</p>'
-            f"{nav_list(items, active=active, aria_current=aria_current)}"
-            f"</div>"
-        )
+    rendered = [
+        f'<div class="ui-nav-group">'
+        f'<p class="ui-nav-group__label">{_render_fragment(label)}</p>'
+        f"{nav_list(items, active=active, aria_current=aria_current)}"
+        f"</div>"
+        for label, items in groups
+    ]
 
     return _safe(f"<div{attr_html}>{''.join(rendered)}</div>")
 

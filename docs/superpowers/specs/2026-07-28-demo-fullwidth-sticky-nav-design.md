@@ -23,13 +23,13 @@ contradicts what the library is meant to demonstrate:
 
 1. Full-bleed page: hero, section backgrounds, and the layout shell run edge to
    edge; prose keeps a readable measure.
-2. Hero is full-width at the top of the page, outside the content column.
-3. Nav becomes a right-hand column beneath the hero, sibling to main, that sticks
+1. Hero is full-width at the top of the page, outside the content column.
+1. Nav becomes a right-hand column beneath the hero, sibling to main, that sticks
    once the hero scrolls out while main continues to scroll.
-4. A condensed header bar reveals as the hero exits.
-5. Below 1024px the nav becomes a burger-triggered off-canvas drawer, with the
+1. A condensed header bar reveals as the hero exits.
+1. Below 1024px the nav becomes a burger-triggered off-canvas drawer, with the
    burger pinned top-right and reachable from page load.
-6. The pieces ship as public `ui-*` components, so the demo is built from the
+1. The pieces ship as public `ui-*` components, so the demo is built from the
    library rather than from demo-local CSS.
 
 ## Non-goals
@@ -47,7 +47,7 @@ contradicts what the library is meant to demonstrate:
 | 2 | Nav column sticks **and** a condensed header bar reveals | Chosen over nav-only and over a shrinking hero |
 | 3 | Full-bleed shell, capped text measure | Full-width look without unreadable line lengths on wide displays |
 | 4 | Drawer breakpoint at **1024px** | Matches "tablet and mobile"; already one of the project's three breakpoints |
-| 5 | Header hidden and revealed by scroll-driven CSS ≥1024px; always visible <1024px | CSS-first; below 1024px it is a normal app bar so the burger is reachable at page load |
+| 5 | Header hidden and revealed by scroll-driven CSS ≥1024px; always visible \<1024px | CSS-first; below 1024px it is a normal app bar so the burger is reachable at page load |
 | 6 | Four focused primitives, not two fat ones | Matches the project's one-component-one-purpose grain; `ui-drawer` stays reusable |
 
 ### Rejected alternatives
@@ -560,8 +560,8 @@ Three artefacts must stay consistent:
 1. **`scripts/build_demo.py`** — source of truth. `DEMO_CSS`, the body template,
    `build_sidebar()`, and `build_content()` all change. The inline `nav_js`
    toggle script is deleted; the drawer is declarative.
-2. **`demo/index.html`** — regenerated output.
-3. **`demo/demo.html`** — hand-written reference, updated to match. Both pages
+1. **`demo/index.html`** — regenerated output.
+1. **`demo/demo.html`** — hand-written reference, updated to match. Both pages
    stay fully self-contained with inlined CSS/JS so either opens as a bare file.
 
 `tests/test_demo_parity.py` asserts real helper output appears verbatim in
@@ -585,6 +585,7 @@ must still pass. This spec deletes the demo's inline nav script and adds one
 generalised listener to `enhance.js`.
 
 **Playwright e2e** at 375px, 768px, 1023px, 1024px, 1280px:
+
 - Drawer opens from burger, closes on backdrop click, closes on Escape.
 - Focus returns to the burger on close.
 - The burger's bars morph to a cross when the drawer opens, via

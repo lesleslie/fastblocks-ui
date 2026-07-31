@@ -1170,7 +1170,7 @@
      exact rule applied, the bar still computed `opacity: 0` / `visibility:
      hidden` at rest and still reported a live `ViewTimeline` -- a
      reduced-motion user would have got the whole scroll-linked slide. Note
-     this is a `no-preference` GATE, not a `reduce` override re-declaring a
+     this is a `no-preference` GATE, not a `reduce` override redeclaring a
      duration; the latter would be dead CSS for the same reason. Opting out
      lands on the always-visible branch above, which is a tested rendering. */
   @media (prefers-reduced-motion: no-preference) {

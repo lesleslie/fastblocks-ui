@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.ui-navbar.is-sticky` reserves a single fixed length
   (`--ui-navbar-height`, default `3.5rem`) on `body`, so a bar that wraps to a
   second row still covers the top of the content until that custom property is
-  retuned.
+  raised to match.
 
 ## [0.7.1] - 2026-07-28
 

@@ -50,7 +50,7 @@ sessions and must not be removed. Working alternatives: the `mmx` CLI
 (`mmx search query --q "…" --output json`) for web search, and context7 for
 library/API documentation.
 
----
+______________________________________________________________________
 
 ## Tier 1 — retires code already written
 
@@ -136,7 +136,7 @@ textarea.
 **Support:** Baseline. One line to theme native checkbox and radio controls from
 `--ui-color-primary`.
 
----
+______________________________________________________________________
 
 ## Tier 2 — theming and tokens
 
@@ -173,7 +173,7 @@ takes over. Not a drop-in.
 Makes custom properties animatable and gives them guaranteed types and fallbacks.
 Required if colour tokens should ever transition smoothly on theme switch.
 
----
+______________________________________________________________________
 
 ## Tier 3 — distinctly on-brand for a hypermedia framework
 
@@ -208,7 +208,7 @@ Size queries are already used (`@container (min-width: …)`). Style queries
 property on the container, reducing class proliferation for variants. Also `cqi`
 / `cqb` units for intrinsically responsive typography inside components.
 
----
+______________________________________________________________________
 
 ## Tier 4 — cheap polish
 
@@ -221,7 +221,7 @@ property on the container, reducing class proliferation for variants. Also `cqi`
 | `text-box-trim` / `text-box-edge` | button labels | Precise optical centring; verify support |
 | `inert` | htmx loading states | Non-interactive regions during swaps |
 
----
+______________________________________________________________________
 
 ## Deferred / not recommended yet
 
@@ -233,7 +233,7 @@ property on the container, reducing class proliferation for variants. Also `cqi`
 | `corner-shape`, `shape()` | Decorative; no current need |
 | `popover="hint"` | Only relevant once a tooltip component exists |
 
----
+______________________________________________________________________
 
 ## Spec C — sibling packages
 
@@ -248,22 +248,22 @@ estimate would be invented.
 First action for Spec C is therefore investigation, not implementation:
 
 1. Determine how each package consumes `fastblocks_ui` (if at all).
-2. Identify which of the above changes are visible across that boundary.
-3. Decide version/release coordination — whether the three ship in lockstep.
+1. Identify which of the above changes are visible across that boundary.
+1. Decide version/release coordination — whether the three ship in lockstep.
 
 ## Suggested sequencing
 
 1. **Spec A** — demo redesign and new layout primitives. Additive, no existing
    behaviour changes. *Designed and approved.*
-2. **Baseline tooling** — `web-features` in CI. Small, and everything after it
+1. **Baseline tooling** — `web-features` in CI. Small, and everything after it
    benefits from enforced support policy.
-3. **Spec B phase 1** — Tier 1 items 1.3, 1.4, 1.6. Baseline-safe, no markup
+1. **Spec B phase 1** — Tier 1 items 1.3, 1.4, 1.6. Baseline-safe, no markup
    changes, immediate correctness wins.
-4. **Spec B phase 2** — Tier 1 items 1.1, 1.2. Retire `enhance.js` handlers and
+1. **Spec B phase 2** — Tier 1 items 1.1, 1.2. Retire `enhance.js` handlers and
    the focus-trap test. Behaviour-changing; needs its own review.
-5. **Spec B phase 3** — Tier 2 tokens, gated on the contrast test matrix.
-6. **Spec C** — investigation first.
-7. **Tier 3** — view transitions, once Firefox support firms up.
+1. **Spec B phase 3** — Tier 2 tokens, gated on the contrast test matrix.
+1. **Spec C** — investigation first.
+1. **Tier 3** — view transitions, once Firefox support firms up.
 
 Spec A is forward-compatible with all of the above: the popover-based `ui-drawer`
 is the same platform family as an anchor-positioned `ui-menu` and a

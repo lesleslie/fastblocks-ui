@@ -2227,7 +2227,7 @@ class TestStickyLayoutCss(unittest.TestCase):
         # duration collapse that covers every other animation in the bundle.
         #
         # Gating, not overriding: this is deliberately NOT a
-        # `prefers-reduced-motion: reduce` block re-declaring a duration --
+        # `prefers-reduced-motion: reduce` block redeclaring a duration --
         # that rule really would be dead CSS for the reason above.
         gate = self.rules_only.index("@media (prefers-reduced-motion: no-preference)")
         supports = self.rules_only.index("@supports (animation-timeline: view())")
