@@ -321,7 +321,14 @@ required fields no longer need to avoid :invalid."
 
 ---
 
-### Task 3: B1 — native control theming
+### Task 3: B1 — native control theming  ✅ DONE (`2bf8244`)
+
+> **Scope reduced during execution.** The planned `accent-color` on
+> `.ui-progress` was dropped: the component is already themed in `layout.css`
+> via `::-webkit-progress-value` / `::-moz-progress-bar` with an explicit
+> background per variant, which override `accent-color`. The declaration would
+> have been dead, and is less capable besides — one colour against five
+> variants. Roadmap item 1.6 needs no further work.
 
 Two one-line platform wins. `field-sizing` reached Baseline Newly on 2026-06-16, so it needs no guard — a change from the roadmap's assumption that Safari and Firefox were unverified.
 
@@ -336,7 +343,7 @@ Two one-line platform wins. `field-sizing` reached Baseline Newly on 2026-06-16,
 - Consumes: `--ui-color-primary`
 - Produces: nothing later tasks import
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/e2e/field-validation.spec.js`:
 
@@ -353,12 +360,12 @@ test('textarea grows with content instead of scrolling', async ({ page }) => {
 });
 ```
 
-- [ ] **Step 2: Run it to confirm it fails**
+- [x] **Step 2: Run it to confirm it fails**
 
 Run: `npx playwright test tests/e2e/field-validation.spec.js --project=chromium -g "textarea grows"`
 Expected: FAIL — heights equal
 
-- [ ] **Step 3: Add the CSS**
+- [x] **Step 3: Add the CSS**
 
 In `components.css`, add to the `.ui-textarea` rule set (find `.ui-input,\n  .ui-select,\n  .ui-textarea {`) a dedicated rule after it:
 
@@ -393,19 +400,19 @@ Then verify `.ui-progress`'s own rule does not conflict on `inline-size`/`block-
   }
 ```
 
-- [ ] **Step 4: Rebuild and verify the Baseline gate still passes**
+- [x] **Step 4: Rebuild and verify the Baseline gate still passes**
 
 Run: `python tools/build_css.py && npm run check:baseline`
 Expected: `check-baseline: OK` — `field-sizing` is Baseline Newly, so no allowlist entry is needed
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `npx playwright test tests/e2e/field-validation.spec.js --project=chromium`
 Expected: all pass
 
 Run: `uv run pytest tests/ -q && npm run validate`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add fastblocks_ui/static/css/components.css fastblocks_ui/static/css/fastblocks-ui.css tests/e2e/field-validation.spec.js
