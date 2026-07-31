@@ -75,7 +75,7 @@
 
 **Modified — Python:**
 
-- `fastblocks_ui/helpers.py` — `_safe_css_length`, `_drawer_tag`, `shell`, `nav_list`, `nav_group`, `drawer`, `burger`
+- `fastblocks_ui/helpers.py` — `_safe_css_length`, `_drawer_tag`, `shell`, `nav_list`, `nav_groups`, `drawer`, `burger`
 - `fastblocks_ui/__init__.py` — re-export the five new helpers
 - `fastblocks_ui/manifest.json` — five new component entries
 
@@ -490,7 +490,7 @@ ______________________________________________________________________
 - Consumes: `_flatten_classes`, `_render_attrs`, `_render_fragment`, `_safe_url`, `SafeHTML`
 - Produces:
   - `nav_list(items: list[tuple[object, str]], *, active: str | None = None, class_: object = None, **attrs: object) -> SafeHTML`
-  - `nav_group(groups: list[tuple[object, list[tuple[object, str]]]], *, active: str | None = None, class_: object = None, **attrs: object) -> SafeHTML` — renders one outer `<div class="ui-nav-groups">` containing one `<div class="ui-nav-group">` per group, and calls `nav_list` inside each. Used by Task 7.
+  - `nav_groups(groups: list[tuple[object, list[tuple[object, str]]]], *, active: str | None = None, class_: object = None, **attrs: object) -> SafeHTML` — renders one outer `<div class="ui-nav-groups">` containing one `<div class="ui-nav-group">` per group, and calls `nav_list` inside each. Used by Task 7.
 
 The outer wrapper is not cosmetic. `class_` and `**attrs` must land on exactly
 one element: applying them per-group would emit N elements sharing whatever
@@ -532,7 +532,7 @@ class TestNavListHelpers(unittest.TestCase):
         self.assertEqual(fastblocks_ui.nav_list([]), '<ul class="ui-nav-list"></ul>')
 
     def test_nav_group_renders_label_and_list(self):
-        markup = fastblocks_ui.nav_group([("Layout", [("Container", "#container")])])
+        markup = fastblocks_ui.nav_groups([("Layout", [("Container", "#container")])])
         self.assertIn('<div class="ui-nav-groups">', markup)
         self.assertIn('<div class="ui-nav-group">', markup)
         self.assertIn('<p class="ui-nav-group__label">Layout</p>', markup)
@@ -540,19 +540,19 @@ class TestNavListHelpers(unittest.TestCase):
     def test_nav_group_attrs_land_on_the_wrapper_only_once(self):
         # Regression: applying **attrs per group emitted N elements sharing
         # one id, which is invalid HTML and breaks getElementById.
-        markup = fastblocks_ui.nav_group(
+        markup = fastblocks_ui.nav_groups(
             [("A", [("x", "#x")]), ("B", [("y", "#y")])], id="nav-groups"
         )
         self.assertEqual(markup.count('id="nav-groups"'), 1)
         self.assertEqual(markup.count('class="ui-nav-group"'), 2)
 
     def test_nav_group_custom_class_lands_on_the_wrapper(self):
-        markup = fastblocks_ui.nav_group([("A", [])], class_="extra")
+        markup = fastblocks_ui.nav_groups([("A", [])], class_="extra")
         self.assertIn('class="ui-nav-groups extra"', markup)
         self.assertIn('<a class="ui-nav-list__link" href="#container">Container</a>', markup)
 
     def test_nav_group_propagates_active(self):
-        markup = fastblocks_ui.nav_group([("G", [("A", "#a")])], active="#a")
+        markup = fastblocks_ui.nav_groups([("G", [("A", "#a")])], active="#a")
         self.assertIn("is-active", markup)
 
     def test_nav_helpers_return_safe_html(self):
@@ -560,7 +560,7 @@ class TestNavListHelpers(unittest.TestCase):
             fastblocks_ui.nav_list([]), fastblocks_ui.helpers.SafeHTML
         )
         self.assertIsInstance(
-            fastblocks_ui.nav_group([]), fastblocks_ui.helpers.SafeHTML
+            fastblocks_ui.nav_groups([]), fastblocks_ui.helpers.SafeHTML
         )
 ```
 
@@ -611,7 +611,7 @@ def nav_list(
     return SafeHTML(f"<ul{attr_html}>{''.join(rendered)}</ul>")
 
 
-def nav_group(
+def nav_groups(
     groups: list[tuple[object, list[tuple[object, str]]]],
     *,
     active: str | None = None,
@@ -640,11 +640,11 @@ def nav_group(
     return SafeHTML(f"<div{attr_html}>{''.join(rendered)}</div>")
 ```
 
-Add `"nav_group"` and `"nav_list"` to `helpers.py`'s `__all__` (alphabetical — between `"navbar"` and `"pagination"`... note `nav_group` and `nav_list` sort *before* `navbar`, so place them before it).
+Add `"nav_groups"` and `"nav_list"` to `helpers.py`'s `__all__` (alphabetical — between `"navbar"` and `"pagination"`... note `nav_groups` and `nav_list` sort *before* `navbar`, so place them before it).
 
 - [ ] **Step 4: Re-export from `__init__.py`**
 
-Add `nav_group` and `nav_list` to the `.helpers` import and to `__init__.py`'s `__all__`, alphabetically before `navbar`.
+Add `nav_groups` and `nav_list` to the `.helpers` import and to `__init__.py`'s `__all__`, alphabetically before `navbar`.
 
 - [ ] **Step 5: Run the tests to verify they pass**
 
@@ -719,8 +719,8 @@ Add both to the `components` array in alphabetical position by `name` (before `"
   "class_name": "ui-nav-groups",
   "codegen": false,
   "description": "Labelled groups of vertical navigation links.",
-  "helper": "nav_group",
-  "name": "nav_group",
+  "helper": "nav_groups",
+  "name": "nav_groups",
   "params": []
 },
 {
@@ -742,7 +742,7 @@ Add both to the `components` array in alphabetical position by `name` (before `"
 Add two rows to `docs/components.md`, matching the existing row shape:
 
 ```markdown
-| nav_group | ui-nav-groups | Labelled groups of vertical navigation links. |
+| nav_groups | ui-nav-groups | Labelled groups of vertical navigation links. |
 | nav_list | ui-nav-list | Vertical navigation list for sidebars and drawers. |
 ```
 
@@ -1685,7 +1685,7 @@ ______________________________________________________________________
 
 **Interfaces:**
 
-- Consumes: `shell` (Task 1), `nav_group` (Task 2), `drawer` (Task 3), `burger` (Task 4), `.ui-shell-aside` and `--ui-navbar-height` (Task 5), `data-ui-drawer-breakpoint` (Task 6)
+- Consumes: `shell` (Task 1), `nav_groups` (Task 2), `drawer` (Task 3), `burger` (Task 4), `.ui-shell-aside` and `--ui-navbar-height` (Task 5), `data-ui-drawer-breakpoint` (Task 6)
 
 - Produces: the demo markup shape that Task 8 mirrors into `demo/demo.html` and Task 9 tests in the browser.
 
@@ -1739,7 +1739,7 @@ def build_sidebar(categories):
     # these hrefs are fragments that only move the viewport, and the default
     # `"true"` or a `"page"` token would both be less accurate.
     return fastblocks_ui.drawer(
-        fastblocks_ui.nav_group(groups),
+        fastblocks_ui.nav_groups(groups),
         id="site-nav",
         label="Component sections",
         tag="nav",
@@ -1866,7 +1866,7 @@ ______________________________________________________________________
             len(names), 27, "expected manifest to still have 27 components"
 ```
 
-This task adds five components (`shell`, `nav_list`, `nav_group`, `drawer`,
+This task adds five components (`shell`, `nav_list`, `nav_groups`, `drawer`,
 `burger`), so update it to `32` and adjust the message. Verify the number
 against the manifest rather than trusting this plan:
 
@@ -2224,12 +2224,12 @@ ______________________________________________________________________
 - Layout components: `container`, `columns`, `column`, `section`, `footer`, `level`, `hero`, `title`, `media`, `tile`
 ```
 
-Add `drawer`, `burger`, `nav_list`, `nav_group` to the first line and `shell` to the second. Make the matching additions in `README.md`, `PACKAGE_README.md`, and `docs/usage.md`, following each file's existing format.
+Add `drawer`, `burger`, `nav_list`, `nav_groups` to the first line and `shell` to the second. Make the matching additions in `README.md`, `PACKAGE_README.md`, and `docs/usage.md`, following each file's existing format.
 
 - [ ] **Step 2: Add a usage example to `docs/usage.md`**
 
 ```python
-from fastblocks_ui import burger, drawer, hero, nav_group, navbar, shell
+from fastblocks_ui import burger, drawer, hero, nav_groups, navbar, shell
 
 bar = navbar(
     brand="My App",
@@ -2239,7 +2239,7 @@ bar = navbar(
 )
 
 nav = drawer(
-    nav_group([("Docs", [("Install", "/install"), ("Usage", "/usage")])]),
+    nav_groups([("Docs", [("Install", "/install"), ("Usage", "/usage")])]),
     id="site-nav",
     label="Section navigation",
     tag="nav",
@@ -2326,8 +2326,8 @@ No gaps.
 
 - `_safe_css_length` — defined Task 1, used Task 1 only.
 - `shell(main, aside, *, aside_width, max_width, main_id, class_, **attrs)` — Task 1; called in Task 7 with `main_id="demo-content"` and `aside=` ✓
-- `nav_list(items, *, active, class_, **attrs)` — Task 2; called by `nav_group` with `active=active` ✓
-- `nav_group(groups, *, active, class_, **attrs)` — Task 2; called in Task 7 with a single positional ✓
+- `nav_list(items, *, active, class_, **attrs)` — Task 2; called by `nav_groups` with `active=active` ✓
+- `nav_groups(groups, *, active, class_, **attrs)` — Task 2; called in Task 7 with a single positional ✓
 - `drawer(content, *, id, label, side, tag, class_, **attrs)` — Task 3; called in Task 7 with `id`, `label`, `tag="nav"`, `class_="ui-shell-aside"`, `data_ui_drawer_breakpoint="1024"` ✓
 - `burger(*, controls, label, class_, **attrs)` — Task 4; called in Task 7 with `controls="site-nav"`, matching `drawer`'s `id="site-nav"` ✓
 - `enhanceDrawers(root)` — Task 6; reads `data-ui-drawer-breakpoint`, which Task 7 emits ✓

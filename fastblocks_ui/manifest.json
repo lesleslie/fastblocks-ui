@@ -532,8 +532,8 @@
       "class_name": "ui-nav-groups",
       "codegen": false,
       "description": "Labelled groups of vertical navigation links.",
-      "helper": "nav_group",
-      "name": "nav_group",
+      "helper": "nav_groups",
+      "name": "nav_groups",
       "params": [
         {
           "kind": "positional_or_keyword",

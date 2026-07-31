@@ -49,7 +49,7 @@ from fastblocks_ui import (
     level,
     media,
     menu,
-    nav_group,
+    nav_groups,
     nav_list,
     navbar,
     pagination,
@@ -1013,7 +1013,7 @@ def nav_group_demo() -> SafeHTML:
     return _safe(
         '<div class="ui-stack">'
         + str(
-            nav_group(
+            nav_groups(
                 [
                     ("Layout", [("Container", "#container"), ("Hero", "#hero")]),
                     ("Forms", [("Field", "#field"), ("Input", "#input")]),
@@ -1196,7 +1196,7 @@ def build_categories() -> list[
                     nav_list_demo(),
                 ),
                 (
-                    "nav_group",
+                    "nav_groups",
                     "Nav group",
                     "Labelled groups of nav links, as used by this page's own "
                     "table of contents.",
@@ -1392,7 +1392,7 @@ def build_sidebar(
     # default `"true"` and a `"page"` token would announce something less
     # accurate than what the link does.
     return drawer(
-        nav_group(groups),
+        nav_groups(groups),
         id="site-nav",
         label="Component sections",
         tag="nav",

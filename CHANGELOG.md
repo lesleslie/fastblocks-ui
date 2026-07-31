@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `nav_groups()` renders `.ui-nav-groups`. Named plural because it takes a
+  list of groups and renders a wrapper around them, matching `columns()` /
+  `.ui-columns`; each group inside is a `.ui-nav-group`.
+
 - `ui-shell`, `ui-nav-list`, `ui-nav-group`, `ui-drawer`, and `ui-burger`
   components, plus a `.ui-navbar.is-sticky` modifier. `shell()` is a CSS grid —
   one column below 1024px, main plus aside above — with `--ui-shell-max`

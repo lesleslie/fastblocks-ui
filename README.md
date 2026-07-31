@@ -161,7 +161,7 @@ FastBlocks UI centers its public surface on `ui-*` classes and helper APIs:
 - `ui-media` / `media()` - Image + text pair
 - `ui-tile` / `tile()` - Hierarchical tile layout
 - `ui-nav-list` / `nav_list()` - Vertical navigation list for sidebars and drawers
-- `ui-nav-groups` / `nav_group()` - Labelled groups of vertical navigation links
+- `ui-nav-groups` / `nav_groups()` - Labelled groups of vertical navigation links
 
 ### UI Components
 

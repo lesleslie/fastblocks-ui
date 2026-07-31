@@ -20,7 +20,7 @@ This page is generated from `fastblocks_ui/manifest.json`. Keep the manifest and
 | navbar | `ui-navbar` | `navbar()` | Navigation bar with brand and menu items. |
 | breadcrumb | `ui-breadcrumb` | `breadcrumb()` | Navigation trail with links and current page. |
 | nav_list | `ui-nav-list` | `nav_list()` | Vertical navigation list for sidebars and drawers. |
-| nav_group | `ui-nav-groups` | `nav_group()` | Labelled groups of vertical navigation links. |
+| nav_groups | `ui-nav-groups` | `nav_groups()` | Labelled groups of vertical navigation links. |
 
 ## UI Components
 

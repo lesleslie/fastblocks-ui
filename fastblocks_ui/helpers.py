@@ -37,7 +37,7 @@ __all__ = [
     "level",
     "media",
     "menu",
-    "nav_group",
+    "nav_groups",
     "nav_list",
     "navbar",
     "pagination",
@@ -866,7 +866,7 @@ def nav_list(
     return _safe(f"<ul{attr_html}>{''.join(rendered)}</ul>")
 
 
-def nav_group(
+def nav_groups(
     groups: list[tuple[object, list[tuple[object, str]]]],
     *,
     active: str | None = None,

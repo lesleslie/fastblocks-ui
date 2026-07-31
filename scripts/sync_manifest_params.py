@@ -50,7 +50,7 @@ HAND_WRITTEN = {
     "tabs",  # items: list[tuple[str, str, object]]
     "menu",  # items: list[tuple[object, object]]
     "nav_list",  # items: list[tuple[object, str]]
-    "nav_group",  # groups: list[tuple[object, list[tuple[object, str]]]]
+    "nav_groups",  # groups: list[tuple[object, list[tuple[object, str]]]]
     "navbar",  # items: list[tuple[object, str]] + multiple content slots
     "breadcrumb",  # items: list[tuple[object, str | None]]
     "validation_summary",  # errors: dict | list | tuple (three-way union)

@@ -542,7 +542,7 @@ def shell(main, aside=None, *, aside_width=None, max_width=None,
 def nav_list(items, *, active=None, aria_current="true",
              class_=None, **attrs) -> SafeHTML: ...
 
-def nav_group(groups, *, active=None, aria_current="true",
+def nav_groups(groups, *, active=None, aria_current="true",
               class_=None, **attrs) -> SafeHTML: ...
 
 def drawer(content, *, id, label=None, side="end",
@@ -641,7 +641,7 @@ what changed lives here; the literal diff lives in git.
 | Burger hide rule | `.ui-burger { display: none }` | Unscoped, it hid **every** burger above 1024px whatever each controlled. The demo proved the cost: both `#demo-drawer` showcase burgers vanished on desktop, so a laptop reader could not open the example drawer. Narrowing to `.ui-navbar .ui-burger` shrank the blast radius but kept the guess — a consumer whose navbar burger opened a cart still lost it, with no opt-out. Now the opt-in `.ui-burger.is-shell-toggle`, which inverts the failure mode: forget the class and you get a redundant visible button, rather than a working control that disappears. |
 | `view-timeline-inset` | absent | Defaults to `auto`, which insets the scrollport by its `scroll-padding` — which this same feature sets on `:root`. The exit range was already a quarter elapsed at rest: the bar computed `opacity: 0.252` over the hero. Pinned to `0`. |
 | `.ui-drawer::backdrop` | opaque scrim in the base rule | The backdrop faded in but never out — on close it reverted to opaque, held through the 250 ms discrete `overlay`/`display` window, then snapped away. Scrim moved to `:popover-open` per MDN's documented pattern. |
-| `nav_list` / `nav_group` signatures | `label=`, no `aria_current=` | `label` was never implemented; `aria_current` was added because the component cannot know whether a consumer's hrefs change pages or only move the viewport, so a hardcoded `"page"` announces "current page" for a link that never leaves it. |
+| `nav_list` / `nav_groups` signatures | `label=`, no `aria_current=` | `label` was never implemented; `aria_current` was added because the component cannot know whether a consumer's hrefs change pages or only move the viewport, so a hardcoded `"page"` announces "current page" for a link that never leaves it. |
 
 Two further things the spec asserted that turned out to be false, corrected in
 the body above:

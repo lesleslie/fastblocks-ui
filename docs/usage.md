@@ -433,7 +433,7 @@ Labelled groups of navigation links. Each group label is a `<p>`, not a heading,
 so the groups do not inject entries into the document outline.
 
 ```jinja
-{{ nav_group([
+{{ nav_groups([
   ("Getting started", [("Install", "/install"), ("Usage", "/usage")]),
   ("Reference", [("Components", "/components")])
 ], active="/usage", aria_current="page") }}
@@ -705,7 +705,7 @@ sticky sidebar on a desktop and an off-canvas drawer on a phone — one DOM node
 one id, both roles.
 
 ```python
-from fastblocks_ui import burger, drawer, hero, nav_group, navbar, shell
+from fastblocks_ui import burger, drawer, hero, nav_groups, navbar, shell
 
 bar = navbar(
     brand="My App",
@@ -715,7 +715,7 @@ bar = navbar(
 )
 
 nav = drawer(
-    nav_group([("Docs", [("Install", "#install"), ("Usage", "#usage")])]),
+    nav_groups([("Docs", [("Install", "#install"), ("Usage", "#usage")])]),
     id="site-nav",
     label="Section navigation",
     tag="nav",
