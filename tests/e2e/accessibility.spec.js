@@ -17,9 +17,9 @@ test.describe('FastBlocks UI accessibility', () => {
 });
 
 // Both demo pages are axe-clean -- ZERO violations, at every width below,
-// measured 2026-07-30 in Chrome 141 with axe-core's full default ruleset (no
-// `withTags` narrowing, unlike the scan above). So assert zero: the strongest
-// form of this gate.
+// measured 2026-07-31 in Chrome 150 with axe-core 4.11's full default ruleset
+// (no `withTags` narrowing, unlike the scan above). So assert zero: the
+// strongest form of this gate.
 //
 // It did not start here. The baseline carried `landmark-unique` (two showcase
 // navbars both taking `navbar()`'s default "main navigation", so two landmarks

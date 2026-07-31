@@ -14,7 +14,7 @@ const PAGE = '/demo/demo.html';
 // The shell's own burger, not a bare `.ui-burger`. demo.html renders three
 // burgers -- the navbar's (`popovertarget="site-nav"`) plus two showcase
 // examples that both target `#demo-drawer` -- so `.ui-burger` alone is a
-// Playwright strict-mode violation. Measured 2026-07-30 in Chrome 141:
+// Playwright strict-mode violation. Measured 2026-07-31 in Chrome 150:
 // `document.querySelectorAll('.ui-burger').length === 3`.
 const SHELL_BURGER = '.ui-navbar .ui-burger';
 
@@ -41,19 +41,21 @@ test.describe('drawer below the breakpoint', () => {
     await expect(burger).toBeVisible();
     await expect(page.locator('#site-nav')).toBeHidden();
 
-    // NOT `toHaveAttribute('aria-expanded', ...)`. A `popovertarget` invoker
-    // does get an expanded state, but it is *implicit* ARIA -- computed into
-    // the accessibility tree and never reflected as a DOM content attribute.
-    // This assertion is the canary for that platform fact: components.css
-    // selects the open state from the drawer's `:popover-open` precisely
-    // because `.ui-burger[aria-expanded="true"]` can never match. If a future
-    // Chrome starts reflecting the attribute, this fails and the CSS comment
-    // explaining the workaround can be revisited.
-    await expect(burger).not.toHaveAttribute('aria-expanded');
-
     await burger.click();
 
     await expect(page.locator('#site-nav')).toBeVisible();
+
+    // Asserted with the drawer OPEN, which is the state that matters. NOT
+    // `toHaveAttribute('aria-expanded', 'true')`: a `popovertarget` invoker
+    // does get an expanded state, but it is *implicit* ARIA -- computed into
+    // the accessibility tree and never reflected as a DOM content attribute.
+    // Measured in Chrome 150 with this popover open: `getAttribute` returns
+    // null. This assertion is the canary for that platform fact, because
+    // components.css selects the open state from the drawer's `:popover-open`
+    // precisely since `.ui-burger[aria-expanded="true"]` can never match. If a
+    // future Chrome starts reflecting the attribute, this fails and the
+    // workaround can be revisited rather than silently outliving its reason.
+    await expect(burger).not.toHaveAttribute('aria-expanded');
     expect(await page.locator('#site-nav').evaluate((el) => el.matches(':popover-open'))).toBe(
       true,
     );
@@ -148,8 +150,8 @@ test.describe('sticky column above the breakpoint', () => {
 
     await expect.poll(gap, { timeout: 10000 }).toBeGreaterThanOrEqual(0);
     // Upper bound too, so this cannot pass merely because the anchor landed
-    // *somewhere* below the bar. Measured gap: ~15px, i.e. the 72px
-    // scroll-padding-top minus the 56px bar.
+    // *somewhere* below the bar. Measured gap: 14.8px -- the 72px
+    // scroll-padding-top less the 56px bar, less subpixel scroll rounding.
     expect(await gap()).toBeLessThan(40);
   });
 });
