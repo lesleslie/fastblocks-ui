@@ -48,7 +48,7 @@ from fastblocks_ui import (
     hero,
     level,
     media,
-    menu,
+    dropdown,
     nav_groups,
     nav_list,
     navbar,
@@ -460,23 +460,23 @@ def pagination_demo() -> SafeHTML:
     return pagination(5, 12, url_pattern="#page-{page}", siblings=1)
 
 
-def menu_demo() -> SafeHTML:
+def dropdown_demo() -> SafeHTML:
     return _safe(
         '<div class="demo-panel">'
         + str(
             button(
-                "Toggle menu",
+                "Toggle dropdown",
                 type="button",
-                data_ui_menu_trigger=True,
-                aria_controls="demo-menu",
+                data_ui_dropdown_trigger=True,
+                aria_controls="demo-dropdown",
                 aria_expanded="false",
             )
         )
         + str(
-            menu(
+            dropdown(
                 [("Profile", "#"), ("Settings", "#"), ("Sign out", "#")],
-                label="Demo menu",
-                id="demo-menu",
+                label="Demo dropdown",
+                id="demo-dropdown",
                 hidden=True,
             )
         )
@@ -1003,7 +1003,7 @@ def nav_list_demo() -> SafeHTML:
         "cannot know whether its links change pages or only move the viewport. "
         "These are in-page anchors, so they pass <code>location</code> -- "
         "<code>page</code> would announce &quot;current page&quot; for a link "
-        "that never leaves it. Unrelated to <code>menu()</code>, which is an "
+        "that never leaves it. Unrelated to <code>dropdown()</code>, which is an "
         "absolutely positioned dropdown.</p>"
         "</div>"
     )
@@ -1182,17 +1182,17 @@ def build_categories() -> list[
                     pagination_demo(),
                 ),
                 (
-                    "menu",
-                    "Menu",
-                    "Disclosure menu; arrow keys navigate, Escape closes and "
+                    "dropdown",
+                    "Dropdown",
+                    "Disclosure dropdown; arrow keys navigate, Escape closes and "
                     "restores focus.",
-                    menu_demo(),
+                    dropdown_demo(),
                 ),
                 (
                     "nav_list",
                     "Nav list",
                     "Vertical navigation for sidebars and drawers -- not to be "
-                    "confused with the menu dropdown above.",
+                    "confused with the dropdown above.",
                     nav_list_demo(),
                 ),
                 (

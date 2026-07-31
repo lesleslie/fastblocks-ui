@@ -37,7 +37,7 @@ This page is generated from `fastblocks_ui/manifest.json`. Keep the manifest and
 | drawer | `ui-drawer` | `drawer()` | Off-canvas panel built on the Popover API. |
 | burger | `ui-burger` | `burger()` | Burger button that toggles a drawer via the Popover API. Add `is-shell-toggle` when it opens the shell's aside. |
 | tabs | `ui-tabs` | `tabs()` | Accessible tablist, tab, and panel patterns. |
-| menu | `ui-menu` | `menu()` | Disclosure and navigation menu styling. |
+| dropdown | `ui-dropdown` | `dropdown()` | Disclosure and navigation dropdown styling. |
 | alert | `ui-alert` | `alert()` | Inline notices and status messaging. |
 | progress | `ui-progress` | `progress()` | Progress bar with value and variants. |
 | table | `ui-table` | `table()` | Styled table with optional striping and hover. |

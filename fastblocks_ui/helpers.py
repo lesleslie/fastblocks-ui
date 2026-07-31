@@ -30,13 +30,13 @@ __all__ = [
     "container",
     "dialog",
     "drawer",
+    "dropdown",
     "field",
     "footer",
     "Option",
     "hero",
     "level",
     "media",
-    "menu",
     "nav_groups",
     "nav_list",
     "navbar",
@@ -59,7 +59,7 @@ class Option(NamedTuple):
     """An explicit ``select()`` option.
 
     ``select()`` historically took bare ``(value, label)`` tuples while
-    ``menu()``/``navbar()``/``breadcrumb()`` take ``(label, target)``. Swapping
+    ``dropdown()``/``navbar()``/``breadcrumb()`` take ``(label, target)``. Swapping
     the bare form would have been a *silent* breaking change -- existing calls
     would keep working and just render label and value the wrong way round --
     so the ambiguity is resolved at the type level instead. Prefer this;
@@ -167,7 +167,7 @@ def _has_attr(attrs: dict[str, object], attr_name: str) -> bool:
     `None`/`False` values). So passing `aria_label=None` is a valid, silent
     way to suppress a helper's own `aria-label` entirely -- the tag gets no
     `aria-label` at all, neither the caller's nor the helper's. `tabs()`,
-    `menu()`, `navbar()` and `drawer()` gate their `label=` convenience
+    `dropdown()`, `navbar()` and `drawer()` gate their `label=` convenience
     argument through this check; `breadcrumb()` gates its hardcoded
     `"breadcrumb"` default the same way with no `label=` param to opt out of
     instead. All five share the `aria_label=None` opt-out.
@@ -797,7 +797,7 @@ def tabs(
     )
 
 
-def menu(
+def dropdown(
     items: list[tuple[object, object]] | None = None,
     *,
     label: str = "Menu",
@@ -805,9 +805,9 @@ def menu(
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
-    """Render a dropdown menu (`<nav class="ui-menu">`).
+    """Render a dropdown menu (`<nav class="ui-dropdown">`).
 
-    `.ui-menu` is `position: absolute` (components.css) so opening it
+    `.ui-dropdown` is `position: absolute` (components.css) so opening it
     overlays the page instead of pushing following content downward. That
     means the element wrapping this helper's output *and* its trigger button
     together needs `position: relative` (or any other positioned value) so
@@ -815,24 +815,24 @@ def menu(
     whatever positioned ancestor happens to exist further up the page. See
     `demo/demo.html`'s `.demo-panel` wrapper for a minimal example.
     """
-    classes = _flatten_classes("ui-menu", class_)
+    classes = _flatten_classes("ui-dropdown", class_)
     # See tabs() above -- appending the label duplicated `aria-label`.
     if not _has_attr(attrs, "aria-label"):
         attrs["aria_label"] = label
-    attr_html = _render_attrs(attrs, class_=classes, data_ui_menu=True)
+    attr_html = _render_attrs(attrs, class_=classes, data_ui_dropdown=True)
     links = [
-        f'<a class="ui-menu__item" href="{escape(_safe_url(href), quote=True)}">{_render_fragment(text)}</a>'
+        f'<a class="ui-dropdown__item" href="{escape(_safe_url(href), quote=True)}">{_render_fragment(text)}</a>'
         for text, href in (items or [])
     ]
     menu_markup = f"<nav{attr_html}>{''.join(links)}</nav>"
     if custom_element:
         host_attr_html = _render_attrs(
             class_=classes,
-            data_ui_menu=True,
+            data_ui_dropdown=True,
             data_ui_state="closed",
             aria_label=attrs.get("aria_label", attrs.get("aria-label", label)),
         )
-        return _safe(f"<ui-menu{host_attr_html}>{menu_markup}</ui-menu>")
+        return _safe(f"<ui-dropdown{host_attr_html}>{menu_markup}</ui-dropdown>")
     return _safe(menu_markup)
 
 
@@ -852,8 +852,8 @@ def nav_list(
 ) -> SafeHTML:
     """Render a vertical navigation list (`<ul class="ui-nav-list">`).
 
-    This is the in-flow sidebar list, not the dropdown: `menu()` renders
-    `.ui-menu`, which is `position: absolute` and overlays the page. The two
+    This is the in-flow sidebar list, not the dropdown: `dropdown()` renders
+    `.ui-dropdown`, which is `position: absolute` and overlays the page. The two
     are unrelated despite both being navigation.
 
     Args:

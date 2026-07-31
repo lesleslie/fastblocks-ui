@@ -328,6 +328,33 @@
       ]
     },
     {
+      "class_name": "ui-dropdown",
+      "codegen": true,
+      "description": "Disclosure and navigation menu styling.",
+      "helper": "dropdown",
+      "name": "dropdown",
+      "params": [
+        {
+          "default": null,
+          "kind": "positional_or_keyword",
+          "name": "items",
+          "type": "list[tuple[object, object]] | None"
+        },
+        {
+          "default": "Menu",
+          "kind": "keyword_only",
+          "name": "label",
+          "type": "str"
+        },
+        {
+          "default": false,
+          "kind": "keyword_only",
+          "name": "custom_element",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "class_name": "ui-field",
       "codegen": false,
       "description": "Label, help, and error grouping for form controls.",
@@ -498,33 +525,6 @@
           "kind": "keyword_only",
           "name": "position",
           "type": "str"
-        }
-      ]
-    },
-    {
-      "class_name": "ui-menu",
-      "codegen": false,
-      "description": "Disclosure and navigation menu styling.",
-      "helper": "menu",
-      "name": "menu",
-      "params": [
-        {
-          "default": null,
-          "kind": "positional_or_keyword",
-          "name": "items",
-          "type": "list[tuple[object, object]] | None"
-        },
-        {
-          "default": "Menu",
-          "kind": "keyword_only",
-          "name": "label",
-          "type": "str"
-        },
-        {
-          "default": false,
-          "kind": "keyword_only",
-          "name": "custom_element",
-          "type": "bool"
         }
       ]
     },

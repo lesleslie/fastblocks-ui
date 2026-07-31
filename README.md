@@ -25,7 +25,7 @@ regions should remain normal light DOM nodes so the server stays authoritative
 for selected tabs, open menus, form state, and validation state.
 
 Optional light-DOM Custom Elements such as `<ui-tabs>`, `<ui-dialog>`, and
-`<ui-menu>` are available as opt-in wrappers around the canonical helper output
+`<ui-dropdown>` are available as opt-in wrappers around the canonical helper output
 and are tracked in [docs/light-dom-custom-elements-spec.md](docs/light-dom-custom-elements-spec.md).
 
 ## Installation
@@ -178,7 +178,7 @@ FastBlocks UI centers its public surface on `ui-*` classes and helper APIs:
   `is-shell-toggle` when it opens the shell's aside, so it hides above 1024px
   where that aside becomes a column
 - `ui-tabs` / `tabs()` - Tabbed interfaces
-- `ui-menu` / `menu()` - Menus
+- `ui-dropdown` / `dropdown()` - Dropdowns
 - `ui-alert` / `alert()` - Alerts
 
 `.ui-navbar.is-sticky` is a modifier on `navbar()`, not a separate component:

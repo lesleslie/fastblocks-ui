@@ -4,7 +4,7 @@ Status: Implemented
 Plan: FBUI-011 in `docs/fastblocks-ui-implementation-plan.md`
 
 This spec defines a future FastBlocks UI enhancement layer for optional Custom
-Elements such as `<ui-tabs>`, `<ui-dialog>`, and `<ui-menu>`. It is not a revival
+Elements such as `<ui-tabs>`, `<ui-dialog>`, and `<ui-dropdown>`. It is not a revival
 of the archived FastBulma/FAST plan and does not replace the current helper-first
 API.
 
@@ -110,14 +110,14 @@ Responsibilities:
 - sync state when users close via Escape, backdrop, form submission, or htmx
   replacement
 
-### `<ui-menu>`
+### `<ui-dropdown>`
 
 Enhances disclosure/navigation menu markup.
 
 Example:
 
 ```html
-<ui-menu class="ui-menu">
+<ui-dropdown class="ui-dropdown">
   <button type="button" aria-expanded="false" aria-controls="account-menu">
     Account
   </button>
@@ -125,7 +125,7 @@ Example:
     <a href="/profile">Profile</a>
     <a href="/settings">Settings</a>
   </div>
-</ui-menu>
+</ui-dropdown>
 ```
 
 Responsibilities:
@@ -201,7 +201,7 @@ existing helper markup:
   and panel structure as the plain helper.
 - `dialog(..., custom_element=True)` renders a `<ui-dialog>` host around the
   canonical `<dialog>` markup.
-- `menu(..., custom_element=True)` renders a `<ui-menu>` host around the same
+- `dropdown(..., custom_element=True)` renders a `<ui-dropdown>` host around the same
   disclosure markup used by the plain helper.
 
 The browser layer upgrades those hosts in place and resyncs after fragment

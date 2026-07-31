@@ -40,10 +40,10 @@ test.describe('FastBlocks UI smoke', () => {
     await expect(page.locator('#demo-dialog')).toHaveAttribute('aria-hidden', 'true');
   });
 
-  test('toggles the menu', async ({ page }) => {
-    await clickWhenStable(page.getByRole('button', { name: 'Toggle menu' }));
-    await expect(page.locator('#demo-menu')).not.toBeHidden();
-    await expect(page.getByRole('button', { name: 'Toggle menu' })).toHaveAttribute('aria-expanded', 'true');
+  test('toggles the dropdown', async ({ page }) => {
+    await clickWhenStable(page.getByRole('button', { name: 'Toggle dropdown' }));
+    await expect(page.locator('#demo-dropdown')).not.toBeHidden();
+    await expect(page.getByRole('button', { name: 'Toggle dropdown' })).toHaveAttribute('aria-expanded', 'true');
   });
 
   test('switches tabs and updates visible panels', async ({ page }) => {
@@ -53,7 +53,7 @@ test.describe('FastBlocks UI smoke', () => {
     await expect(page.locator('#demo-overview-panel')).toBeVisible();
     await expect(page.locator('#demo-details-panel')).toBeHidden();
 
-    await page.getByRole('tab', { name: 'Details' }).click();
+    await clickWhenStable(page.getByRole('tab', { name: 'Details' }));
 
     await expect(page.locator('#demo-overview-panel')).toBeHidden();
     await expect(page.locator('#demo-details-panel')).toBeVisible();

@@ -2,8 +2,8 @@ const TAB_SELECTOR = '[data-ui-tab-target]';
 const PANEL_SELECTOR = '[data-ui-panel]';
 const DIALOG_TRIGGER_SELECTOR = '[data-ui-dialog-trigger]';
 const DIALOG_CLOSE_SELECTOR = '[data-ui-dialog-close]';
-const MENU_TRIGGER_SELECTOR = '[data-ui-menu-trigger]';
-const MENU_ITEM_SELECTOR = 'a[href], button:not([disabled]), [role="menuitem"]';
+const DROPDOWN_TRIGGER_SELECTOR = '[data-ui-dropdown-trigger]';
+const DROPDOWN_ITEM_SELECTOR = 'a[href], button:not([disabled]), [role="menuitem"]';
 
 function dispatchCustomEvent(target, name, detail = {}, options = {}) {
   return target.dispatchEvent(
@@ -79,14 +79,14 @@ function menuItems(menu) {
   if (!menu) {
     return [];
   }
-  return Array.from(menu.querySelectorAll(MENU_ITEM_SELECTOR));
+  return Array.from(menu.querySelectorAll(DROPDOWN_ITEM_SELECTOR));
 }
 
 // Shared keyboard handling for the menu disclosure pattern (used by both the
 // custom-element and the function-based enhancers). Implements the WAI-ARIA menu
 // keyboard contract: arrow navigation, Home/End, Escape (close + restore focus),
 // and Tab (close). Returns true if the event was consumed.
-function handleMenuKeydown(event, { menu, trigger, open, close }) {
+function handleDropdownKeydown(event, { menu, trigger, open, close }) {
   if (!menu) {
     return false;
   }
@@ -563,7 +563,7 @@ class UiDialogElement extends HTMLElement {
   }
 }
 
-class UiMenuElement extends HTMLElement {
+class UiDropdownElement extends HTMLElement {
   constructor() {
     super();
     this.onClick = this.onClick.bind(this);
@@ -594,17 +594,17 @@ class UiMenuElement extends HTMLElement {
   }
 
   getTrigger() {
-    return this.querySelector(MENU_TRIGGER_SELECTOR);
+    return this.querySelector(DROPDOWN_TRIGGER_SELECTOR);
   }
 
   getMenu() {
     const trigger = this.getTrigger();
     if (!trigger) {
-      return this.querySelector('[data-ui-menu], [id]');
+      return this.querySelector('[data-ui-dropdown], [id]');
     }
 
-    const selector = trigger.getAttribute('aria-controls') || trigger.getAttribute('data-ui-menu-target');
-    return getTargetElement(this, selector) || this.querySelector('[data-ui-menu], [id]');
+    const selector = trigger.getAttribute('aria-controls') || trigger.getAttribute('data-ui-dropdown-target');
+    return getTargetElement(this, selector) || this.querySelector('[data-ui-dropdown], [id]');
   }
 
   syncFromMarkup() {
@@ -626,7 +626,7 @@ class UiMenuElement extends HTMLElement {
       return;
     }
 
-    const eventName = nextOpen ? 'ui-menu-open' : 'ui-menu-close';
+    const eventName = nextOpen ? 'ui-dropdown-open' : 'ui-dropdown-close';
     const allowed = dispatchCustomEvent(
       this,
       eventName,
@@ -642,7 +642,7 @@ class UiMenuElement extends HTMLElement {
     this.toggleAttribute('open', nextOpen);
     this.setAttribute('data-ui-state', nextOpen ? 'open' : 'closed');
 
-    dispatchCustomEvent(this, nextOpen ? 'ui-menu-opened' : 'ui-menu-closed', { menu, trigger });
+    dispatchCustomEvent(this, nextOpen ? 'ui-dropdown-opened' : 'ui-dropdown-closed', { menu, trigger });
   }
 
   toggleMenu(trigger = this.getTrigger()) {
@@ -664,7 +664,7 @@ class UiMenuElement extends HTMLElement {
   }
 
   onClick(event) {
-    const trigger = event.target.closest(MENU_TRIGGER_SELECTOR);
+    const trigger = event.target.closest(DROPDOWN_TRIGGER_SELECTOR);
     if (trigger && isWithinRoot(this, trigger)) {
       event.preventDefault();
       this.toggleMenu(trigger);
@@ -672,7 +672,7 @@ class UiMenuElement extends HTMLElement {
   }
 
   onKeyDown(event) {
-    handleMenuKeydown(event, {
+    handleDropdownKeydown(event, {
       menu: this.getMenu(),
       trigger: this.getTrigger(),
       open: () => this.setOpen(true),
@@ -696,7 +696,7 @@ export function defineFastBlocksCustomElements(root = globalThis) {
   const definitions = [
     ['ui-tabs', UiTabsElement],
     ['ui-dialog', UiDialogElement],
-    ['ui-menu', UiMenuElement],
+    ['ui-dropdown', UiDropdownElement],
   ];
 
   definitions.forEach(([name, ctor]) => {
@@ -880,12 +880,12 @@ function closeMenu(trigger, menu) {
 export function enhanceMenus(root = document) {
   const menus = new Map();
 
-  root.querySelectorAll(MENU_TRIGGER_SELECTOR).forEach((trigger) => {
-    if (trigger.closest('ui-menu')) {
+  root.querySelectorAll(DROPDOWN_TRIGGER_SELECTOR).forEach((trigger) => {
+    if (trigger.closest('ui-dropdown')) {
       return;
     }
 
-    const selector = trigger.getAttribute('aria-controls') || trigger.getAttribute('data-ui-menu-target');
+    const selector = trigger.getAttribute('aria-controls') || trigger.getAttribute('data-ui-dropdown-target');
     const menu = getTargetElement(root, selector);
     if (!menu) {
       return;
@@ -905,8 +905,8 @@ export function enhanceMenus(root = document) {
   };
 
   const onClick = (event) => {
-    const trigger = event.target.closest(MENU_TRIGGER_SELECTOR);
-    if (trigger && isWithinRoot(root, trigger) && !trigger.closest('ui-menu')) {
+    const trigger = event.target.closest(DROPDOWN_TRIGGER_SELECTOR);
+    if (trigger && isWithinRoot(root, trigger) && !trigger.closest('ui-dropdown')) {
       event.preventDefault();
       const menu = menus.get(trigger);
       if (!menu) {
@@ -923,7 +923,7 @@ export function enhanceMenus(root = document) {
       return;
     }
 
-    const clickedInsideMenu = event.target.closest('[data-ui-menu]');
+    const clickedInsideMenu = event.target.closest('[data-ui-dropdown]');
     if (!clickedInsideMenu) {
       closeAllMenus();
     }
@@ -937,7 +937,7 @@ export function enhanceMenus(root = document) {
       if (!relevant) {
         continue;
       }
-      const handled = handleMenuKeydown(event, {
+      const handled = handleDropdownKeydown(event, {
         menu,
         trigger,
         open: () => openMenu(trigger, menu),

@@ -402,7 +402,7 @@ For a single-field error response, keep the same fragment shape and return one s
 ### Nav List
 
 A vertical navigation list for sidebars and drawers. This is not the dropdown —
-`menu()` renders `.ui-menu`, which is `position: absolute` and overlays the
+`dropdown()` renders `.ui-dropdown`, which is `position: absolute` and overlays the
 page. The two are unrelated despite both being navigation.
 
 ```jinja
@@ -680,11 +680,11 @@ def nav_menu(request):
 ```
 
 ```html
-<ui-menu class="ui-menu" data-ui-menu>
+<ui-dropdown class="ui-dropdown" data-ui-dropdown>
   <button
     type="button"
-    data-ui-menu-trigger
-    aria-controls="account-menu"
+    data-ui-dropdown-trigger
+    aria-controls="account-dropdown"
     hx-get="/nav/menu"
     hx-trigger="click"
     hx-target="#account-menu"
@@ -692,10 +692,10 @@ def nav_menu(request):
   >
     Account
   </button>
-  <div id="account-menu" data-ui-menu hidden aria-label="Account menu">
+  <div id="account-dropdown" data-ui-dropdown hidden aria-label="Account menu">
     <!-- server-rendered menu links -->
   </div>
-</ui-menu>
+</ui-dropdown>
 ```
 
 ## App Shell Pattern

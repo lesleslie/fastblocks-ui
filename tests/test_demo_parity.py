@@ -36,7 +36,7 @@ from fastblocks_ui import (
     hero,
     level,
     media,
-    menu,
+    dropdown,
     nav_groups,
     nav_list,
     navbar,
@@ -716,10 +716,10 @@ class TestDemoParity(unittest.TestCase):
 
     def test_menu(self) -> None:
         html = str(
-            menu(
+            dropdown(
                 [("Profile", "#"), ("Settings", "#"), ("Sign out", "#")],
-                label="Demo menu",
-                id="demo-menu",
+                label="Demo dropdown",
+                id="demo-dropdown",
                 hidden=True,
             )
         )

@@ -23,7 +23,7 @@ and does not use shadow DOM by default. Optional JavaScript enhances existing
 markup instead of becoming the rendering source of truth.
 
 Optional light-DOM Custom Elements such as `<ui-tabs>`, `<ui-dialog>`, and
-`<ui-menu>` are available as opt-in wrappers around the canonical helper output
+`<ui-dropdown>` are available as opt-in wrappers around the canonical helper output
 and are tracked in [docs/light-dom-custom-elements-spec.md](docs/light-dom-custom-elements-spec.md).
 
 ### Architecture
@@ -150,7 +150,7 @@ The main `ui-*` component classes are used by the template helpers and optional 
 - `ui-burger` - Burger button that toggles a drawer (`is-shell-toggle` hides
   it above 1024px, where the shell's aside becomes a column)
 - `ui-tabs` - Tabbed interfaces
-- `ui-menu` - Menus
+- `ui-dropdown` - Dropdowns
 - `ui-alert` - Alerts
 
 ### Layout and Navigation

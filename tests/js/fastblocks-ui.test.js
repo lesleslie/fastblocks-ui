@@ -193,10 +193,10 @@ describe('FastBlocks UI enhancement layer', () => {
 
   it('toggles menus and closes them on outside click or escape', () => {
     root.innerHTML = `
-      <button id="menu-trigger" type="button" data-ui-menu-trigger aria-controls="test-menu" aria-expanded="false">
+      <button id="menu-trigger" type="button" data-ui-dropdown-trigger aria-controls="test-menu" aria-expanded="false">
         Menu
       </button>
-      <div id="test-menu" data-ui-menu hidden aria-label="Actions">
+      <div id="test-menu" data-ui-dropdown hidden aria-label="Actions">
         <a href="#">Edit</a>
       </div>
     `;
@@ -286,21 +286,21 @@ describe('FastBlocks UI enhancement layer', () => {
           <button type="button" data-ui-dialog-close>Close</button>
         </dialog>
       </ui-dialog>
-      <ui-menu class="ui-menu" data-ui-menu>
-        <button id="menu-trigger" type="button" data-ui-menu-trigger aria-controls="menu-panel" aria-expanded="false">
+      <ui-dropdown class="ui-dropdown" data-ui-dropdown>
+        <button id="menu-trigger" type="button" data-ui-dropdown-trigger aria-controls="menu-panel" aria-expanded="false">
           Menu
         </button>
-        <div id="menu-panel" data-ui-menu hidden aria-label="Actions">
+        <div id="menu-panel" data-ui-dropdown hidden aria-label="Actions">
           <a href="#">Edit</a>
         </div>
-      </ui-menu>
+      </ui-dropdown>
     `;
 
     const dialogHost = root.querySelector('ui-dialog');
     const dialogTrigger = root.querySelector('[data-ui-dialog-trigger]');
     const dialogSurface = root.querySelector('#settings-dialog');
     const dialogClose = root.querySelector('[data-ui-dialog-close]');
-    const menuHost = root.querySelector('ui-menu');
+    const menuHost = root.querySelector('ui-dropdown');
     const menuTrigger = root.querySelector('#menu-trigger');
     const menuBody = root.querySelector('#menu-panel');
 
@@ -332,19 +332,19 @@ describe('FastBlocks UI enhancement layer', () => {
           <button type="button" data-ui-dialog-close>Close</button>
         </dialog>
       </ui-dialog>
-      <ui-menu class="ui-menu" data-ui-menu>
-        <button id="menu-trigger" type="button" data-ui-menu-trigger aria-controls="menu-panel" aria-expanded="false">
+      <ui-dropdown class="ui-dropdown" data-ui-dropdown>
+        <button id="menu-trigger" type="button" data-ui-dropdown-trigger aria-controls="menu-panel" aria-expanded="false">
           Menu
         </button>
-        <div id="menu-panel" data-ui-menu hidden aria-label="Actions">
+        <div id="menu-panel" data-ui-dropdown hidden aria-label="Actions">
           <a href="#">Edit</a>
         </div>
-      </ui-menu>
+      </ui-dropdown>
     `;
 
     const dialogHost = root.querySelector('ui-dialog');
     const dialogTrigger = root.querySelector('[data-ui-dialog-trigger]');
-    const menuHost = root.querySelector('ui-menu');
+    const menuHost = root.querySelector('ui-dropdown');
     const menuTrigger = root.querySelector('#menu-trigger');
     const menuBody = root.querySelector('#menu-panel');
 
@@ -352,13 +352,13 @@ describe('FastBlocks UI enhancement layer', () => {
     dialogTrigger.click();
     expect(dialogHost.hasAttribute('open')).toBe(false);
 
-    menuHost.addEventListener('ui-menu-open', (event) => event.preventDefault(), { once: true });
+    menuHost.addEventListener('ui-dropdown-open', (event) => event.preventDefault(), { once: true });
     menuTrigger.click();
     expect(menuHost.hasAttribute('open')).toBe(false);
     expect(menuBody.hidden).toBe(true);
 
     const menuOpenEvents = [];
-    menuHost.addEventListener('ui-menu-opened', () => menuOpenEvents.push('open'));
+    menuHost.addEventListener('ui-dropdown-opened', () => menuOpenEvents.push('open'));
     menuHost.remove();
     document.body.appendChild(menuHost);
     menuTrigger.click();
@@ -368,8 +368,8 @@ describe('FastBlocks UI enhancement layer', () => {
 
   it('navigates menu items with the keyboard and restores focus on escape', () => {
     root.innerHTML = `
-      <button id="menu-trigger" type="button" data-ui-menu-trigger aria-controls="kbd-menu" aria-expanded="false">Menu</button>
-      <div id="kbd-menu" data-ui-menu hidden aria-label="Actions">
+      <button id="menu-trigger" type="button" data-ui-dropdown-trigger aria-controls="kbd-menu" aria-expanded="false">Menu</button>
+      <div id="kbd-menu" data-ui-dropdown hidden aria-label="Actions">
         <a href="#one">One</a>
         <a href="#two">Two</a>
         <a href="#three">Three</a>
@@ -468,17 +468,17 @@ describe('FastBlocks UI enhancement layer', () => {
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
   });
 
-  it('navigates ui-menu custom-element items with arrow keys', () => {
+  it('navigates ui-dropdown custom-element items with arrow keys', () => {
     defineFastBlocksCustomElements(window);
 
     root.innerHTML = `
-      <ui-menu class="ui-menu" data-ui-menu>
-        <button id="cm-trigger" type="button" data-ui-menu-trigger aria-controls="cm-menu" aria-expanded="false">Menu</button>
-        <div id="cm-menu" data-ui-menu hidden aria-label="Actions">
+      <ui-dropdown class="ui-dropdown" data-ui-dropdown>
+        <button id="cm-trigger" type="button" data-ui-dropdown-trigger aria-controls="cm-menu" aria-expanded="false">Menu</button>
+        <div id="cm-menu" data-ui-dropdown hidden aria-label="Actions">
           <a href="#a">A</a>
           <a href="#b">B</a>
         </div>
-      </ui-menu>
+      </ui-dropdown>
     `;
 
     const trigger = root.querySelector('#cm-trigger');
@@ -502,18 +502,18 @@ describe('FastBlocks UI enhancement layer', () => {
           <button type="button" data-ui-dialog-close>Close</button>
         </dialog>
       </ui-dialog>
-      <ui-menu class="ui-menu" data-ui-menu>
-        <button id="menu-trigger" type="button" data-ui-menu-trigger aria-controls="menu-panel" aria-expanded="false">
+      <ui-dropdown class="ui-dropdown" data-ui-dropdown>
+        <button id="menu-trigger" type="button" data-ui-dropdown-trigger aria-controls="menu-panel" aria-expanded="false">
           Menu
         </button>
-        <div id="menu-panel" data-ui-menu hidden aria-label="Actions">
+        <div id="menu-panel" data-ui-dropdown hidden aria-label="Actions">
           <a href="#">Edit</a>
         </div>
-      </ui-menu>
+      </ui-dropdown>
     `;
 
     const dialogHost = root.querySelector('ui-dialog');
-    const menuHost = root.querySelector('ui-menu');
+    const menuHost = root.querySelector('ui-dropdown');
 
     dialogHost.innerHTML = `
       <button type="button" data-ui-dialog-trigger aria-controls="replacement-dialog" aria-expanded="false">
@@ -525,10 +525,10 @@ describe('FastBlocks UI enhancement layer', () => {
     `;
 
     menuHost.innerHTML = `
-      <button id="replacement-menu-trigger" type="button" data-ui-menu-trigger aria-controls="replacement-menu" aria-expanded="false">
+      <button id="replacement-menu-trigger" type="button" data-ui-dropdown-trigger aria-controls="replacement-menu" aria-expanded="false">
         Menu
       </button>
-      <div id="replacement-menu" data-ui-menu hidden aria-label="Replacement actions">
+      <div id="replacement-menu" data-ui-dropdown hidden aria-label="Replacement actions">
         <a href="#">View</a>
       </div>
     `;

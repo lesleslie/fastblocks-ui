@@ -70,7 +70,7 @@ def example_markup(component: dict[str, Any]) -> str:
         )
     if name == "menu":
         return (
-            '<nav class="ui-menu" aria-label="Section">\n'
+            '<nav class="ui-dropdown" aria-label="Section">\n'
             '  <a href="/overview" class="is-active">Overview</a>\n'
             '  <a href="/settings">Settings</a>\n'
             "</nav>"

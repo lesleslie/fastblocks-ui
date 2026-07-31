@@ -475,7 +475,7 @@
     display: none;
   }
 
-  .ui-menu {
+  .ui-dropdown {
     display: grid;
     gap: var(--ui-space-1);
     min-width: 12rem;
@@ -495,30 +495,30 @@
        wrapping the trigger + menu together must have `position: relative`
        (or any other positioned value) so the menu anchors there instead of
        walking up to whatever positioned ancestor exists further up the page
-       -- see `menu()`'s docstring and `demo/demo.html`'s `.demo-panel`. */
+       -- see `dropdown()`'s docstring and `demo/demo.html`'s `.demo-panel`. */
     position: absolute;
     z-index: 20;
     margin-top: var(--ui-space-1);
   }
 
-  .ui-menu[hidden] {
+  .ui-dropdown[hidden] {
     display: none;
   }
 
-  .ui-menu__item {
+  .ui-dropdown__item {
     padding: 0.625rem 0.75rem;
     border-radius: var(--ui-radius-sm);
     color: var(--ui-color-text-strong);
     text-decoration: none;
   }
 
-  .ui-menu__item:hover,
-  .ui-menu__item:focus-visible {
+  .ui-dropdown__item:hover,
+  .ui-dropdown__item:focus-visible {
     background: var(--ui-color-surface-muted);
     outline: none;
   }
 
-  /* Vertical in-flow navigation list. Distinct from `.ui-menu`, which is an
+  /* Vertical in-flow navigation list. Distinct from `.ui-dropdown`, which is an
      absolutely-positioned dropdown -- see nav_list()'s docstring. */
   .ui-nav-groups {
     display: block;
@@ -570,7 +570,7 @@
   /* Off-canvas panel on the Popover API. The browser supplies light-dismiss,
      Escape, top-layer stacking, focus return, and the implicit
      aria-expanded/aria-details relationship with the invoker -- so unlike
-     `.ui-menu` there is no z-index guess and no JS toggle here.
+     `.ui-dropdown` there is no z-index guess and no JS toggle here.
 
      `overscroll-behavior: contain` stops a scroll gesture that reaches the
      panel's end from chaining to the page behind it. */
@@ -679,7 +679,7 @@
   /* `position: relative` here is load-bearing, not decorative:
      `.ui-burger__label` below is `position: absolute`, and without a
      positioned ancestor it resolves against whatever positioned element
-     happens to sit further up the page. That is exactly the `.ui-menu`
+     happens to sit further up the page. That is exactly the `.ui-dropdown`
      footgun this library documents at length -- do not remove it. */
   .ui-burger {
     position: relative;

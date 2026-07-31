@@ -34,7 +34,7 @@ from fastblocks_ui import (
     hero,
     level,
     media,
-    menu,
+    dropdown,
     navbar,
     pagination,
     progress,
@@ -120,7 +120,7 @@ class TestPackageMetadata(unittest.TestCase):
             "switch",
             "dialog",
             "tabs",
-            "menu",
+            "dropdown",
             "alert",
         ]
 
@@ -193,7 +193,7 @@ class TestFoundationCSS(unittest.TestCase):
             "switch",
             "dialog",
             "tabs",
-            "menu",
+            "dropdown",
             "alert",
         ):
             self.assertIn(f"| {name} |", content)
@@ -235,7 +235,7 @@ class TestFoundationCSS(unittest.TestCase):
             ".ui-switch",
             ".ui-alert",
             ".ui-tabs",
-            ".ui-menu",
+            ".ui-dropdown",
             ".ui-dialog",
         ):
             self.assertIn(selector, components)
@@ -799,7 +799,7 @@ class TestDocumentationConsistency(unittest.TestCase):
             "fusion of Bulma, Kelp, and Web Awesome",
             "<ui-tabs>",
             "<ui-dialog>",
-            "<ui-menu>",
+            "<ui-dropdown>",
             "Why light DOM is the default:",
             "Existing children must not be moved into closed implementation details.",
             "State must be reflected in attributes",
@@ -873,7 +873,7 @@ class TestHelpers(unittest.TestCase):
         switch_markup = switch(label="Auto save", checked=True)
         alert_markup = alert("Saved", variant="success")
         dialog_markup = dialog("Content", title="Dialog title", open=True)
-        menu_markup = menu([("Profile", "/profile"), ("Settings", "/settings")])
+        menu_markup = dropdown([("Profile", "/profile"), ("Settings", "/settings")])
 
         self.assertIn('<select class="ui-select">', select_markup)
         self.assertIn('<option value="2" selected>Two</option>', select_markup)
@@ -886,7 +886,7 @@ class TestHelpers(unittest.TestCase):
         self.assertNotIn("aria-checked", switch_markup)
         self.assertIn('class="ui-alert is-success"', alert_markup)
         self.assertIn('<dialog class="ui-dialog" open', dialog_markup)
-        self.assertIn('class="ui-menu"', menu_markup)
+        self.assertIn('class="ui-dropdown"', menu_markup)
 
     def test_custom_element_wrappers_remain_opt_in(self):
         tabs_markup = tabs(
@@ -894,13 +894,13 @@ class TestHelpers(unittest.TestCase):
             custom_element=True,
         )
         dialog_markup = dialog("Content", title="Dialog title", custom_element=True)
-        menu_markup = menu([("Profile", "/profile")], custom_element=True)
+        menu_markup = dropdown([("Profile", "/profile")], custom_element=True)
 
         self.assertIn("<ui-tabs", tabs_markup)
         self.assertIn("<ui-dialog", dialog_markup)
-        self.assertIn("<ui-menu", menu_markup)
+        self.assertIn("<ui-dropdown", menu_markup)
         self.assertIn('<dialog class="ui-dialog"', dialog_markup)
-        self.assertIn('<nav class="ui-menu"', menu_markup)
+        self.assertIn('<nav class="ui-dropdown"', menu_markup)
 
     def test_navbar_breadcrumb_and_table_layout_helpers(self):
         navbar_markup = navbar(
@@ -1435,7 +1435,7 @@ class TestHelperCorrectnessRegressions(unittest.TestCase):
             "button": str(button("X", href="javascript:alert(1)")),
             "breadcrumb": str(breadcrumb([("Home", "javascript:alert(1)")])),
             "navbar": str(navbar("B", brand_url="javascript:alert(1)")),
-            "menu": str(menu([("Home", "javascript:alert(1)")])),
+            "dropdown": str(dropdown([("Home", "javascript:alert(1)")])),
         }
         for name, html in cases.items():
             self.assertNotIn(
@@ -1482,7 +1482,7 @@ class TestMediumTierRegressions(unittest.TestCase):
         """A caller-supplied aria_label must not produce two attributes."""
         for name, html in (
             ("tabs", str(tabs([("a", "A", "1")], aria_label="Custom"))),
-            ("menu", str(menu([("Home", "/")], aria_label="Custom"))),
+            ("dropdown", str(dropdown([("Home", "/")], aria_label="Custom"))),
         ):
             self.assertEqual(
                 html.count("aria-label="),
@@ -1493,7 +1493,7 @@ class TestMediumTierRegressions(unittest.TestCase):
 
     def test_tabs_and_menu_keep_their_default_label(self) -> None:
         self.assertIn('aria-label="Tabs"', str(tabs([("a", "A", "1")])))
-        self.assertIn('aria-label="Menu"', str(menu([("Home", "/")])))
+        self.assertIn('aria-label="Menu"', str(dropdown([("Home", "/")])))
 
     def test_level_is_not_a_navigation_landmark(self) -> None:
         """`level()` is a layout primitive, not navigation.
@@ -1625,7 +1625,7 @@ class TestShellHelper(unittest.TestCase):
         # attribute, so `style_` is a supported spelling. Popping only
         # `style` emitted the attribute twice -- invalid HTML, and browsers
         # keep the first, silently dropping the custom property. Same
-        # duplicate-attribute bug the aria-label guards in tabs()/menu()/
+        # duplicate-attribute bug the aria-label guards in tabs()/dropdown()/
         # navbar() exist for.
         for spelling in ("style", "style_"):
             with self.subTest(spelling=spelling):
@@ -2128,7 +2128,7 @@ class TestAriaLabelGuardAcrossHelpers(unittest.TestCase):
         """
         return (
             ("tabs", lambda **kw: fastblocks_ui.tabs([("a", "A", "x")], **kw)),
-            ("menu", lambda **kw: fastblocks_ui.menu([("A", "/a")], **kw)),
+            ("dropdown", lambda **kw: fastblocks_ui.dropdown([("A", "/a")], **kw)),
             ("navbar", lambda **kw: fastblocks_ui.navbar(brand="B", **kw)),
             ("breadcrumb", lambda **kw: fastblocks_ui.breadcrumb([("A", "/a")], **kw)),
             ("drawer", lambda **kw: fastblocks_ui.drawer("c", id="d", **kw)),
