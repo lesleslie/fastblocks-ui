@@ -510,7 +510,20 @@ allowlist entries that covered the deprecation are removed."
 
 ---
 
-### Task 5: B2 — rename `ui-menu` to `ui-dropdown`
+### Task 5: B2 — rename `ui-menu` to `ui-dropdown`  DONE (`7683f43`)
+
+> **Scope was wider than listed.** Also covered: the `<ui-menu>` custom element
+> and its four events, JS selector constants, `data-ui-menu*` hooks, the demo
+> section id + sidebar anchor, `scripts/generate-docs.py`, and five docs —
+> including `docs/light-dom-custom-elements-spec.md`, which is asserted by
+> `TestDocumentationConsistency`. `tests/e2e/smoke.spec.js` also needed updating;
+> the plan's file list omitted `tests/e2e/`.
+>
+> **Re-inlining `demo/demo.html` is hazardous.** It embeds `manifest.js`, whose
+> source contains the literal string `<script type="application/json"
+> id="fastblocks-ui-manifest-data">`. Any regex anchored on that markup matches
+> inside the inlined script first. Anchor on previously-committed file content
+> instead, and note the real element is the FIRST of three occurrences.
 
 Spec A named `ui-nav-list` rather than `ui-menu-list` purely to avoid implying kinship with this component. Renaming dissolves that tension. This task is the rename only; the popover migration is Task 7.
 
@@ -526,30 +539,30 @@ Spec A named `ui-nav-list` rather than `ui-menu-list` purely to avoid implying k
 - Consumes: nothing
 - Produces: `dropdown(items, *, label="Menu", custom_element=False, class_=None, **attrs) -> SafeHTML`; CSS classes `.ui-dropdown`, `.ui-dropdown__item`; manifest entry `{"name": "dropdown", "class_name": "ui-dropdown", "helper": "dropdown"}`
 
-- [ ] **Step 1: Update the failing tests first**
+- [x] **Step 1: Update the failing tests first**
 
 In `tests/test_fastblocks_ui.py`, rename every `menu` reference to `dropdown` and every `ui-menu` string to `ui-dropdown`. Same in `tests/test_demo_parity.py`.
 
 Run: `uv run pytest tests/ -q --no-cov`
 Expected: FAIL — `ImportError: cannot import name 'dropdown'`
 
-- [ ] **Step 2: Rename in `helpers.py`**
+- [x] **Step 2: Rename in `helpers.py`**
 
 Rename `def menu(` to `def dropdown(`, change `_flatten_classes("ui-menu", class_)` to `_flatten_classes("ui-dropdown", class_)`, and replace the docstring's `position: relative` warning — Task 7 deletes that contract, but until then the warning is still true, so keep it and change only the class names it mentions.
 
-- [ ] **Step 3: Rename in `__init__.py`**
+- [x] **Step 3: Rename in `__init__.py`**
 
 Change `menu` to `dropdown` in the import list and in `__all__`.
 
-- [ ] **Step 4: Rename in `manifest.json`**
+- [x] **Step 4: Rename in `manifest.json`**
 
 Change the component entry's `"name": "menu"` → `"dropdown"`, `"class_name": "ui-menu"` → `"ui-dropdown"`, `"helper": "menu"` → `"dropdown"`. Keep `"codegen": false`.
 
-- [ ] **Step 5: Rename in CSS**
+- [x] **Step 5: Rename in CSS**
 
 In `components.css`, replace `.ui-menu` → `.ui-dropdown`, `.ui-menu__item` → `.ui-dropdown__item`, `.ui-menu[hidden]` → `.ui-dropdown[hidden]`. Also rename `.ui-navbar-menu` → `.ui-navbar__menu` (Task 6 does the rest of the navbar; doing this one here keeps the two "menu" names from colliding mid-plan).
 
-- [ ] **Step 6: Rename in the demo builder and both demo pages**
+- [x] **Step 6: Rename in the demo builder and both demo pages**
 
 In `scripts/build_demo.py`, replace `ui-menu` → `ui-dropdown` and any `menu(` helper call → `dropdown(`.
 
@@ -561,12 +574,12 @@ Then hand-edit `demo/demo.html` to match. Every fragment marked "real helper out
 uv run python -c "import fastblocks_ui; print(fastblocks_ui.dropdown([('One','#1'),('Two','#2')], label='Menu'))"
 ```
 
-- [ ] **Step 7: Rebuild and run everything**
+- [x] **Step 7: Rebuild and run everything**
 
 Run: `python tools/build_css.py && uv run pytest tests/ -q && npm run validate`
 Expected: all pass
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A
