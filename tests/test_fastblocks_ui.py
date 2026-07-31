@@ -1,7 +1,9 @@
 import gzip
+import json
 import math
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -343,6 +345,71 @@ class TestCSSBuild(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+class TestBaselineFloor(unittest.TestCase):
+    """The shipped CSS must not use a sub-Baseline feature unguarded.
+
+    Mirrors the build-drift gate above: crackerjack runs pytest, so shelling
+    out to the Node checker here is what puts the support policy in the quality
+    gate rather than leaving it to `npm run validate` alone.
+    """
+
+    def test_css_meets_the_declared_baseline_floor(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        if not (repo_root / "node_modules" / "web-features").exists():
+            self.skipTest("node_modules/web-features absent; run `npm install`")
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("node not on PATH")
+        result = subprocess.run(
+            [node, str(repo_root / "scripts" / "check-baseline.mjs")],
+            capture_output=True,
+            text=True,
+            cwd=repo_root,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+class TestVersionParity(unittest.TestCase):
+    """crackerjack bumps pyproject.toml only; nothing else checks the rest.
+
+    `package.json` and `uv.lock` both carry the project version and both were
+    left at 0.7.0 when pyproject moved to 0.7.1. `fastblocks_ui.__version__`
+    reads from dist metadata and cannot drift, so these three files are the
+    entire surface.
+    """
+
+    def _expected(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        pyproject = tomllib.loads(
+            (repo_root / "pyproject.toml").read_text(encoding="utf-8")
+        )
+        return repo_root, pyproject["project"]["version"]
+
+    def test_package_json_version_matches_pyproject(self):
+        repo_root, expected = self._expected()
+        package_json = json.loads(
+            (repo_root / "package.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            package_json["version"],
+            expected,
+            "package.json has drifted from pyproject.toml; crackerjack does not "
+            "manage it, so it must be bumped by hand.",
+        )
+
+    def test_uv_lock_version_matches_pyproject(self):
+        repo_root, expected = self._expected()
+        lock = tomllib.loads((repo_root / "uv.lock").read_text(encoding="utf-8"))
+        entry = next(
+            package for package in lock["package"] if package["name"] == "fastblocks-ui"
+        )
+        self.assertEqual(
+            entry["version"],
+            expected,
+            "uv.lock has drifted from pyproject.toml; run `uv lock`.",
+        )
 
 
 class TestDemoBuild(unittest.TestCase):
