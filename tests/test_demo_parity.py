@@ -831,12 +831,13 @@ class TestInlinedJsFreshness(unittest.TestCase):
     still works when opened as a bare `file://` document.
     """
 
-    JS_DIR = ROOT / "fastblocks_ui" / "static" / "js"
-
     def test_inlined_modules_match_the_shipped_files(self) -> None:
+        import fastblocks_ui
+
+        js_dir = Path(fastblocks_ui.get_js_path()).parent
         for name in ("enhance.js", "manifest.js"):
             with self.subTest(module=name):
-                source = (self.JS_DIR / name).read_text(encoding="utf-8").strip()
+                source = (js_dir / name).read_text(encoding="utf-8").strip()
                 self.assertIn(
                     source,
                     DEMO_HTML,
