@@ -2,7 +2,7 @@
   "description": "FastBlocks UI: HTML/CSS-first styling and component helpers for FastBlocks",
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
-    "@playwright/test": "^1.48.0",
+    "@playwright/test": "^1.62.1",
     "@vitest/coverage-v8": "^1.6.0",
     "@vitest/ui": "^1.6.0",
     "axe-core": "^4.10.0",
