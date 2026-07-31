@@ -593,7 +593,16 @@ the rename removes the ambiguity at its source."
 
 ---
 
-### Task 6: B2 — apply the element-naming rule to Bulma-derived components
+### Task 6: B2 — apply the element-naming rule to Bulma-derived components  DONE (`88a9f07`)
+
+> **Substring hazard the plan did not flag.** `--ui-shell-aside-width` contains
+> the `ui-shell-aside` class token. The rename must use a negative lookbehind on
+> `-` or it corrupts the custom property. Same shape applies to any future
+> rename touching `--ui-navbar-height` or `--ui-shell-max`.
+>
+> **Demo re-inline order matters:** swap the inlined CSS bundle FIRST (while
+> demo.html still holds the committed copy the content anchor matches), then
+> rename the hand-written markup. Reversed, the anchor no longer matches.
 
 The surface splits by origin: freshly authored components use `__`, components ported from Bulma's vocabulary use `-`. Spec A commits to `__` in prose and then ships `ui-burger__bar` alongside `ui-shell-main`, so the split is replicating.
 
@@ -608,7 +617,7 @@ The surface splits by origin: freshly authored components use `__`, components p
 - Consumes: nothing
 - Produces: the renamed classes below; no Python signature changes
 
-- [ ] **Step 1: Apply this exact rename table**
+- [x] **Step 1: Apply this exact rename table**
 
 | Old | New |
 |---|---|
@@ -621,14 +630,14 @@ The surface splits by origin: freshly authored components use `__`, components p
 
 **Explicitly NOT renamed:** `ui-columns`/`ui-column` and `ui-tiles`/`ui-tile` are sibling components, not elements — the plural is a container in its own right. All `is-*` modifiers. All utilities.
 
-- [ ] **Step 2: Update tests first**
+- [x] **Step 2: Update tests first**
 
 Apply the table to `tests/test_fastblocks_ui.py` and `tests/test_demo_parity.py`.
 
 Run: `uv run pytest tests/ -q --no-cov`
 Expected: FAIL with assertion errors naming the old classes
 
-- [ ] **Step 3: Apply to CSS, helpers, and manifest**
+- [x] **Step 3: Apply to CSS, helpers, and manifest**
 
 Run this to find every site, then edit each one:
 
@@ -640,7 +649,7 @@ grep -rn 'ui-hero-\|ui-level-\|ui-media-\|ui-navbar-\|ui-table-container\|ui-she
 
 In `manifest.json`, change only `class_name` values. Component `name` values stay, so `fastblocks-htmy`'s set-equality assertion is unaffected by this task.
 
-- [ ] **Step 4: Regenerate everything**
+- [x] **Step 4: Regenerate everything**
 
 ```bash
 python tools/build_css.py
@@ -650,7 +659,7 @@ uv run python scripts/sync_manifest_params.py
 
 Then update `demo/demo.html` by hand to match, regenerating each "real helper output" fragment by calling the helper.
 
-- [ ] **Step 5: Verify no old names survive**
+- [x] **Step 5: Verify no old names survive**
 
 Run:
 ```bash
@@ -659,12 +668,12 @@ grep -rn 'ui-hero-\|ui-level-\|ui-media-\|ui-navbar-\|ui-table-container\|ui-she
 ```
 Expected: no output
 
-- [ ] **Step 6: Run everything**
+- [x] **Step 6: Run everything**
 
 Run: `uv run pytest tests/ -q && npm run validate && npx playwright test`
 Expected: all pass
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
