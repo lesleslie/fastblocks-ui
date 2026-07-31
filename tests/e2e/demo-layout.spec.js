@@ -11,12 +11,13 @@ import { expect, test } from '@playwright/test';
 // bug this file exists to catch is correct markup with wrong computed layout.
 const PAGE = '/demo/demo.html';
 
-// The shell's own burger, not a bare `.ui-burger`. demo.html renders three
+// The shell's own burger, identified by its opt-in class rather than by
+// where it sits. demo.html renders three
 // burgers -- the navbar's (`popovertarget="site-nav"`) plus two showcase
 // examples that both target `#demo-drawer` -- so `.ui-burger` alone is a
 // Playwright strict-mode violation. Measured 2026-07-31 in Chrome 150:
 // `document.querySelectorAll('.ui-burger').length === 3`.
-const SHELL_BURGER = '.ui-navbar .ui-burger';
+const SHELL_BURGER = '.ui-burger.is-shell-toggle';
 
 test.describe('drawer below the breakpoint', () => {
   test.use({ viewport: { width: 768, height: 900 } });

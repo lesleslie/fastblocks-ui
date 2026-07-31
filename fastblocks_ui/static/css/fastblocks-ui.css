@@ -1274,19 +1274,24 @@
       background: none;
     }
 
-    /* Scoped to the bar's own burger, NOT every `.ui-burger` on the page.
-       This rule exists because the shell's aside stops being a drawer at this
-       width and becomes an in-flow column, so the control that opens it is
-       redundant. That reasoning applies to the burger paired with the shell --
-       which in this layout lives in the sticky bar -- and to no other.
+    /* Opt-in, not inferred. This rule exists because the shell's aside stops
+       being a drawer at this width and becomes an in-flow column, so the
+       control that opens it is redundant. Only the burger paired with the
+       shell should vanish -- and CSS cannot express "the burger whose
+       `popovertarget` is this aside", so the pairing has to be declared.
 
-       Unscoped, it hid every burger a consumer had, whatever each one
-       controlled. This library's own demo proved it: the `drawer` and `burger`
-       showcase sections each render a burger for `#demo-drawer`, and both
-       disappeared above 1024px, so a reader on a laptop could not open the
-       example drawer at all. Measured in Chrome at 1280px: all three burgers
-       computed `display: none`. */
-    .ui-navbar .ui-burger {
+       Two earlier shapes were both wrong, in the same direction. Bare
+       `.ui-burger` hid every burger on the page whatever it controlled; this
+       library's own demo caught it, since the `drawer` and `burger` showcase
+       sections each render one for `#demo-drawer` and both disappeared above
+       1024px. Narrowing to `.ui-navbar .ui-burger` shrank the blast radius but
+       kept the guess: a consumer whose navbar burger opens a cart or a filter
+       panel still lost it, with no opt-out.
+
+       Opting in inverts the failure mode. Forget the class and you get a
+       redundant button beside a column nav -- visible, and obvious on sight.
+       Infer it wrongly and a working control silently disappears. */
+    .ui-burger.is-shell-toggle {
       display: none;
     }
   }

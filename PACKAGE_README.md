@@ -147,7 +147,8 @@ The main `ui-*` component classes are used by the template helpers and optional 
 - `ui-switch` - Toggle switches
 - `ui-dialog` - Modal dialogs
 - `ui-drawer` - Off-canvas panel built on the Popover API
-- `ui-burger` - Burger button that toggles a drawer
+- `ui-burger` - Burger button that toggles a drawer (`is-shell-toggle` hides
+  it above 1024px, where the shell's aside becomes a column)
 - `ui-tabs` - Tabbed interfaces
 - `ui-menu` - Menus
 - `ui-alert` - Alerts
@@ -196,11 +197,16 @@ keyboard users are not forced through the whole main column to reach it.
 - Safari (latest 2 versions)
 - Edge (latest 2 versions)
 
-Two features degrade rather than break outside that range:
+Two features behave differently outside that range, in opposite ways:
 
-- `ui-drawer` needs the Popover API. Without it the panel renders in the normal
-  flow instead of the top layer, and the burger cannot toggle it.
-- `.ui-navbar.is-sticky`'s scroll-driven reveal is wrapped in
+- `ui-drawer` **requires** the Popover API, and does not degrade gracefully
+  without it. `.ui-drawer`'s base rule parks the panel off-screen with
+  `translate: 100% 0`, and only `:popover-open` brings it back — so in an engine
+  that does not know the `popover` attribute, `popovertarget` does nothing and
+  the panel can never be shown. Every browser in the supported range has shipped
+  the API since 2024; if you must support older ones, do not use this component.
+- `.ui-navbar.is-sticky`'s scroll-driven reveal, by contrast, degrades cleanly.
+  It is wrapped in
   `@supports (animation-timeline: view())` and additionally gated on
   `prefers-reduced-motion: no-preference` and a 1024px minimum width. Anywhere
   the gate does not pass — including Firefox stable, where scroll-driven

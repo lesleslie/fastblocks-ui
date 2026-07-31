@@ -475,7 +475,7 @@ The button that toggles a drawer. `controls` is the drawer's `id` and becomes
 `popovertarget`.
 
 ```jinja
-{{ burger(controls="site-nav", label="Open navigation") }}
+{{ burger(controls="site-nav", label="Open navigation", class_="is-shell-toggle") }}
 ```
 
 The accessible name is a visually hidden `<span>`, not `aria-label`, so the
@@ -709,7 +709,7 @@ from fastblocks_ui import burger, drawer, hero, nav_group, navbar, shell
 
 bar = navbar(
     brand="My App",
-    end=burger(controls="site-nav"),
+    end=burger(controls="site-nav", class_="is-shell-toggle"),
     label="site navigation",
     class_="is-sticky",
 )
@@ -742,7 +742,7 @@ What each piece contributes:
   column. The UA stylesheet's `[popover]:not(:popover-open) { display: none }`
   is author-overridable, which is what makes one element with one id able to
   play both roles — and keeping one id is what keeps htmx swapping safe. At that
-  width the shell's own burger is hidden (`.ui-navbar .ui-burger`), so the
+  width the shell's own burger is hidden (`.ui-burger.is-shell-toggle`), so the
   top-layer path is unreachable.
 - **`data_ui_drawer_breakpoint="1024"`** opts the drawer into the one JavaScript
   enhancement this feature has: see below.

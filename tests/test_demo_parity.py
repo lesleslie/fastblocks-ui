@@ -282,7 +282,7 @@ class TestDemoParity(unittest.TestCase):
                 brand_url="#top",
                 end=_safe(
                     str(button("Theme", type="button", data_theme_toggle=True))
-                    + str(burger(controls="site-nav"))
+                    + str(burger(controls="site-nav", class_="is-shell-toggle"))
                 ),
                 label="site navigation",
                 class_="is-sticky",

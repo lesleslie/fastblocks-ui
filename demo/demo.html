@@ -1283,19 +1283,24 @@
       background: none;
     }
 
-    /* Scoped to the bar's own burger, NOT every `.ui-burger` on the page.
-       This rule exists because the shell's aside stops being a drawer at this
-       width and becomes an in-flow column, so the control that opens it is
-       redundant. That reasoning applies to the burger paired with the shell --
-       which in this layout lives in the sticky bar -- and to no other.
+    /* Opt-in, not inferred. This rule exists because the shell's aside stops
+       being a drawer at this width and becomes an in-flow column, so the
+       control that opens it is redundant. Only the burger paired with the
+       shell should vanish -- and CSS cannot express "the burger whose
+       `popovertarget` is this aside", so the pairing has to be declared.
 
-       Unscoped, it hid every burger a consumer had, whatever each one
-       controlled. This library's own demo proved it: the `drawer` and `burger`
-       showcase sections each render a burger for `#demo-drawer`, and both
-       disappeared above 1024px, so a reader on a laptop could not open the
-       example drawer at all. Measured in Chrome at 1280px: all three burgers
-       computed `display: none`. */
-    .ui-navbar .ui-burger {
+       Two earlier shapes were both wrong, in the same direction. Bare
+       `.ui-burger` hid every burger on the page whatever it controlled; this
+       library's own demo caught it, since the `drawer` and `burger` showcase
+       sections each render one for `#demo-drawer` and both disappeared above
+       1024px. Narrowing to `.ui-navbar .ui-burger` shrank the blast radius but
+       kept the guess: a consumer whose navbar burger opens a cart or a filter
+       panel still lost it, with no opt-out.
+
+       Opting in inverts the failure mode. Forget the class and you get a
+       redundant button beside a column nav -- visible, and obvious on sight.
+       Infer it wrongly and a working control silently disappears. */
+    .ui-burger.is-shell-toggle {
       display: none;
     }
   }
@@ -2511,7 +2516,7 @@
 <a class="demo-skip-link" href="#demo-content">Skip to content</a>
 <a class="demo-skip-link" data-demo-skip="nav" href="#site-nav">Skip to section navigation</a>
 <!-- real helper output: fastblocks_ui.navbar(brand="FastBlocks UI", brand_url="#top", end=<Theme button + burger(controls="site-nav")>, label="site navigation", class_="is-sticky") -->
-<nav class="ui-navbar is-sticky" aria-label="site navigation"><a class="ui-navbar-brand" href="#top">FastBlocks UI</a><div class="ui-navbar-end"><button class="ui-button" type="button" data-theme-toggle="true">Theme</button><button class="ui-burger" type="button" popovertarget="site-nav"><span class="ui-burger__bar" aria-hidden="true"></span><span class="ui-burger__bar" aria-hidden="true"></span><span class="ui-burger__bar" aria-hidden="true"></span><span class="ui-burger__label">Menu</span></button></div></nav>
+<nav class="ui-navbar is-sticky" aria-label="site navigation"><a class="ui-navbar-brand" href="#top">FastBlocks UI</a><div class="ui-navbar-end"><button class="ui-button" type="button" data-theme-toggle="true">Theme</button><button class="ui-burger is-shell-toggle" type="button" popovertarget="site-nav"><span class="ui-burger__bar" aria-hidden="true"></span><span class="ui-burger__bar" aria-hidden="true"></span><span class="ui-burger__bar" aria-hidden="true"></span><span class="ui-burger__label">Menu</span></button></div></nav>
     <!--
       This is the HAND-WRITTEN reference demo -- see also ../scripts/build_demo.py,
       which generates demo/index.html through the same real fastblocks_ui helpers.

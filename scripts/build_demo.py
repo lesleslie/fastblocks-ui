@@ -10,9 +10,12 @@ The page is a full component showcase: every component in
 categories) -- ``tests/test_demo_parity.py`` enforces that, so adding a
 component to the manifest without a section here fails the suite. ``shell`` is
 the one section that shows escaped markup instead of a live instance: it
-renders a real ``<main>``, and a document may have only one that is not hidden, linked from a table of contents that is a ``drawer()`` below
-1024px and the ``shell()``'s sticky right-hand column above it -- one element
-with one id, serving both roles. See
+renders a real ``<main>``, and a document may have only one that is not
+hidden.
+
+The table of contents is a ``drawer()`` below 1024px and the ``shell()``'s
+sticky right-hand column above it -- one element with one id, serving both
+roles. See
 ``docs/roadmap.md`` for the redesign rationale and ``demo/demo.html`` for the
 hand-written mirror this file is kept in parity with (via
 ``tests/test_demo_parity.py``).
@@ -1453,7 +1456,7 @@ def render_page() -> str:
         brand_url="#top",
         end=SafeHTML(
             str(button("Theme", type="button", data_theme_toggle=True))
-            + str(burger(controls="site-nav"))
+            + str(burger(controls="site-nav", class_="is-shell-toggle"))
         ),
         # Distinct from the drawer nav's "Component sections": two navigation
         # landmarks sharing one accessible name are ambiguous to landmark

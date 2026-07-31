@@ -109,7 +109,7 @@ aside = drawer(
 
 html = navbar(
     brand="My App",
-    end=burger(controls="site-nav"),
+    end=burger(controls="site-nav", class_="is-shell-toggle"),
     class_="is-sticky",
 ) + shell(page_body, aside=aside, main_id="content")
 ```
@@ -174,7 +174,9 @@ FastBlocks UI centers its public surface on `ui-*` classes and helper APIs:
 - `ui-switch` / `switch()` - Toggle switches
 - `ui-dialog` / `dialog()` - Modal dialogs
 - `ui-drawer` / `drawer()` - Off-canvas panel built on the Popover API
-- `ui-burger` / `burger()` - Burger button that toggles a drawer
+- `ui-burger` / `burger()` - Burger button that toggles a drawer. Add
+  `is-shell-toggle` when it opens the shell's aside, so it hides above 1024px
+  where that aside becomes a column
 - `ui-tabs` / `tabs()` - Tabbed interfaces
 - `ui-menu` / `menu()` - Menus
 - `ui-alert` / `alert()` - Alerts
