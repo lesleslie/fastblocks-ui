@@ -90,6 +90,32 @@ html = await template.render_async(user=user, button=button)
 </form>
 ```
 
+### App Shell
+
+A full-bleed page with a sticky bar and a navigation column that becomes an
+off-canvas drawer below 1024px:
+
+```python
+from fastblocks_ui import burger, drawer, nav_list, navbar, shell
+
+aside = drawer(
+    nav_list([("Overview", "#overview"), ("Usage", "#usage")], aria_current="location"),
+    id="site-nav",
+    label="Section navigation",
+    tag="nav",
+    class_="ui-shell-aside",
+    data_ui_drawer_breakpoint="1024",
+)
+
+html = navbar(
+    brand="My App",
+    end=burger(controls="site-nav"),
+    class_="is-sticky",
+) + shell(page_body, aside=aside, main_id="content")
+```
+
+See [docs/usage.md](docs/usage.md) for the annotated version.
+
 ## Demo
 
 A self-contained showcase of every component (light + dark) is generated from the
@@ -123,6 +149,7 @@ FastBlocks UI centers its public surface on `ui-*` classes and helper APIs:
 
 ### Layout Components
 
+- `ui-shell` / `shell()` - Full-bleed page shell with an optional aside column
 - `ui-container` / `container()` - Centered max-width container
 - `ui-columns` / `columns()` - 12-column responsive grid
 - `ui-column` / `column()` - Individual column in grid
@@ -133,6 +160,8 @@ FastBlocks UI centers its public surface on `ui-*` classes and helper APIs:
 - `ui-title` / `title()` - Typography title
 - `ui-media` / `media()` - Image + text pair
 - `ui-tile` / `tile()` - Hierarchical tile layout
+- `ui-nav-list` / `nav_list()` - Vertical navigation list for sidebars and drawers
+- `ui-nav-groups` / `nav_group()` - Labelled groups of vertical navigation links
 
 ### UI Components
 
@@ -144,9 +173,20 @@ FastBlocks UI centers its public surface on `ui-*` classes and helper APIs:
 - `ui-checkbox` / `checkbox()` - Checkboxes
 - `ui-switch` / `switch()` - Toggle switches
 - `ui-dialog` / `dialog()` - Modal dialogs
+- `ui-drawer` / `drawer()` - Off-canvas panel built on the Popover API
+- `ui-burger` / `burger()` - Burger button that toggles a drawer
 - `ui-tabs` / `tabs()` - Tabbed interfaces
 - `ui-menu` / `menu()` - Menus
 - `ui-alert` / `alert()` - Alerts
+
+`.ui-navbar.is-sticky` is a modifier on `navbar()`, not a separate component:
+it fixes the bar to the top of the viewport. Above 1024px, and only when the
+page has a top-level `.ui-hero` and the visitor has not asked for reduced
+motion, the bar is revealed by a scroll-driven animation as the hero scrolls
+out; everywhere else it is simply always visible.
+
+The full table, including the `ui-*` utility classes, lives in
+[docs/components.md](docs/components.md).
 
 ## License
 

@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `ui-shell`, `ui-nav-list`, `ui-nav-group`, `ui-drawer`, and `ui-burger`
+  components, plus a `.ui-navbar.is-sticky` modifier. `shell()` is a CSS grid —
+  one column below 1024px, main plus aside above — with `--ui-shell-max`
+  defaulting to `none` (genuinely edge-to-edge) and `--ui-shell-aside-width` to
+  `16rem`.
+- `ui-drawer` is built on the Popover API: light dismiss, Escape, top-layer
+  stacking, tab-order placement while shown, focus return, and the implicit
+  `aria-expanded`/`aria-details` invoker relationship all come from the
+  platform, with no author JavaScript for any of them.
+- One JavaScript enhancement, `enhanceDrawers`, for the one case the platform
+  does not cover: a drawer opened below its breakpoint stays in the top layer,
+  so widening the viewport past it would leave a stale popover and a full-page
+  scrim over the desktop column. Drawers carrying a
+  `data-ui-drawer-breakpoint` get a single `matchMedia` listener that calls
+  `hidePopover()` on the upward crossing. Drawers without the attribute get no
+  listener.
+- `ui-measure`, a utility (not a component) that caps line length for readable
+  prose; override with `--ui-measure-size`.
+
+### Changed
+
+- Both demo pages are now full-bleed, with the hero at the top of the page and
+  section navigation as a right-hand sticky column that becomes an off-canvas
+  drawer below 1024px. The demo is built from public `ui-*` components instead
+  of demo-local CSS.
+- In-page anchors now use a single `:root { scroll-padding-top }` rather than
+  per-section `scroll-margin-top`. That rule and its neighbouring
+  `scrollbar-gutter: stable` are scoped to pages that actually render a
+  `.ui-navbar.is-sticky`, so pages without one are unaffected.
+
+### Known limitations
+
+- The burger's bars-to-cross morph is selected from any open drawer's
+  `:popover-open` via `:has()`, because `:has()` cannot express "the burger
+  whose `popovertarget` equals *this* drawer's id". On a page with more than
+  one drawer, every burger morphs whenever any drawer opens. Visual only.
+- `.ui-navbar.is-sticky` reserves a single fixed length
+  (`--ui-navbar-height`, default `3.5rem`) on `body`, so a bar that wraps to a
+  second row still covers the top of the content until that custom property is
+  retuned.
+
 ## [0.7.1] - 2026-07-28
 
 ### Fixed

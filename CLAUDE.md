@@ -77,9 +77,15 @@ python -m pytest --cov=fastblocks_ui tests/
 
 - Python helpers should return HTML-safe markup.
 - Jinja, async Jinja, and FastBlocks helpers should share the same render path.
-- `button`, `card`, `field`, `input`, `select`, `checkbox`, `switch`, `dialog`, `tabs`, `menu`, `alert` are the v1 public UI components.
-- Layout components: `container`, `columns`, `column`, `section`, `footer`, `level`, `hero`, `title`, `media`, `tile`
+- `button`, `card`, `field`, `input`, `select`, `checkbox`, `switch`, `dialog`, `drawer`, `burger`, `tabs`, `menu`, `alert` are the v1 public UI components.
+- Layout components: `shell`, `container`, `columns`, `column`, `section`, `footer`, `level`, `hero`, `title`, `media`, `tile`, `nav_list`, `nav_group`
+- `.ui-navbar.is-sticky` is a modifier on the existing `navbar()` helper, not a
+  separate component. `.ui-measure` is a utility, not a component — see the
+  Utilities table in `docs/components.md`.
 - `ui-*` is the stable public CSS namespace.
+- Grouping above follows `docs/components.md`. `tests/test_fastblocks_ui.py`
+  asserts every `manifest.json` component appears in that table, so add new
+  components to the manifest and to `docs/components.md` together.
 
 ## Theming
 

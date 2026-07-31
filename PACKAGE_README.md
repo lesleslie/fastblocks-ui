@@ -146,9 +146,48 @@ The main `ui-*` component classes are used by the template helpers and optional 
 - `ui-checkbox` - Checkboxes
 - `ui-switch` - Toggle switches
 - `ui-dialog` - Modal dialogs
+- `ui-drawer` - Off-canvas panel built on the Popover API
+- `ui-burger` - Burger button that toggles a drawer
 - `ui-tabs` - Tabbed interfaces
 - `ui-menu` - Menus
 - `ui-alert` - Alerts
+
+### Layout and Navigation
+
+- `ui-shell` - Full-bleed page shell with an optional aside column
+- `ui-container` - Centered max-width container
+- `ui-columns` / `ui-column` - 12-column responsive grid
+- `ui-section` - Vertical spacing container
+- `ui-footer` - Page footer
+- `ui-level` - Horizontal toolbar/nav
+- `ui-hero` - Full-width banner section
+- `ui-title` - Typography title
+- `ui-media` - Image + text pair
+- `ui-tile` - Hierarchical tile layout
+- `ui-navbar` - Navigation bar; add `is-sticky` to fix it to the top
+- `ui-breadcrumb` - Navigation trail
+- `ui-nav-list` - Vertical navigation list for sidebars and drawers
+- `ui-nav-groups` - Labelled groups of vertical navigation links
+
+The full table, including the `ui-*` utility classes, lives in
+[docs/components.md](docs/components.md).
+
+### Page Shell
+
+`shell()` renders a CSS grid: a single column below 1024px, and main plus aside
+above it. `--ui-shell-max` defaults to `none`, so the shell is genuinely
+edge-to-edge; `--ui-shell-aside-width` defaults to `16rem`. Both are settable
+per call:
+
+```python
+from fastblocks_ui import shell
+
+html = shell(main_markup, aside=aside_markup, aside_width="18rem", max_width="90rem")
+```
+
+The aside is rendered after `<main>` in the DOM because it is the right-hand
+column in LTR, so DOM order matches visual order. Pair it with a skip link so
+keyboard users are not forced through the whole main column to reach it.
 
 ## Browser Support
 
@@ -156,6 +195,19 @@ The main `ui-*` component classes are used by the template helpers and optional 
 - Firefox (latest 2 versions)
 - Safari (latest 2 versions)
 - Edge (latest 2 versions)
+
+Two features degrade rather than break outside that range:
+
+- `ui-drawer` needs the Popover API. Without it the panel renders in the normal
+  flow instead of the top layer, and the burger cannot toggle it.
+- `.ui-navbar.is-sticky`'s scroll-driven reveal is wrapped in
+  `@supports (animation-timeline: view())` and additionally gated on
+  `prefers-reduced-motion: no-preference` and a 1024px minimum width. Anywhere
+  the gate does not pass — including Firefox stable, where scroll-driven
+  animations were still behind `layout.css.scroll-driven-animations.enabled`
+  when this was last checked (Firefox 152, 2026-07-28) — the bar is simply
+  always visible and its height is reserved on `body`. That is a supported
+  rendering, and both paths are covered by the e2e suite.
 
 ## License
 
