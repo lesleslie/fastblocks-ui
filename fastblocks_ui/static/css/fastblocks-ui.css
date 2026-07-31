@@ -1143,7 +1143,7 @@
      its widest child's min-content width and applies that floor to every
      sibling, so one un-shrinkable component stretches every section past the
      viewport. Same fix as `.demo-content` carried into the public shell. */
-  .ui-shell-main {
+  .ui-shell__main {
     min-inline-size: 0;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -1167,7 +1167,7 @@
        computed `960px 256px` and main was 960px wide either way, losing
        256px + the gap on every desktop viewport.
 
-       Matched on child count rather than on `.ui-shell-aside`, so a consumer
+       Matched on child count rather than on `.ui-shell__aside`, so a consumer
        composing the grid by hand gets the same behaviour without having to
        adopt our class name for the second column. */
     .ui-shell:has(> :nth-child(2)) {
@@ -1327,7 +1327,7 @@
        default and `.is-start` panel edges. Equal-specificity rules such as
        `.ui-drawer.is-start` lose to these on source order: layout.css is
        concatenated after components.css inside the same cascade layer. */
-    .ui-shell-aside[popover] {
+    .ui-shell__aside[popover] {
       display: block;
       position: sticky;
       inset: auto;
@@ -1347,7 +1347,7 @@
     /* Not dead CSS: a drawer opened below the breakpoint stays in the top
        layer until something closes it, so a resize across 1024px lands here
        with the popover still open and a full-page scrim over the column. */
-    .ui-shell-aside[popover]::backdrop {
+    .ui-shell__aside[popover]::backdrop {
       background: none;
     }
 
@@ -1518,8 +1518,8 @@
     justify-content: space-between;
   }
 
-  .ui-level-left,
-  .ui-level-right {
+  .ui-level__left,
+  .ui-level__right {
     display: flex;
     align-items: center;
     /* Fixed 2026-07-26: multiple inline children (e.g. a label plus a status
@@ -1533,32 +1533,32 @@
     gap: var(--ui-space-3);
   }
 
-  .ui-level-left {
+  .ui-level__left {
     flex-basis: auto;
     flex-grow: 1;
     justify-content: flex-start;
   }
 
-  .ui-level-right {
+  .ui-level__right {
     flex-basis: auto;
     flex-grow: 0;
     justify-content: flex-end;
   }
 
-  .ui-level-item {
+  .ui-level__item {
     display: block;
     flex: none;
   }
 
-  .ui-level-content {
+  .ui-level__content {
     flex: 1;
     flex-basis: auto;
   }
 
   /* Level with center */
-  .ui-level.is-centered .ui-level-left,
-  .ui-level.is-centered .ui-level-right,
-  .ui-level.is-centered .ui-level-item {
+  .ui-level.is-centered .ui-level__left,
+  .ui-level.is-centered .ui-level__right,
+  .ui-level.is-centered .ui-level__item {
     justify-content: center;
   }
 
@@ -1574,16 +1574,16 @@
     justify-content: space-between;
   }
 
-  .ui-hero-body {
+  .ui-hero__body {
     flex: 1;
     padding: var(--ui-space-6) 0;
   }
 
-  .ui-hero-head {
+  .ui-hero__head {
     padding-bottom: var(--ui-space-4);
   }
 
-  .ui-hero-foot {
+  .ui-hero__foot {
     padding-top: var(--ui-space-4);
   }
 
@@ -1761,7 +1761,7 @@
     align-items: flex-start;
   }
 
-  .ui-media-content {
+  .ui-media__content {
     flex: 1;
     min-width: 0;
   }
@@ -1773,13 +1773,13 @@
      `margin-inline-start`/`-end` here would swap which side gets the gap in
      RTL, breaking the documented "always visually left/right" contract of
      these specific classes. */
-  .ui-media-left,
-  .ui-media-right {
+  .ui-media__left,
+  .ui-media__right {
     flex-shrink: 0;
     margin-left: var(--ui-space-4);
   }
 
-  .ui-media-left {
+  .ui-media__left {
     margin-left: 0;
     margin-right: var(--ui-space-4);
   }
@@ -1907,7 +1907,7 @@
    ========================================================================= */
   /* Wrapping is the CSS-first answer to a narrow viewport here. A burger
      menu would need JavaScript, and this library keeps JS optional and
-     behavior-only -- so the navbar reflows instead: `.ui-navbar-brand`
+     behavior-only -- so the navbar reflows instead: `.ui-navbar__brand`
      keeps its `margin-inline-end: auto`, which pushes the menu onto its
      own row once the two no longer fit side by side. Without this the
      navbar is a fixed-width non-shrinkable row that overflows the viewport
@@ -1923,7 +1923,7 @@
     border-bottom: var(--ui-border-width) solid var(--ui-color-border);
   }
 
-  .ui-navbar-brand {
+  .ui-navbar__brand {
     display: flex;
     align-items: center;
     margin-inline-end: auto;
@@ -1932,22 +1932,22 @@
     text-decoration: none;
   }
 
-  .ui-navbar-menu {
+  .ui-navbar__menu {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--ui-space-1);
   }
 
-  .ui-navbar-start,
-  .ui-navbar-end {
+  .ui-navbar__start,
+  .ui-navbar__end {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--ui-space-1);
   }
 
-  .ui-navbar-item {
+  .ui-navbar__item {
     display: inline-flex;
     align-items: center;
     padding: 0.5rem 0.75rem;
@@ -1956,8 +1956,8 @@
     border-radius: var(--ui-radius-md);
   }
 
-  .ui-navbar-item:hover,
-  .ui-navbar-item.is-active {
+  .ui-navbar__item:hover,
+  .ui-navbar__item.is-active {
     background: var(--ui-color-surface-muted);
     color: var(--ui-color-text-strong);
   }
@@ -1967,8 +1967,8 @@
     border-color: var(--ui-color-primary);
   }
 
-  .ui-navbar.is-primary .ui-navbar-brand,
-  .ui-navbar.is-primary .ui-navbar-item {
+  .ui-navbar.is-primary .ui-navbar__brand,
+  .ui-navbar.is-primary .ui-navbar__item {
     color: var(--ui-color-primary-contrast);
   }
 
@@ -1977,8 +1977,8 @@
     border-color: var(--ui-color-text);
   }
 
-  .ui-navbar.is-dark .ui-navbar-brand,
-  .ui-navbar.is-dark .ui-navbar-item {
+  .ui-navbar.is-dark .ui-navbar__brand,
+  .ui-navbar.is-dark .ui-navbar__item {
     color: var(--ui-color-surface);
   }
 
@@ -2079,7 +2079,7 @@
   /* =========================================================================
      TABLE
      ========================================================================= */
-  .ui-table-container {
+  .ui-table__container {
     overflow-x: auto;
     border: var(--ui-border-width) solid var(--ui-color-border);
     border-radius: var(--ui-radius-lg);
@@ -2303,12 +2303,12 @@
       align-items: stretch;
     }
 
-    .ui-level-left,
-    .ui-level-right {
+    .ui-level__left,
+    .ui-level__right {
       justify-content: center;
     }
 
-    .ui-level-left + .ui-level-right {
+    .ui-level__left + .ui-level__right {
       margin-top: var(--ui-space-3);
     }
 

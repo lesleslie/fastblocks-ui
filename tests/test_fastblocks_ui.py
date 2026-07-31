@@ -497,8 +497,8 @@ class TestLogicalPropertiesDriftGate(unittest.TestCase):
     Fails if a new `margin-left`/`-right`, `padding-left`/`-right`,
     `border-left`/`-right`, bare `left:`/`right:` positioning, or
     `text-align: left`/`right` shows up in a CSS source module outside the
-    one documented, intentional exception: `.ui-media-left`/
-    `.ui-media-right` in `layout.css`, which names a physical visual
+    one documented, intentional exception: `.ui-media__left`/
+    `.ui-media__right` in `layout.css`, which names a physical visual
     position (see the comment there) rather than a logical start/end.
     """
 
@@ -516,7 +516,7 @@ class TestLogicalPropertiesDriftGate(unittest.TestCase):
         " left:",
         " right:",
     )
-    ALLOWED_SELECTOR_MARKERS = ("ui-media-left", "ui-media-right")
+    ALLOWED_SELECTOR_MARKERS = ("ui-media__left", "ui-media__right")
     CSS_MODULES = (
         "tokens.css",
         "theme.css",
@@ -553,10 +553,10 @@ class TestLogicalPropertiesDriftGate(unittest.TestCase):
             violations,
             [],
             "New physical-direction CSS property(y/ies) found outside the "
-            "documented ui-media-left/-right exception (WS-7). Prefer "
+            "documented ui-media__left/-right exception (WS-7). Prefer "
             "margin-inline-*/padding-inline-*/inset-inline-*/text-align: "
             "start|end. If this one is genuinely a physical exception "
-            "(like ui-media-left/-right), add its selector marker to "
+            "(like ui-media__left/-right), add its selector marker to "
             "ALLOWED_SELECTOR_MARKERS with a comment explaining why:\n"
             + "\n".join(violations),
         )
@@ -924,7 +924,7 @@ class TestHelpers(unittest.TestCase):
         )
 
         self.assertIn('href="/home"', navbar_markup)
-        self.assertIn('class="ui-navbar-start"', navbar_markup)
+        self.assertIn('class="ui-navbar__start"', navbar_markup)
         self.assertIn('href="/docs"', navbar_markup)
         self.assertIn('href="/api"', navbar_markup)
         self.assertIn('href="/login"', navbar_markup)
@@ -1013,8 +1013,8 @@ class TestLayoutHelpers(unittest.TestCase):
 
     def test_level_left_and_right(self):
         markup = level(left="Left side", right="Right side")
-        self.assertIn('class="ui-level-left">Left side</div>', markup)
-        self.assertIn('class="ui-level-right">Right side</div>', markup)
+        self.assertIn('class="ui-level__left">Left side</div>', markup)
+        self.assertIn('class="ui-level__right">Right side</div>', markup)
         # A plain <div>, not a navigation landmark: `level` is a layout
         # primitive and previously emitted the same `aria-label="main
         # navigation"` as `navbar()`, so a page with both had two identically
@@ -1024,18 +1024,18 @@ class TestLayoutHelpers(unittest.TestCase):
 
     def test_level_left_only(self):
         markup = level(left="Only left")
-        self.assertIn("ui-level-left", markup)
-        self.assertNotIn("ui-level-right", markup)
+        self.assertIn("ui-level__left", markup)
+        self.assertNotIn("ui-level__right", markup)
 
     def test_level_right_only(self):
         markup = level(right="Only right")
-        self.assertNotIn("ui-level-left", markup)
-        self.assertIn("ui-level-right", markup)
+        self.assertNotIn("ui-level__left", markup)
+        self.assertIn("ui-level__right", markup)
 
     def test_level_neither_side(self):
         markup = level()
-        self.assertNotIn("ui-level-left", markup)
-        self.assertNotIn("ui-level-right", markup)
+        self.assertNotIn("ui-level__left", markup)
+        self.assertNotIn("ui-level__right", markup)
 
     def test_level_centered(self):
         self.assertIn("is-centered", level(centered=True))
@@ -1052,7 +1052,7 @@ class TestLayoutHelpers(unittest.TestCase):
         self.assertIn('class="ui-subtitle">Get started</p>', markup)
         self.assertIn("is-primary", markup)
         self.assertIn("is-large", markup)
-        self.assertIn('class="ui-hero-body"', markup)
+        self.assertIn('class="ui-hero__body"', markup)
 
     def test_title_default_and_size(self):
         markup = title("Heading")
@@ -1061,17 +1061,17 @@ class TestLayoutHelpers(unittest.TestCase):
 
     def test_media_with_image_start(self):
         markup = media("Body text", image="<img>")
-        self.assertIn('class="ui-media-left">', markup)
-        self.assertIn('class="ui-media-content">Body text</div>', markup)
+        self.assertIn('class="ui-media__left">', markup)
+        self.assertIn('class="ui-media__content">Body text</div>', markup)
 
     def test_media_with_image_end(self):
         markup = media("Body text", image="<img>", position="end")
-        self.assertIn('class="ui-media-right">', markup)
+        self.assertIn('class="ui-media__right">', markup)
 
     def test_media_no_image(self):
         markup = media("Body text")
-        self.assertNotIn("ui-media-left", markup)
-        self.assertNotIn("ui-media-right", markup)
+        self.assertNotIn("ui-media__left", markup)
+        self.assertNotIn("ui-media__right", markup)
 
     def test_tile_parent_child_ancestor(self):
         self.assertIn("is-parent", tile("x", parent=True))
@@ -1595,8 +1595,8 @@ class TestShellHelper(unittest.TestCase):
     def test_shell_renders_main_only(self):
         markup = fastblocks_ui.shell("body copy")
         self.assertIn('<div class="ui-shell">', markup)
-        self.assertIn('<main class="ui-shell-main">body copy</main>', markup)
-        self.assertNotIn("ui-shell-aside", markup)
+        self.assertIn('<main class="ui-shell__main">body copy</main>', markup)
+        self.assertNotIn("ui-shell__aside", markup)
 
     def test_shell_renders_aside_after_main(self):
         # SafeHTML, not a bare str: `aside` goes through `_render_fragment`, so
@@ -1604,7 +1604,7 @@ class TestShellHelper(unittest.TestCase):
         # for composed markup (a nav, a drawer), which is already SafeHTML.
         aside = fastblocks_ui.SafeHTML('<nav id="x"></nav>')
         markup = fastblocks_ui.shell("body", aside=aside)
-        self.assertLess(markup.index("ui-shell-main"), markup.index('id="x"'))
+        self.assertLess(markup.index("ui-shell__main"), markup.index('id="x"'))
 
     def test_shell_escapes_a_plain_string_aside(self):
         markup = fastblocks_ui.shell("body", aside='<nav id="x"></nav>')
@@ -1613,7 +1613,7 @@ class TestShellHelper(unittest.TestCase):
 
     def test_shell_main_id_is_rendered(self):
         markup = fastblocks_ui.shell("body", main_id="content")
-        self.assertIn('<main class="ui-shell-main" id="content">', markup)
+        self.assertIn('<main class="ui-shell__main" id="content">', markup)
 
     def test_shell_widths_become_custom_properties(self):
         markup = fastblocks_ui.shell("b", aside_width="18rem", max_width="120rem")
@@ -1951,8 +1951,8 @@ class TestDrawerHelper(unittest.TestCase):
         self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", markup)
 
     def test_drawer_accepts_extra_classes(self):
-        markup = fastblocks_ui.drawer("p", id="d", class_="ui-shell-aside")
-        self.assertIn("ui-drawer ui-shell-aside", markup)
+        markup = fastblocks_ui.drawer("p", id="d", class_="ui-shell__aside")
+        self.assertIn("ui-drawer ui-shell__aside", markup)
 
     def test_drawer_returns_safe_html(self):
         self.assertIsInstance(
@@ -2274,7 +2274,7 @@ class TestStickyLayoutCss(unittest.TestCase):
         # The UA sheet's `[popover]:not(:popover-open) { display: none }` is
         # what the `display` here exists to beat; without it the element that
         # is a drawer below the breakpoint simply vanishes above it.
-        body = self._rule_body(".ui-shell-aside[popover]")
+        body = self._rule_body(".ui-shell__aside[popover]")
         self.assertIn("display: block", body)
         self.assertIn("position: sticky", body)
 
@@ -2297,7 +2297,7 @@ class TestStickyLayoutCss(unittest.TestCase):
         # the bundle, so that assertion passed before this feature existed and
         # would keep passing if the aside moved to a different breakpoint.
         # Assert the media query the aside is actually nested in.
-        preceding = self.rules_only[: self.rules_only.index(".ui-shell-aside[popover]")]
+        preceding = self.rules_only[: self.rules_only.index(".ui-shell__aside[popover]")]
         conditions = re.findall(r"@media([^{]*)\{", preceding)
         self.assertEqual(conditions[-1].strip(), "(min-width: 1024px)")
 
@@ -2423,4 +2423,4 @@ class TestStickyLayoutCss(unittest.TestCase):
         # in place, crossing the breakpoint animates the column in and out
         # instead of switching roles, and the discrete `display` transition
         # holds the old rendering for the duration.
-        self.assertIn("transition: none", self._rule_body(".ui-shell-aside[popover]"))
+        self.assertIn("transition: none", self._rule_body(".ui-shell__aside[popover]"))

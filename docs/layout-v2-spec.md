@@ -33,7 +33,7 @@ ______________________________________________________________________
   border-bottom: var(--ui-border-width) solid var(--ui-color-border);
 }
 
-.ui-navbar-brand {
+.ui-navbar__brand {
   display: flex;
   align-items: center;
   margin-right: auto;
@@ -42,20 +42,20 @@ ______________________________________________________________________
   text-decoration: none;
 }
 
-.ui-navbar-menu {
+.ui-navbar__menu {
   display: flex;
   align-items: center;
   gap: var(--ui-space-2);
 }
 
-.ui-navbar-start,
-.ui-navbar-end {
+.ui-navbar__start,
+.ui-navbar__end {
   display: flex;
   align-items: center;
   gap: var(--ui-space-1);
 }
 
-.ui-navbar-item {
+.ui-navbar__item {
   display: inline-flex;
   align-items: center;
   padding: 0.5rem 0.75rem;
@@ -64,8 +64,8 @@ ______________________________________________________________________
   border-radius: var(--ui-radius-md);
 }
 
-.ui-navbar-item:hover,
-.ui-navbar-item.is-active {
+.ui-navbar__item:hover,
+.ui-navbar__item.is-active {
   background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-strong);
 }
@@ -76,8 +76,8 @@ ______________________________________________________________________
   border-color: var(--ui-color-primary);
 }
 
-.ui-navbar.is-primary .ui-navbar-brand,
-.ui-navbar.is-primary .ui-navbar-item {
+.ui-navbar.is-primary .ui-navbar__brand,
+.ui-navbar.is-primary .ui-navbar__item {
   color: var(--ui-color-primary-contrast);
 }
 
@@ -95,7 +95,7 @@ ______________________________________________________________________
     display: block;
   }
 
-  .ui-navbar-menu {
+  .ui-navbar__menu {
     display: none;
     flex-direction: column;
     position: absolute;
@@ -108,7 +108,7 @@ ______________________________________________________________________
     box-shadow: var(--ui-shadow-2);
   }
 
-  .ui-navbar[data-open="true"] .ui-navbar-menu {
+  .ui-navbar[data-open="true"] .ui-navbar__menu {
     display: flex;
   }
 }
@@ -130,14 +130,14 @@ def navbar(
     attr_html = _render_attrs(class_=classes, **attrs)
 
     brand_html = (
-        f'<a class="ui-navbar-brand">{_render_fragment(brand)}</a>' if brand else ""
+        f'<a class="ui-navbar__brand">{_render_fragment(brand)}</a>' if brand else ""
     )
 
     items_html = ""
     if items:
-        items_html = '<div class="ui-navbar-menu">'
+        items_html = '<div class="ui-navbar__menu">'
         for label, href in items:
-            items_html += f'<a class="ui-navbar-item" href="{escape(str(href), quote=True)}">{_render_fragment(label)}</a>'
+            items_html += f'<a class="ui-navbar__item" href="{escape(str(href), quote=True)}">{_render_fragment(label)}</a>'
         items_html += "</div>"
 
     toggle_html = '<button class="ui-navbar-toggle" type="button" aria-label="Toggle menu">☰</button>'
@@ -176,14 +176,14 @@ def nav(request):
 <input type="checkbox" id="nav-toggle" class="ui-navbar-checkbox" hidden>
 <nav class="ui-navbar">
   <label for="nav-toggle" class="ui-navbar-toggle">☰</label>
-  <div class="ui-navbar-menu">
+  <div class="ui-navbar__menu">
     <!-- menu items -->
   </div>
 </nav>
 ```
 
 ```css
-.ui-navbar-checkbox:checked ~ .ui-navbar .ui-navbar-menu {
+.ui-navbar-checkbox:checked ~ .ui-navbar .ui-navbar__menu {
   display: flex;
 }
 ```
@@ -376,7 +376,7 @@ ______________________________________________________________________
 ### CSS Design
 
 ```css
-.ui-table-container {
+.ui-table__container {
   overflow-x: auto;
   border: var(--ui-border-width) solid var(--ui-color-border);
   border-radius: var(--ui-radius-lg);
@@ -471,7 +471,7 @@ def table(
     )
 
     return _safe(
-        f'<div class="ui-table-container">'
+        f'<div class="ui-table__container">'
         f"<table{attr_html}>"
         f"<thead><tr>{header_html}</tr></thead>"
         f"<tbody>{body_html}</tbody>"

@@ -328,7 +328,7 @@ class TestDemoParity(unittest.TestCase):
         markup = str(
             shell(
                 _safe("<p>Main column</p>"),
-                aside=_safe('<nav class="ui-shell-aside"><p>Aside</p></nav>'),
+                aside=_safe('<nav class="ui-shell__aside"><p>Aside</p></nav>'),
                 main_id="example-main",
             )
         )
@@ -505,7 +505,7 @@ class TestDemoParity(unittest.TestCase):
         names = [c["name"] for c in COMPONENT_MANIFEST["components"]]
         # The table of contents is now one `drawer()` doubling as the shell's
         # aside -- an off-canvas popover below 1024px, a sticky column above it.
-        sidebar_start = DEMO_HTML.index('<nav class="ui-drawer ui-shell-aside"')
+        sidebar_start = DEMO_HTML.index('<nav class="ui-drawer ui-shell__aside"')
         sidebar_end = DEMO_HTML.index("</nav>", sidebar_start)
         sidebar_html = DEMO_HTML[sidebar_start:sidebar_end]
         missing = [name for name in names if f'href="#{name}"' not in sidebar_html]

@@ -21,7 +21,7 @@ main plus aside above it.
 {{ shell(main_html) }}
 ```
 
-`shell()` wraps its first argument in `<main class="ui-shell-main">` and places
+`shell()` wraps its first argument in `<main class="ui-shell__main">` and places
 `aside` after it. `aside_width` and `max_width` are emitted as the
 `--ui-shell-aside-width` and `--ui-shell-max` custom properties, and both are
 validated as CSS lengths:
@@ -538,7 +538,7 @@ Swap just the `<tbody>` on column header click:
 
 ```html
 <div id="data-table">
-  <div class="ui-table-container">
+  <div class="ui-table__container">
     <table class="ui-table is-striped">
       <thead>
         <tr>
@@ -719,7 +719,7 @@ nav = drawer(
     id="site-nav",
     label="Section navigation",
     tag="nav",
-    class_="ui-shell-aside",
+    class_="ui-shell__aside",
     data_ui_drawer_breakpoint="1024",
 )
 
@@ -737,7 +737,7 @@ What each piece contributes:
   Everywhere else — including any browser without `animation-timeline: view()` —
   it is simply always visible. `--ui-navbar-height` (default `3.5rem`) is the
   tuning point if your bar is taller than one row.
-- **`class_="ui-shell-aside"` on the drawer** is what makes the same element
+- **`class_="ui-shell__aside"` on the drawer** is what makes the same element
   stop being a drawer above 1024px and become an ordinary in-flow sticky
   column. The UA stylesheet's `[popover]:not(:popover-open) { display: none }`
   is author-overridable, which is what makes one element with one id able to
@@ -771,7 +771,7 @@ carries a `data-ui-drawer-breakpoint`, and calls `hidePopover()` when the
 viewport crosses upward:
 
 ```jinja
-{{ drawer(nav_html, id="site-nav", tag="nav", class_="ui-shell-aside", data_ui_drawer_breakpoint="1024") }}
+{{ drawer(nav_html, id="site-nav", tag="nav", class_="ui-shell__aside", data_ui_drawer_breakpoint="1024") }}
 ```
 
 Nothing else about the drawer needs JavaScript — opening, closing, light

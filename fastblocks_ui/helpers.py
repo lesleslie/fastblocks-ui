@@ -985,7 +985,7 @@ def shell(
 ) -> SafeHTML:
     """Create the full-bleed page shell (`<div class="ui-shell">`).
 
-    Renders ``main`` inside ``<main class="ui-shell-main">`` and places
+    Renders ``main`` inside ``<main class="ui-shell__main">`` and places
     ``aside`` after it. The aside is rendered *after* main deliberately: it is
     the right-hand column in LTR, so DOM order matches visual order and WCAG
     1.3.2/2.4.3 hold without grid reordering. Pair it with a skip link so
@@ -1018,7 +1018,7 @@ def shell(
         attrs["style"] = ";".join([*declarations, *existing])
 
     attr_html = _render_attrs(attrs, class_=classes)
-    main_attr_html = _render_attrs(class_="ui-shell-main", id=main_id)
+    main_attr_html = _render_attrs(class_="ui-shell__main", id=main_id)
     aside_html = _render_fragment(aside) if aside is not None else ""
 
     return SafeHTML(
@@ -1126,11 +1126,11 @@ def level(
 
     left_content = ""
     if left is not None:
-        left_content = f'<div class="ui-level-left">{_render_fragment(left)}</div>'
+        left_content = f'<div class="ui-level__left">{_render_fragment(left)}</div>'
 
     right_content = ""
     if right is not None:
-        right_content = f'<div class="ui-level-right">{_render_fragment(right)}</div>'
+        right_content = f'<div class="ui-level__right">{_render_fragment(right)}</div>'
 
     # A `<div>`, not a `<nav aria-label="main navigation">`. `level` is a
     # layout primitive (the manifest calls it "horizontal layout with left and
@@ -1198,7 +1198,7 @@ def hero(
 
     return _safe(
         f"<section{hero_attr_html}>"
-        f'<div class="ui-hero-body">'
+        f'<div class="ui-hero__body">'
         f"{title_html}"
         f"{subtitle_html}"
         f"</div>"
@@ -1243,7 +1243,7 @@ def media(
     classes = _flatten_classes("ui-media", class_)
     attr_html = _render_attrs(attrs, class_=classes)
 
-    position_class = "ui-media-left" if position == "start" else "ui-media-right"
+    position_class = "ui-media__left" if position == "start" else "ui-media__right"
     image_html = (
         f'<div class="{position_class}">{_render_fragment(image)}</div>'
         if image
@@ -1253,7 +1253,7 @@ def media(
     return _safe(
         f"<div{attr_html}>"
         f"{image_html}"
-        f'<div class="ui-media-content">{_render_fragment(content)}</div>'
+        f'<div class="ui-media__content">{_render_fragment(content)}</div>'
         f"</div>"
     )
 
@@ -1331,7 +1331,7 @@ def navbar(
                 if isinstance(item, (list, tuple)) and len(item) == 2:
                     label, href = item
                     rendered.append(
-                        f'<a class="ui-navbar-item" href="{escape(_safe_url(href), quote=True)}">'
+                        f'<a class="ui-navbar__item" href="{escape(_safe_url(href), quote=True)}">'
                         f"{_render_fragment(label)}</a>"
                     )
                 else:
@@ -1343,27 +1343,27 @@ def navbar(
     if brand is not None:
         brand_markup = _render_fragment(brand)
         if brand_url is None:
-            brand_html = f'<span class="ui-navbar-brand">{brand_markup}</span>'
+            brand_html = f'<span class="ui-navbar__brand">{brand_markup}</span>'
         else:
             brand_html = (
-                f'<a class="ui-navbar-brand" href="{escape(_safe_url(brand_url), quote=True)}">'
+                f'<a class="ui-navbar__brand" href="{escape(_safe_url(brand_url), quote=True)}">'
                 f"{brand_markup}</a>"
             )
 
     menu_parts: list[str] = []
     if start is not None:
         menu_parts.append(
-            f'<div class="ui-navbar-start">{_render_navbar_slot(start)}</div>'
+            f'<div class="ui-navbar__start">{_render_navbar_slot(start)}</div>'
         )
 
     if items:
         menu_parts.append(
-            f'<div class="ui-navbar-start">{_render_navbar_slot(items)}</div>'
+            f'<div class="ui-navbar__start">{_render_navbar_slot(items)}</div>'
         )
 
     if end is not None:
         menu_parts.append(
-            f'<div class="ui-navbar-end">{_render_navbar_slot(end)}</div>'
+            f'<div class="ui-navbar__end">{_render_navbar_slot(end)}</div>'
         )
 
     return _safe(f"<nav{attr_html}>{brand_html}{''.join(menu_parts)}</nav>")
@@ -1501,7 +1501,7 @@ def table(
     # derive one from; `tabindex` alone makes the content reachable, which is
     # the part that is currently broken.
     return _safe(
-        f'<div class="ui-table-container" tabindex="0">'
+        f'<div class="ui-table__container" tabindex="0">'
         f"<table{attr_html}>"
         f"<thead><tr>{header_html}</tr></thead>"
         f"<tbody>{body_html}</tbody>"

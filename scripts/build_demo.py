@@ -204,7 +204,7 @@ DEMO_CSS = """
    `max-width: 100%` doesn't help: it resolves against a parent that was
    itself stretched by this very child, so the constraint is circular.
 
-   Same answer as `.ui-table-container`: give the pair its own scroll
+   Same answer as `.ui-table__container`: give the pair its own scroll
    container -- with `tabindex="0"` on it, since a scrollable region that no
    descendant can focus is unreachable by keyboard (axe:
    scrollable-region-focusable). The panels keep their real widths, the overflow is contained
@@ -972,7 +972,7 @@ def shell_demo() -> SafeHTML:
     markup = str(
         shell(
             _safe("<p>Main column</p>"),
-            aside=_safe('<nav class="ui-shell-aside"><p>Aside</p></nav>'),
+            aside=_safe('<nav class="ui-shell__aside"><p>Aside</p></nav>'),
             main_id="example-main",
         )
     )
@@ -1377,7 +1377,7 @@ def build_sidebar(
 ) -> SafeHTML:
     """Render the section navigation as a drawer that doubles as the sticky column.
 
-    One element, one id, both roles -- see ``.ui-shell-aside[popover]`` in
+    One element, one id, both roles -- see ``.ui-shell__aside[popover]`` in
     layout.css. Duplicating the nav for desktop and mobile would break the
     stable-id contract htmx swapping depends on, and would put two navigation
     landmarks with the same accessible name in the page.
@@ -1396,7 +1396,7 @@ def build_sidebar(
         id="site-nav",
         label="Component sections",
         tag="nav",
-        class_="ui-shell-aside",
+        class_="ui-shell__aside",
         # Read by `enhanceDrawers`, which closes the panel when the viewport
         # crosses this width. It must match the `min-width: 1024px` query in
         # layout.css that turns this same element into the in-flow column.

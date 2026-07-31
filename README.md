@@ -103,7 +103,7 @@ aside = drawer(
     id="site-nav",
     label="Section navigation",
     tag="nav",
-    class_="ui-shell-aside",
+    class_="ui-shell__aside",
     data_ui_drawer_breakpoint="1024",
 )
 

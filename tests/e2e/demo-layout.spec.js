@@ -180,7 +180,7 @@ test('a drawer left open across the breakpoint is closed by the enhancement laye
   // The one drawer behaviour the Popover API cannot express declaratively, so
   // `enhanceDrawers` reads `data-ui-drawer-breakpoint` and calls
   // `hidePopover()`. Nothing in the CSS closes it: at this width
-  // `.ui-shell-aside[popover]` computes `display: block` either way, so a
+  // `.ui-shell__aside[popover]` computes `display: block` either way, so a
   // still-open popover would sit in the top layer with a scrim over the page
   // and `toBeVisible()` would not notice. Assert the top-layer state itself.
   await expect
