@@ -3481,8 +3481,9 @@ export function enhanceMenus(root = document) {
 // The one drawer behaviour the Popover API cannot express declaratively. A
 // drawer left open while the viewport crosses its breakpoint stays in the top
 // layer, and the control that would dismiss it is gone by then -- `layout.css`
-// sets `.ui-burger { display: none }` inside `@media (min-width: 1024px)`, the
-// shell's own switch width. So the panel is stuck open with nothing visible to
+// sets `.ui-navbar .ui-burger { display: none }` inside
+// `@media (min-width: 1024px)`, the shell's own switch width, and the shell's
+// burger lives in that bar. So the panel is stuck open with nothing visible to
 // close it. That is a dead end, not a cosmetic wrinkle, and it is the only
 // reason this module touches drawers at all: light dismiss, Escape, focus
 // return and the invoker's implicit expanded state are the platform's job and
