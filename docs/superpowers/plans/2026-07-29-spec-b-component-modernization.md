@@ -50,7 +50,37 @@ Closes the one B0 item that Spec A's ownership of `tests/` blocked. The repo's e
 - Consumes: `scripts/check-baseline.mjs` (exit 0 = pass, 1 = violation), `.baseline-allowlist.json`
 - Produces: nothing later tasks import
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Unbreak the gate that Spec A's merge turns red**
+
+**Do this before anything else in this task.** Spec A's `.ui-drawer` uses
+`overscroll-behavior: contain` unguarded, at two sites. Verified against the
+branch at `7bb85e4` (48 commits ahead of main):
+
+```
+css.properties.overscroll-behavior is not Baseline and is used unguarded
+at components.css:549, layout.css:255
+```
+
+So `npm run validate` is red from the moment Spec A lands, and Step 2's new
+`TestBaselineFloor` would fail on arrival. This entry could not be pre-staged on
+the Spec B branch — the checker rejects an exemption for a feature no CSS module
+uses yet, which is the no-speculative-exemptions rule working as intended.
+
+Add to `.baseline-allowlist.json`'s `allow` array:
+
+```json
+    {
+      "key": "css.properties.overscroll-behavior",
+      "reason": "Not a data gap and not fixable with @supports. Every engine shipped this partial_implementation -- it has no effect on scroll containers without scrollable overflow. Chrome fixed that in 144 and Firefox in 150; Safari has not (webkit.org/b/243452). Safari still PARSES the property, so @supports (overscroll-behavior: contain) evaluates true there and a guard would protect nothing while appearing to.",
+      "degradation": "On Safari, an open .ui-drawer whose content is too short to scroll chains its scroll to the page behind it. Cosmetic; the drawer still traps focus, light-dismisses, and returns focus.",
+      "reviewBy": "2027-01-31"
+    }
+```
+
+Run: `npm run check:baseline`
+Expected: `check-baseline: OK`
+
+- [ ] **Step 2: Write the failing test**
 
 Add to `tests/test_fastblocks_ui.py`:
 
@@ -77,30 +107,37 @@ class TestBaselineFloor(unittest.TestCase):
 
 Confirm `shutil`, `subprocess`, `Path`, and `unittest` are already imported at the top of the file; add `import shutil` if absent.
 
-- [ ] **Step 2: Run it and confirm it passes against current CSS**
+- [ ] **Step 3: Run it and confirm it passes against current CSS**
 
 Run: `uv run pytest tests/test_fastblocks_ui.py::TestBaselineFloor -q --no-cov`
 Expected: `1 passed`
 
-- [ ] **Step 3: Prove the gate actually fails when it should**
+- [ ] **Step 4: Prove the gate actually fails when it should**
 
 Temporarily append to `fastblocks_ui/static/css/utilities.css` inside the `@layer utilities` block:
 
 ```css
   .ui-probe {
-    overscroll-behavior: contain;
+    text-wrap: pretty;
   }
 ```
 
-Run: `uv run pytest tests/test_fastblocks_ui.py::TestBaselineFloor -q --no-cov`
-Expected: FAIL, message contains `css.properties.overscroll-behavior is not Baseline`
+`text-wrap: pretty` rather than `overscroll-behavior: contain` — Step 1 just
+allowlisted the latter, so it would no longer trip. This probe is also the
+better test: `text-wrap` itself is Baseline Newly while `text-wrap.pretty` is
+its own non-Baseline feature, so a pass here proves the value-sub-key
+discriminator works, not just the property check.
 
-- [ ] **Step 4: Revert the probe**
+Run: `uv run pytest tests/test_fastblocks_ui.py::TestBaselineFloor -q --no-cov`
+Expected: FAIL, message contains
+`css.properties.text-wrap.pretty is not Baseline (feature: text-wrap-pretty)`
+
+- [ ] **Step 5: Revert the probe**
 
 Run: `git checkout fastblocks_ui/static/css/utilities.css`
-Then re-run Step 2 and confirm `1 passed`.
+Then re-run Step 3 and confirm `1 passed`.
 
-- [ ] **Step 5: Add the version-parity guard**
+- [ ] **Step 6: Add the version-parity guard**
 
 Three files carry the project version and crackerjack bumps only one of them.
 Between 0.7.0 and 0.7.1 both `package.json` and `uv.lock` were left behind with
@@ -149,12 +186,12 @@ class TestVersionParity(unittest.TestCase):
 
 Add `import json` and `import tomllib` at the top of the file if absent.
 
-- [ ] **Step 6: Run both new tests**
+- [ ] **Step 7: Run both new tests**
 
 Run: `uv run pytest tests/test_fastblocks_ui.py::TestBaselineFloor tests/test_fastblocks_ui.py::TestVersionParity -q --no-cov`
 Expected: `2 passed`
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add tests/test_fastblocks_ui.py
@@ -375,11 +412,11 @@ accent-color already themed checkbox/switch; extends it to <progress>."
 
 ### Task 4: B1 — retire deprecated `clip` from `.ui-visually-hidden`
 
-Surfaced by the Baseline gate. `clip` is universally supported but deprecated, and Spec A's `.ui-burger__label` already uses `clip-path`, so the library is about to ship two visually-hidden implementations.
+Surfaced by the Baseline gate. `clip` is universally supported but deprecated, and Spec A's `.ui-burger__label` uses `clip-path`, so the library ships two visually-hidden implementations — one of them deprecated. This retires the deprecated one.
 
 **Files:**
 - Modify: `fastblocks_ui/static/css/utilities.css:34-44`
-- Modify: `fastblocks_ui/static/css/components.css` (`.ui-burger__label` — dedupe)
+- Read only: `fastblocks_ui/static/css/components.css` (`.ui-burger__label` — verify, no edit)
 - Modify: `.baseline-allowlist.json` (remove two entries)
 - Modify: `fastblocks_ui/static/css/fastblocks-ui.css` (regenerated)
 
@@ -407,14 +444,11 @@ In `fastblocks_ui/static/css/utilities.css`, replace the whole `.ui-visually-hid
   }
 ```
 
-- [ ] **Step 2: Point `.ui-burger__label` at the utility**
+- [ ] **Step 2: Verify `.ui-burger__label` — no edit expected**
 
-In `components.css`, replace `.ui-burger__label`'s six visually-hidden declarations with a comment plus the shared class reference. Since `.ui-burger__label` still needs `position: absolute` relative to the burger, keep the rule but reduce it to:
+Spec A landed this rule already, and it is **already correct**. Confirm it reads:
 
 ```css
-  /* Visually hidden; see .ui-visually-hidden in utilities.css. Kept as its own
-     rule rather than a second class on the element so the accessible name
-     survives even if a consumer overrides the burger's markup. */
   .ui-burger__label {
     position: absolute;
     inline-size: 1px;
@@ -424,6 +458,16 @@ In `components.css`, replace `.ui-burger__label`'s six visually-hidden declarati
     white-space: nowrap;
   }
 ```
+
+If it matches, make no change and move on. An earlier draft of this plan asked
+you to "replace" it with byte-identical text, which was a no-op written before
+Spec A had authored the rule.
+
+Leave it as its own rule rather than swapping in a `.ui-visually-hidden` class:
+`.ui-burger__label` needs `position: absolute` scoped to the burger, and keeping
+the declarations local means the accessible name survives even if a consumer
+overrides the burger markup. Step 1 is what removes the duplication that
+mattered — the deprecated `clip` form.
 
 - [ ] **Step 3: Remove the now-dead allowlist entries**
 
