@@ -818,6 +818,13 @@
     gap: var(--ui-space-1);
   }
 
+  /* `.ui-nav-list__item` (the `<li>`) carries no rule of its own -- list
+     removal, margin and grid spacing all live on `.ui-nav-list` above (and
+     cascade/inherit to it), and the link's own padding, color and hover/active
+     state live on `.ui-nav-list__link` below. It stays a distinct emitted
+     class rather than a bare `<li>` so a caller can target one item -- a
+     divider, an icon slot -- without a markup change. */
+
   .ui-nav-list__link {
     display: block;
     padding: 0.25rem 0.5rem;
