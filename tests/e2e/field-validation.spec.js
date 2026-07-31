@@ -51,3 +51,33 @@ test.describe('Field validation states', () => {
     ).toBe('0.6');
   });
 });
+
+test.describe('Textarea auto-sizing', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(PAGE);
+  });
+
+  test('grows with content instead of scrolling', async ({ page }) => {
+    const textarea = page.locator('#growing-textarea');
+    const height = () => textarea.evaluate((el) => el.clientHeight);
+
+    const before = await height();
+    await textarea.fill('one\ntwo\nthree\nfour\nfive\nsix\nseven');
+    const after = await height();
+
+    expect(after).toBeGreaterThan(before);
+    // Growing, not scrolling: the content must fit without overflow.
+    expect(await textarea.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(
+      1,
+    );
+  });
+
+  test('keeps a usable minimum height when empty', async ({ page }) => {
+    // `field-sizing: content` sizes to content, which makes an empty textarea
+    // collapse toward a single line and ignores the `rows` attribute. The floor
+    // is what stops that being a visual regression against the previous
+    // fixed-height rendering.
+    const empty = await page.locator('#growing-textarea').evaluate((el) => el.clientHeight);
+    expect(empty).toBeGreaterThanOrEqual(60);
+  });
+});

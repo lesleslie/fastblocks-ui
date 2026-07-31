@@ -589,6 +589,23 @@
       background-color 160ms ease;
   }
 
+  /* Auto-growing textarea with no JavaScript. Reached Baseline Newly on
+     2026-06-16 (Chrome 123, Firefox 152, Safari 26.2), so it needs no
+     `@supports` guard -- the Baseline gate enforces that judgement rather than
+     leaving it to this comment.
+
+     `min-block-size` is not decoration. `field-sizing: content` sizes the
+     control to its content and stops honouring the `rows` attribute, so an
+     empty textarea collapses toward a single line. The floor keeps an empty
+     control close to its previous fixed-height rendering; without it this is a
+     visible regression on every form that ships one. Where the property is
+     unsupported the declaration is dropped and the control keeps its old
+     fixed-height behaviour, which is why no guard is needed. */
+  .ui-textarea {
+    field-sizing: content;
+    min-block-size: 4rem;
+  }
+
   .ui-input::placeholder,
   .ui-textarea::placeholder {
     color: var(--ui-color-text-muted);
