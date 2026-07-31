@@ -205,6 +205,39 @@
     color: var(--ui-color-danger-strong);
   }
 
+  /* Client-side constraint validation, deliberately placed ABOVE the
+     `aria-invalid` rules that follow.
+
+     `:user-invalid` matches only after the user has interacted with a control
+     and left it in a failing state. Plain `:invalid` would match an empty
+     required field at page load, rendering an untouched form as
+     already-failing -- which is why this library has never used it.
+
+     The two layers are complementary, not alternatives: `aria-invalid` is set
+     by the *server* (validate, re-render, htmx-swap the field back in) and is
+     authoritative; `:user-invalid` is the browser's own pre-submit feedback.
+
+     The server rule below already outranks this one on specificity, so it wins
+     regardless of source order -- `:has()` contributes the specificity of its
+     most specific argument, making `.ui-field:has(:user-invalid)` (0,2,0) and
+     `.ui-field:has(.ui-input[aria-invalid="true"])` (0,3,0). Both currently set
+     identical declarations, so the question is moot in practice. Sitting the
+     client layer first is a readability convention, not a load-bearing
+     guarantee: if the server block ever gains a declaration this one also sets,
+     specificity is what protects it. */
+  .ui-field:has(:user-invalid) {
+    padding-inline-start: var(--ui-space-3);
+    border-inline-start: 3px solid var(--ui-color-danger);
+  }
+
+  .ui-field:has(:user-invalid) .ui-field__label {
+    color: var(--ui-color-danger-strong);
+  }
+
+  .ui-field:has(:disabled) {
+    opacity: 0.6;
+  }
+
   .ui-field:has(.ui-input[aria-invalid="true"]),
   .ui-field:has(.ui-select[aria-invalid="true"]),
   .ui-field:has(.ui-textarea[aria-invalid="true"]) {

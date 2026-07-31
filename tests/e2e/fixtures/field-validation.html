@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Field validation probe</title>
+    <!-- Served by playwright.config.js's `python3 -m http.server 8080` from the
+         repo root, so this resolves. A fixture file rather than page.setContent()
+         because setContent leaves the page on about:blank, where a root-relative
+         stylesheet href has no origin to resolve against. -->
+    <link rel="stylesheet" href="/fastblocks_ui/static/css/fastblocks-ui.css" />
+  </head>
+  <body>
+    <form id="probe-form">
+      <div class="ui-field" id="untouched">
+        <label class="ui-field__label" for="untouched-input">Untouched</label>
+        <div class="ui-field__control">
+          <input class="ui-input" id="untouched-input" name="untouched" required />
+        </div>
+      </div>
+
+      <div class="ui-field" id="interacted">
+        <label class="ui-field__label" for="interacted-input">Interacted</label>
+        <div class="ui-field__control">
+          <input class="ui-input" id="interacted-input" name="interacted" required />
+        </div>
+      </div>
+
+      <div class="ui-field" id="server-invalid">
+        <label class="ui-field__label" for="server-input">Server-rejected</label>
+        <div class="ui-field__control">
+          <input class="ui-input" id="server-input" name="server" aria-invalid="true" />
+        </div>
+      </div>
+
+      <div class="ui-field" id="disabled">
+        <label class="ui-field__label" for="disabled-input">Disabled</label>
+        <div class="ui-field__control">
+          <input class="ui-input" id="disabled-input" name="disabled" disabled />
+        </div>
+      </div>
+
+      <button type="button" id="elsewhere">Elsewhere</button>
+    </form>
+  </body>
+</html>
