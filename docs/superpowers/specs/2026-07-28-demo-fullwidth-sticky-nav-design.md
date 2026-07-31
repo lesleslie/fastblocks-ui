@@ -1,7 +1,7 @@
 # Full-bleed demo layout with sticky nav column and off-canvas drawer
 
 - **Date:** 2026-07-28
-- **Status:** Approved design, pending implementation plan
+- **Status:** Implemented. Code blocks corrected against the shipped result — see *Corrections after implementation*.
 - **Scope:** Spec A of three (see `docs/modernization-roadmap.md` for B and C)
 
 ## Problem
@@ -231,7 +231,12 @@ switch below for the one narrow case that does need a listener.
 ```css
 .ui-drawer {
   position: fixed;
+  /* CORRECTED after implementation -- see Corrections below. The UA sheet
+     gives every `[popover]` `inset: 0; width: fit-content; height: fit-content;
+     margin: auto`, which over-constrains both axes here. */
   inset-block: 0;
+  block-size: auto;
+  inset-inline-start: auto;
   inset-inline-end: 0;
   inline-size: min(20rem, 85vw);
   padding: var(--ui-space-4);
@@ -254,7 +259,9 @@ switch below for the one narrow case that does need a listener.
 }
 
 .ui-drawer::backdrop {
-  background: rgb(0 0 0 / 0.5);
+  /* CORRECTED: transparent is the BASE value, with the scrim on
+     `:popover-open`, or the backdrop fades in but never out. */
+  background: rgba(15, 23, 42, 0);
   transition:
     background-color 0.25s,
     overlay 0.25s allow-discrete,
@@ -423,9 +430,11 @@ body { padding-block-start: var(--ui-navbar-height); }
       timeline-scope: --page-hero;
     }
 
-    .ui-hero {
+    body > .ui-hero {
+      /* CORRECTED: `body > .ui-hero`, not `.ui-hero`. */
       view-timeline-name: --page-hero;
       view-timeline-axis: block;
+      view-timeline-inset: 0;
     }
 
     .ui-navbar.is-sticky {
@@ -530,10 +539,11 @@ registered in `manifest.json` alongside the existing 20+ components:
 def shell(main, aside=None, *, aside_width=None, max_width=None,
           class_=None, **attrs) -> SafeHTML: ...
 
-def nav_list(items, *, label=None, active=None,
+def nav_list(items, *, active=None, aria_current="true",
              class_=None, **attrs) -> SafeHTML: ...
 
-def nav_group(groups, *, class_=None, **attrs) -> SafeHTML: ...
+def nav_group(groups, *, active=None, aria_current="true",
+              class_=None, **attrs) -> SafeHTML: ...
 
 def drawer(content, *, id, label=None, side="end",
            class_=None, **attrs) -> SafeHTML: ...
@@ -615,6 +625,39 @@ to cover the new rules.
 | Three artefacts drift apart | Parity test extended before markup changes |
 | `aria-expanded` is implicit ARIA, absent from the DOM in every engine | Confirmed in Chrome 150; open state selects on the drawer's `:popover-open` via `:has()` instead |
 | Full-bleed hurts readability on ultrawide | `.ui-measure` utility on prose; `--ui-shell-max` available per page |
+
+## Corrections after implementation
+
+This spec was written before the code existed, and six of its snippets turned
+out to be wrong. They are corrected in place rather than left as a period
+record, because a spec is something people implement *from*: three of the six
+would have reproduced a bug that was already found and fixed. The narrative of
+what changed lives here; the literal diff lives in git.
+
+| Snippet | Was | Why it was wrong |
+|---|---|---|
+| `.ui-drawer` box model | no `inset-inline-start: auto`, no `block-size: auto` | **Critical.** The UA sheet gives every `[popover]` `inset: 0; width: fit-content; height: fit-content; margin: auto`. With a definite `inline-size` and `margin: 0` both axes are over-constrained, and CSS drops an inset — LTR ignores `right` (2.1 §10.3.7) and `bottom` (§10.6.4). The **default** end-side drawer rendered flush against the START edge at content height. Measured in Chrome at 1200×657: `left: 0, height: 100` where it should be `left: 880, height: 657`. |
+| `view-timeline-name` subject | `.ui-hero` | A named view timeline declared by more than one element resolves to an **inactive** timeline, and an animation on an inactive timeline applies no keyframes. The demo renders many `.ui-hero` instances, so the reveal would have silently done nothing — with every test still green. Now `body > .ui-hero`. |
+| Burger hide rule | `.ui-burger { display: none }` | Unscoped, it hid **every** burger above 1024px whatever each controlled. The demo proved the cost: both `#demo-drawer` showcase burgers vanished on desktop, so a laptop reader could not open the example drawer. Now `.ui-navbar .ui-burger`. |
+| `view-timeline-inset` | absent | Defaults to `auto`, which insets the scrollport by its `scroll-padding` — which this same feature sets on `:root`. The exit range was already a quarter elapsed at rest: the bar computed `opacity: 0.252` over the hero. Pinned to `0`. |
+| `.ui-drawer::backdrop` | opaque scrim in the base rule | The backdrop faded in but never out — on close it reverted to opaque, held through the 250 ms discrete `overlay`/`display` window, then snapped away. Scrim moved to `:popover-open` per MDN's documented pattern. |
+| `nav_list` / `nav_group` signatures | `label=`, no `aria_current=` | `label` was never implemented; `aria_current` was added because the component cannot know whether a consumer's hrefs change pages or only move the viewport, so a hardcoded `"page"` announces "current page" for a link that never leaves it. |
+
+Two further things the spec asserted that turned out to be false, corrected in
+the body above:
+
+- **`aria-expanded` is not a DOM attribute.** A `popovertarget` invoker's
+  expanded state is *implicit* ARIA — accessibility tree only. Measured in
+  Chrome 150 with the popover open, `getAttribute("aria-expanded")` returns
+  `null` and `button.matches('[aria-expanded="true"]')` is `false`. The
+  bars-to-cross morph therefore selects on the drawer's own `:popover-open` via
+  `:has()`. Screen-reader behaviour was never in doubt; only CSS cannot see it.
+- **`prefers-reduced-motion` needs a gate here, not an override.**
+  `animation-duration` is ignored outright on a progress-based timeline, so
+  `base.css`'s blanket `animation-duration: .01ms !important` — which does
+  neutralise every time-based animation in the bundle — does nothing for a
+  scroll-driven one. The reveal is gated on
+  `@media (prefers-reduced-motion: no-preference)` instead.
 
 ## Follow-ups (not this spec)
 
