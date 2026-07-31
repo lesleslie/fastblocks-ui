@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { clickWhenStable } from './test-utils.js';
 
 test.describe('Dialog focus management', () => {
   test.beforeEach(async ({ page }) => {
@@ -9,7 +10,7 @@ test.describe('Dialog focus management', () => {
   test('moves focus into the dialog and restores it on Escape', async ({ page }) => {
     const trigger = page.getByRole('button', { name: 'Open dialog' });
     await trigger.focus();
-    await trigger.click();
+    await clickWhenStable(trigger);
 
     await expect(page.locator('#demo-dialog')).toHaveAttribute('open', '');
     // openDialog() moves focus to the first focusable inside the dialog.

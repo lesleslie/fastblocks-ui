@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { clickWhenStable } from './test-utils.js';
 
 test.describe('FastBlocks UI smoke', () => {
   test.beforeEach(async ({ page }) => {
@@ -30,7 +31,7 @@ test.describe('FastBlocks UI smoke', () => {
   });
 
   test('opens and closes the dialog', async ({ page }) => {
-    await page.getByRole('button', { name: 'Open dialog' }).click();
+    await clickWhenStable(page.getByRole('button', { name: 'Open dialog' }));
     await expect(page.locator('#demo-dialog')).toHaveAttribute('open', '');
     await expect(page.locator('#demo-dialog')).toHaveAttribute('aria-hidden', 'false');
 
@@ -40,7 +41,7 @@ test.describe('FastBlocks UI smoke', () => {
   });
 
   test('toggles the menu', async ({ page }) => {
-    await page.getByRole('button', { name: 'Toggle menu' }).click();
+    await clickWhenStable(page.getByRole('button', { name: 'Toggle menu' }));
     await expect(page.locator('#demo-menu')).not.toBeHidden();
     await expect(page.getByRole('button', { name: 'Toggle menu' })).toHaveAttribute('aria-expanded', 'true');
   });
