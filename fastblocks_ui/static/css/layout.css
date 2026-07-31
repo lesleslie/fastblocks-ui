@@ -73,7 +73,18 @@
   }
 
   @media (min-width: 1024px) {
-    .ui-shell {
+    /* `:has(> :nth-child(2))`, not a bare `.ui-shell`. `aside` is optional --
+       `shell(main)` is the first example in the usage docs -- and an explicit
+       two-track `grid-template-columns` creates BOTH tracks regardless of how
+       many items exist. Without the guard an asideless shell reserved the
+       aside's width for nothing: measured in Chrome at 1280px, the shell
+       computed `960px 256px` and main was 960px wide either way, losing
+       256px + the gap on every desktop viewport.
+
+       Matched on child count rather than on `.ui-shell-aside`, so a consumer
+       composing the grid by hand gets the same behaviour without having to
+       adopt our class name for the second column. */
+    .ui-shell:has(> :nth-child(2)) {
       grid-template-columns: minmax(0, 1fr) var(--ui-shell-aside-width, 16rem);
       align-items: start;
     }
@@ -215,9 +226,11 @@
        in-flow sticky column here. The UA stylesheet's
        `[popover]:not(:popover-open) { display: none }` is author-overridable,
        which is what makes one element, one id, two roles possible -- and
-       keeping one id is what keeps htmx swapping safe. With `.ui-burger`
-       hidden, nothing can open the popover, so the top-layer path is
-       unreachable at this width.
+       keeping one id is what keeps htmx swapping safe. Note the top-layer
+       path is NOT unreachable here: only `.ui-burger.is-shell-toggle` is
+       hidden at this width (see below), so a burger without the opt-in class
+       can still open this popover and put the column into the top layer.
+       `enhanceDrawers` closes a drawer left open across the breakpoint.
 
        Every declaration below neutralises one from `.ui-drawer`, which is
        written for a fixed off-canvas panel: `inset` clears its `inset-block`

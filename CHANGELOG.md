@@ -30,6 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `table()` now emits `tabindex="0"` on its `.ui-table-container` wrapper.
+  The wrapper is `overflow-x: auto`, so a table wide enough to overflow was a
+  scroll container with no focusable descendant -- a keyboard user could not
+  reach the columns past the fold at all (axe `scrollable-region-focusable`).
+  Every table gains one tab stop, including ones that do not overflow.
+
 - Both demo pages are now full-bleed, with the hero at the top of the page and
   section navigation as a right-hand sticky column that becomes an off-canvas
   drawer below 1024px. The demo is built from public `ui-*` components instead

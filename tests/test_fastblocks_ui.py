@@ -2163,6 +2163,19 @@ class TestStickyLayoutCss(unittest.TestCase):
         self.assertIn("display: block", body)
         self.assertIn("position: sticky", body)
 
+    def test_two_column_switch_requires_a_second_child(self):
+        # `aside` is optional and `shell(main)` is the documented bare form,
+        # but an explicit two-track `grid-template-columns` creates BOTH tracks
+        # regardless of item count -- so without this guard an asideless shell
+        # reserved the aside's width for nothing. Measured in Chrome at 1280px
+        # before the fix: `960px 256px` with main at 960px either way; after:
+        # a single `1248px` track. Invisible to every markup-level test, since
+        # `shell()` emits identical HTML in both cases.
+        self.assertIn(".ui-shell:has(> :nth-child(2))", self.rules_only)
+        self.assertNotRegex(
+            self.rules_only, r"\n\s*\.ui-shell \{[^}]*grid-template-columns:[^}]*16rem"
+        )
+
     def test_breakpoint_is_1024px(self):
         # Deliberately not `assertIn("@media (min-width: 1024px)", css)`: the
         # `.ui-shell` grid switch from Task 1 already put that exact string in

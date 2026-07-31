@@ -52,7 +52,7 @@ from .helpers import (
     validation_summary,
 )
 from .helpers import (
-    input as input,  # intentional back-compat re-export; see helpers.py:390
+    input as input,  # intentional back-compat re-export; see the alias note in helpers.py
 )
 from .manifest import (
     COMPONENT_MANIFEST,
