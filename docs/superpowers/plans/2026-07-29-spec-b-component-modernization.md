@@ -206,7 +206,14 @@ pyproject.toml, which is how the two drifted apart between 0.7.0 and 0.7.1."
 
 ---
 
-### Task 2: B1 — client-side field validation states
+### Task 2: B1 — client-side field validation states  ✅ DONE (`5a78075`)
+
+> **Executed with two deviations, both test-side.** The spec's `page.setContent()`
+> approach cannot resolve a root-relative stylesheet href (the page stays on
+> `about:blank`), so it uses a served fixture at
+> `tests/e2e/fixtures/field-validation.html` instead — matching Task 10's pattern.
+> And `:user-invalid` needs a value change, not focus/blur, to set the
+> user-interacted flag; the test types and deletes a character.
 
 Adds `:user-invalid` feedback *beneath* the existing server-authoritative `aria-invalid` rules. Source order matters: `aria-invalid` must win on equal specificity, so the new rules go **before** the existing block at `components.css:208`.
 
@@ -219,7 +226,7 @@ Adds `:user-invalid` feedback *beneath* the existing server-authoritative `aria-
 - Consumes: `--ui-color-danger`, `--ui-space-3` from `tokens.css`
 - Produces: `.ui-field:has(:user-invalid)` styling contract relied on by Task 12's docs
 
-- [ ] **Step 1: Write the failing e2e test**
+- [x] **Step 1: Write the failing e2e test**
 
 Create `tests/e2e/field-validation.spec.js`:
 
@@ -258,12 +265,12 @@ test.describe('Field validation states', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to confirm it fails**
+- [x] **Step 2: Run it to confirm it fails**
 
 Run: `npx playwright test tests/e2e/field-validation.spec.js --project=chromium`
 Expected: second test FAILS — `expected "3px", received "0px"`
 
-- [ ] **Step 3: Add the CSS**
+- [x] **Step 3: Add the CSS**
 
 Insert into `fastblocks_ui/static/css/components.css` immediately **before** the existing `.ui-field:has(.ui-input[aria-invalid="true"])` rule:
 
@@ -288,12 +295,12 @@ Insert into `fastblocks_ui/static/css/components.css` immediately **before** the
 
 ```
 
-- [ ] **Step 4: Rebuild the bundle**
+- [x] **Step 4: Rebuild the bundle**
 
 Run: `python tools/build_css.py`
 Expected: `wrote fastblocks_ui/static/css/fastblocks-ui.css`
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `npx playwright test tests/e2e/field-validation.spec.js`
 Expected: 6 passed (2 tests × 3 engines)
@@ -301,7 +308,7 @@ Expected: 6 passed (2 tests × 3 engines)
 Run: `uv run pytest tests/ -q && npm run validate`
 Expected: both pass
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add fastblocks_ui/static/css/components.css fastblocks_ui/static/css/fastblocks-ui.css tests/e2e/field-validation.spec.js
