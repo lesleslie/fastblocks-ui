@@ -424,7 +424,7 @@ accent-color already themed checkbox/switch; extends it to <progress>."
 
 ---
 
-### Task 4: B1 — retire deprecated `clip` from `.ui-visually-hidden`
+### Task 4: B1 — retire deprecated `clip` from `.ui-visually-hidden`  DONE (`3d4a1d7`)
 
 Surfaced by the Baseline gate. `clip` is universally supported but deprecated, and Spec A's `.ui-burger__label` uses `clip-path`, so the library ships two visually-hidden implementations — one of them deprecated. This retires the deprecated one.
 
@@ -438,7 +438,7 @@ Surfaced by the Baseline gate. `clip` is universally supported but deprecated, a
 - Consumes: nothing
 - Produces: `.ui-visually-hidden` as the single visually-hidden implementation
 
-- [ ] **Step 1: Replace the utility**
+- [x] **Step 1: Replace the utility**
 
 In `fastblocks_ui/static/css/utilities.css`, replace the whole `.ui-visually-hidden` rule with:
 
@@ -458,7 +458,7 @@ In `fastblocks_ui/static/css/utilities.css`, replace the whole `.ui-visually-hid
   }
 ```
 
-- [ ] **Step 2: Verify `.ui-burger__label` — no edit expected**
+- [x] **Step 2: Verify `.ui-burger__label` — no edit expected**
 
 Spec A landed this rule already, and it is **already correct**. Confirm it reads:
 
@@ -483,21 +483,21 @@ the declarations local means the accessible name survives even if a consumer
 overrides the burger markup. Step 1 is what removes the duplication that
 mattered — the deprecated `clip` form.
 
-- [ ] **Step 3: Remove the now-dead allowlist entries**
+- [x] **Step 3: Remove the now-dead allowlist entries**
 
 Delete the `css.properties.clip` and `css.types.shape.rect` objects from `.baseline-allowlist.json`'s `allow` array, leaving only `css.properties.accent-color`.
 
-- [ ] **Step 4: Rebuild and verify the gate proves the entries were dead**
+- [x] **Step 4: Rebuild and verify the gate proves the entries were dead**
 
 Run: `python tools/build_css.py && npm run check:baseline`
 Expected: `check-baseline: OK`. If it reports `exempts css.properties.clip, but no CSS module uses it`, an entry was left behind — remove it.
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `uv run pytest tests/ -q && npm run validate && npx playwright test tests/e2e/accessibility.spec.js`
 Expected: all pass
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add fastblocks_ui/static/css/utilities.css fastblocks_ui/static/css/components.css fastblocks_ui/static/css/fastblocks-ui.css .baseline-allowlist.json
