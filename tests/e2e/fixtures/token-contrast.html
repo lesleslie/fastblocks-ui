@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Token contrast probe</title>
+    <link rel="stylesheet" href="/fastblocks_ui/static/css/fastblocks-ui.css" />
+  </head>
+  <body>
+    <!-- Probe element: `color` is set to `var(--token)` so the browser resolves
+         the token (including color-mix() and relative colour syntax) to a
+         concrete colour, which getComputedStyle then reports. Reading the custom
+         property directly would return its unresolved TEXT for an unregistered
+         property, not a colour. -->
+    <div id="probe"></div>
+    <canvas id="raster" width="1" height="1"></canvas>
+  </body>
+</html>
