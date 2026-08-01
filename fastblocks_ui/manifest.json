@@ -341,6 +341,12 @@
           "type": "list[tuple[object, object]] | None"
         },
         {
+          "kind": "keyword_only",
+          "name": "id",
+          "required": true,
+          "type": "str"
+        },
+        {
           "default": "Menu",
           "kind": "keyword_only",
           "name": "label",

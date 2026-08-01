@@ -5,6 +5,28 @@ test.describe('FastBlocks UI smoke', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/demo/demo.html');
     await page.waitForLoadState('networkidle');
+    // `networkidle` says the bytes arrived, not that the ES module finished
+    // executing. Every test below depends on the enhancement layer being live,
+    // and enhance.js publishes `window.fastBlocksUI` as its last boot step --
+    // so that is the real readiness signal. Without this the tab test was
+    // intermittently clicking before enhanceTabs() had bound, failing roughly
+    // half of WebKit runs.
+    await page.waitForFunction(() => Boolean(window.fastBlocksUI));
+
+    // Neutralise `content-visibility: auto` for this spec.
+    //
+    // These are component smoke tests, not a test of lazy rendering -- that is
+    // demo-layout.spec.js's job, including anchor landing with it enabled. But
+    // offscreen `.demo-section`s swap their `contain-intrinsic-size` estimate
+    // for real height as they intersect, and on this very tall page that can
+    // land between a synthetic click's mousedown and mouseup. Focus moves (it
+    // is set on mousedown) while no `click` event is ever dispatched, because
+    // mouseup landed elsewhere -- so the handler is never called and the tab
+    // silently fails to switch. Measured directly: activeElement was the tab
+    // while aria-selected stayed false, in ~25% of WebKit runs.
+    await page.addStyleTag({
+      content: '.demo-section { content-visibility: visible !important; }',
+    });
   });
 
   test('renders the demo and boots the enhancement layer', async ({ page }) => {
@@ -42,8 +64,13 @@ test.describe('FastBlocks UI smoke', () => {
 
   test('toggles the dropdown', async ({ page }) => {
     await clickWhenStable(page.getByRole('button', { name: 'Toggle dropdown' }));
-    await expect(page.locator('#demo-dropdown')).not.toBeHidden();
-    await expect(page.getByRole('button', { name: 'Toggle dropdown' })).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('#demo-dropdown')).toBeVisible();
+    // Open state is read from the panel, not the invoker: a popovertarget
+    // button's expanded state is implicit ARIA and is never reflected as a DOM
+    // attribute in any engine. See tests/e2e/dropdown.spec.js.
+    expect(
+      await page.locator('#demo-dropdown').evaluate((el) => el.matches(':popover-open')),
+    ).toBe(true);
   });
 
   test('switches tabs and updates visible panels', async ({ page }) => {

@@ -873,7 +873,7 @@ class TestHelpers(unittest.TestCase):
         switch_markup = switch(label="Auto save", checked=True)
         alert_markup = alert("Saved", variant="success")
         dialog_markup = dialog("Content", title="Dialog title", open=True)
-        menu_markup = dropdown([("Profile", "/profile"), ("Settings", "/settings")])
+        menu_markup = dropdown([("Profile", "/profile"), ("Settings", "/settings")], id="m")
 
         self.assertIn('<select class="ui-select">', select_markup)
         self.assertIn('<option value="2" selected>Two</option>', select_markup)
@@ -894,7 +894,7 @@ class TestHelpers(unittest.TestCase):
             custom_element=True,
         )
         dialog_markup = dialog("Content", title="Dialog title", custom_element=True)
-        menu_markup = dropdown([("Profile", "/profile")], custom_element=True)
+        menu_markup = dropdown([("Profile", "/profile")], id="m", custom_element=True)
 
         self.assertIn("<ui-tabs", tabs_markup)
         self.assertIn("<ui-dialog", dialog_markup)
@@ -1435,7 +1435,7 @@ class TestHelperCorrectnessRegressions(unittest.TestCase):
             "button": str(button("X", href="javascript:alert(1)")),
             "breadcrumb": str(breadcrumb([("Home", "javascript:alert(1)")])),
             "navbar": str(navbar("B", brand_url="javascript:alert(1)")),
-            "dropdown": str(dropdown([("Home", "javascript:alert(1)")])),
+            "dropdown": str(dropdown([("Home", "javascript:alert(1)")], id="m")),
         }
         for name, html in cases.items():
             self.assertNotIn(
@@ -1482,7 +1482,7 @@ class TestMediumTierRegressions(unittest.TestCase):
         """A caller-supplied aria_label must not produce two attributes."""
         for name, html in (
             ("tabs", str(tabs([("a", "A", "1")], aria_label="Custom"))),
-            ("dropdown", str(dropdown([("Home", "/")], aria_label="Custom"))),
+            ("dropdown", str(dropdown([("Home", "/")], id="m", aria_label="Custom"))),
         ):
             self.assertEqual(
                 html.count("aria-label="),
@@ -1493,7 +1493,7 @@ class TestMediumTierRegressions(unittest.TestCase):
 
     def test_tabs_and_menu_keep_their_default_label(self) -> None:
         self.assertIn('aria-label="Tabs"', str(tabs([("a", "A", "1")])))
-        self.assertIn('aria-label="Menu"', str(dropdown([("Home", "/")])))
+        self.assertIn('aria-label="Menu"', str(dropdown([("Home", "/")], id="m")))
 
     def test_level_is_not_a_navigation_landmark(self) -> None:
         """`level()` is a layout primitive, not navigation.
@@ -2128,7 +2128,7 @@ class TestAriaLabelGuardAcrossHelpers(unittest.TestCase):
         """
         return (
             ("tabs", lambda **kw: fastblocks_ui.tabs([("a", "A", "x")], **kw)),
-            ("dropdown", lambda **kw: fastblocks_ui.dropdown([("A", "/a")], **kw)),
+            ("dropdown", lambda **kw: fastblocks_ui.dropdown([("A", "/a")], id="m", **kw)),
             ("navbar", lambda **kw: fastblocks_ui.navbar(brand="B", **kw)),
             ("breadcrumb", lambda **kw: fastblocks_ui.breadcrumb([("A", "/a")], **kw)),
             ("drawer", lambda **kw: fastblocks_ui.drawer("c", id="d", **kw)),

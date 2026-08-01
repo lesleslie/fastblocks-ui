@@ -800,26 +800,40 @@ def tabs(
 def dropdown(
     items: list[tuple[object, object]] | None = None,
     *,
+    id: str,
     label: str = "Menu",
     custom_element: bool = False,
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
-    """Render a dropdown menu (`<nav class="ui-dropdown">`).
+    """Render a dropdown panel (`<nav class="ui-dropdown" popover>`).
 
-    `.ui-dropdown` is `position: absolute` (components.css) so opening it
-    overlays the page instead of pushing following content downward. That
-    means the element wrapping this helper's output *and* its trigger button
-    together needs `position: relative` (or any other positioned value) so
-    the menu anchors to that local wrapper -- otherwise it walks up to
-    whatever positioned ancestor happens to exist further up the page. See
-    `demo/demo.html`'s `.demo-panel` wrapper for a minimal example.
+    Opened by a sibling `<button popovertarget="{id}">`; no JavaScript is
+    involved. The browser supplies light-dismiss, Escape, top-layer
+    rendering, focus return to the invoker, and the invoker's implicit
+    `expanded` state in the accessibility tree.
+
+    There is no positioned-ancestor requirement any more. The previous
+    implementation was `position: absolute`, which forced every caller to wrap
+    the trigger and panel in a `position: relative` element or watch the panel
+    resolve against an arbitrary ancestor further up the page. A popover is in
+    the top layer and anchors to its invoker, so that contract is gone -- as is
+    the `z-index` guess it needed.
+
+    ``id`` is required because ``popovertarget`` needs a stable target. That is
+    the htmx stable-ID constraint surfacing in the API, the same way
+    :func:`drawer` carries it.
+
+    Note the open state is *not* readable from the invoker in CSS: a
+    ``popovertarget`` button's ``aria-expanded`` is implicit ARIA and is never
+    reflected as a DOM attribute (measured null in Chromium 151, Firefox 153 and
+    WebKit 26.5). Style the open state from the panel's ``:popover-open``.
     """
     classes = _flatten_classes("ui-dropdown", class_)
     # See tabs() above -- appending the label duplicated `aria-label`.
     if not _has_attr(attrs, "aria-label"):
         attrs["aria_label"] = label
-    attr_html = _render_attrs(attrs, class_=classes, data_ui_dropdown=True)
+    attr_html = _render_attrs(attrs, class_=classes, id=id, popover=True)
     links = [
         f'<a class="ui-dropdown__item" href="{escape(_safe_url(href), quote=True)}">{_render_fragment(text)}</a>'
         for text, href in (items or [])
@@ -828,8 +842,6 @@ def dropdown(
     if custom_element:
         host_attr_html = _render_attrs(
             class_=classes,
-            data_ui_dropdown=True,
-            data_ui_state="closed",
             aria_label=attrs.get("aria_label", attrs.get("aria-label", label)),
         )
         return _safe(f"<ui-dropdown{host_attr_html}>{menu_markup}</ui-dropdown>")

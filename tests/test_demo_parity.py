@@ -714,13 +714,13 @@ class TestDemoParity(unittest.TestCase):
         )
         self.assertFragmentInDemo(html)
 
-    def test_menu(self) -> None:
+    def test_dropdown(self) -> None:
+        # No `hidden`: the panel is a popover, so the UA hides it when closed.
         html = str(
             dropdown(
                 [("Profile", "#"), ("Settings", "#"), ("Sign out", "#")],
                 label="Demo dropdown",
                 id="demo-dropdown",
-                hidden=True,
             )
         )
         self.assertFragmentInDemo(html)

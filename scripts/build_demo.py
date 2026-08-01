@@ -462,14 +462,14 @@ def pagination_demo() -> SafeHTML:
 
 def dropdown_demo() -> SafeHTML:
     return _safe(
+        # No `.demo-panel` positioning wrapper is needed any more -- the panel
+        # is a popover in the top layer, anchored to its invoker.
         '<div class="demo-panel">'
         + str(
             button(
                 "Toggle dropdown",
                 type="button",
-                data_ui_dropdown_trigger=True,
-                aria_controls="demo-dropdown",
-                aria_expanded="false",
+                popovertarget="demo-dropdown",
             )
         )
         + str(
@@ -477,10 +477,9 @@ def dropdown_demo() -> SafeHTML:
                 [("Profile", "#"), ("Settings", "#"), ("Sign out", "#")],
                 label="Demo dropdown",
                 id="demo-dropdown",
-                hidden=True,
             )
         )
-        + '<p class="ui-muted">Arrow keys navigate; Escape closes and restores focus.</p>'
+        + '<p class="ui-muted">Opens, light-dismisses, and returns focus with no JavaScript.</p>'
         + "</div>"
     )
 

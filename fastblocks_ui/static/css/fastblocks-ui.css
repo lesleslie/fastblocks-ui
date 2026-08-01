@@ -799,31 +799,54 @@
   .ui-dropdown {
     display: grid;
     gap: var(--ui-space-1);
-    min-width: 12rem;
+    min-inline-size: 12rem;
     padding: var(--ui-space-2);
     border: var(--ui-border-width) solid var(--ui-color-border);
     border-radius: var(--ui-radius-md);
     background: var(--ui-color-surface);
     box-shadow: var(--ui-shadow-2);
-    /* Fixed 2026-07-26: previously a plain in-flow block, so opening it
-       pushed all following page content downward instead of overlaying it
-       like a real dropdown. `position: absolute` removes it from flow --
-       with top/left left at their `auto` default, browsers fall back to the
-       element's "static position" (roughly where it would have sat in
-       normal flow), which for this component's expected markup (a trigger
-       button immediately followed by the menu) already lands it directly
-       under the trigger with no extra offsets needed. The immediate parent
-       wrapping the trigger + menu together must have `position: relative`
-       (or any other positioned value) so the menu anchors there instead of
-       walking up to whatever positioned ancestor exists further up the page
-       -- see `dropdown()`'s docstring and `demo/demo.html`'s `.demo-panel`. */
-    position: absolute;
-    z-index: 20;
-    margin-top: var(--ui-space-1);
+    /* No `position`, no `z-index`, and no positioned-ancestor contract.
+       The panel is a popover, so the browser renders it in the top layer --
+       above every stacking context by definition, which is what the old
+       `z-index: 20` was guessing at. The UA stylesheet supplies
+       `position: fixed`, so the previous `position: absolute` (and the
+       `position: relative` wrapper it forced on every caller) is gone. */
   }
 
-  .ui-dropdown[hidden] {
+  /* Restores the UA's own closed-popover hiding, which the `display: grid`
+     above would otherwise defeat.
+
+     The UA sheet closes a popover with `[popover]:not(:popover-open) { display:
+     none }`, but ANY author `display` beats it -- cascade layers order author
+     styles against each other, never against the UA stylesheet. Without this
+     rule the panel renders permanently open. Scoped to `[popover]` so a
+     `.ui-dropdown` used without the attribute still lays out as a grid. */
+  .ui-dropdown[popover]:not(:popover-open) {
     display: none;
+  }
+
+  /* Anchor positioning sits below the Baseline floor, and this guard is
+     genuinely load-bearing rather than ceremony: without it the panel has no
+     anchor to resolve against.
+
+     Fallback behaviour is the UA default for `[popover]` -- `inset: 0` with
+     `margin: auto`, i.e. centred in the viewport. Degraded but entirely
+     usable: it still opens, light-dismisses, traps nothing, and returns
+     focus. That is a better failure mode than the old contract, where a
+     missing `position: relative` ancestor sent the panel to an arbitrary
+     place on the page.
+
+     `popovertarget` establishes an *implicit* anchor reference, so no
+     `anchor-name` / `position-anchor` pair is needed here. */
+  @supports (position-area: block-end) {
+    .ui-dropdown:popover-open {
+      position-area: block-end span-inline-end;
+      position-try-fallbacks: flip-block, flip-inline;
+      /* Override the UA's `inset: 0` + `margin: auto` centring so the
+         position-area actually governs placement. */
+      inset: auto;
+      margin: var(--ui-space-1) 0 0;
+    }
   }
 
   .ui-dropdown__item {

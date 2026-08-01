@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Dropdown probe</title>
+    <link rel="stylesheet" href="/fastblocks_ui/static/css/fastblocks-ui.css" />
+    <style>
+      /* Deliberately NO positioned ancestor anywhere. The whole point of the
+         popover migration is that the panel no longer needs one; this fixture
+         would have mispositioned under the old `position: absolute` rule. */
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .spacer {
+        block-size: 45vh;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="spacer"></div>
+    <div class="row">
+      <button class="ui-button" id="trigger" popovertarget="panel">Open</button>
+      <button class="ui-button" id="edge-trigger" popovertarget="edge-panel">Edge</button>
+    </div>
+
+    <nav class="ui-dropdown" id="panel" popover aria-label="Actions">
+      <a class="ui-dropdown__item" href="#profile" id="first-item">Profile</a>
+      <a class="ui-dropdown__item" href="#settings">Settings</a>
+      <a class="ui-dropdown__item" href="#signout">Sign out</a>
+    </nav>
+
+    <nav class="ui-dropdown" id="edge-panel" popover aria-label="Edge actions">
+      <a class="ui-dropdown__item" href="#a">An intentionally wide item label</a>
+    </nav>
+
+    <div class="spacer"></div>
+  </body>
+</html>
