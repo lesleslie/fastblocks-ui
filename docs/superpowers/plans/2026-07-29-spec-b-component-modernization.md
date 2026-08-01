@@ -1027,7 +1027,17 @@ natively was wrong. dialog-focus-trap.spec.js is deleted with it."
 
 ---
 
-### Task 9: B2 — delete the retired JS exports, add the autoshow hook
+### Task 9: B2 — delete the retired JS exports, add the autoshow hook  DONE (`adecb5e`)
+
+> **The plan was not executable as written.** It said to leave the custom
+> elements alone while deleting the helpers; they were the last consumers of
+> those helpers, and were already dead code after Tasks 7-8. Resolved by
+> deleting `<ui-dialog>` and `<ui-dropdown>` (user decision) and keeping
+> `<ui-tabs>`. Export surface is FOUR, not three -- the plan predated Spec A
+> adding `enhanceDrawers`.
+>
+> **Removing a named parameter from a helper with `**attrs` fails silently** --
+> the retired keyword renders as an HTML attribute. Guard explicitly.
 
 Public exports drop from five to three. A named import of a removed ES export is a module-instantiation error, so this is a hard break by design.
 
@@ -1040,7 +1050,7 @@ Public exports drop from five to three. A named import of a removed ES export is
 - Consumes: `data-ui-dialog-autoshow` from Task 8
 - Produces: public exports `defineFastBlocksCustomElements`, `enhanceTabs`, `initFastBlocksUI` only
 
-- [ ] **Step 1: Write the failing vitest tests**
+- [x] **Step 1: Write the failing vitest tests**
 
 Add to `tests/js/fastblocks-ui.test.js`:
 
@@ -1083,12 +1093,12 @@ describe('public export surface', () => {
 });
 ```
 
-- [ ] **Step 2: Run to confirm failure**
+- [x] **Step 2: Run to confirm failure**
 
 Run: `npx vitest run tests/js/fastblocks-ui.test.js`
 Expected: FAIL — five exports found, and `showModal` never called
 
-- [ ] **Step 3: Delete the retired code from `enhance.js`**
+- [x] **Step 3: Delete the retired code from `enhance.js`**
 
 Delete these, and any helper that becomes unreferenced after them: `enhanceDialogs`, `enhanceMenus`, `openMenu`, `closeMenu`, `openDialogShared`, `closeDialogShared`, `attachDialogCloseListener`, `onNativeDialogClose`, `isDialogModal`, `trapTabFocus`, `focusableWithin`, `dialogState`, and the constants `DIALOG_TRIGGER_SELECTOR`, `DIALOG_CLOSE_SELECTOR`, `MENU_TRIGGER_SELECTOR`, `MENU_ITEM_SELECTOR`, `FOCUSABLE_SELECTOR`.
 
@@ -1101,7 +1111,7 @@ Expected: no output
 
 Leave the custom-element (`ui-dialog`, `ui-menu` host) definitions alone unless they reference deleted helpers; if they do, reduce them to markup-sync only.
 
-- [ ] **Step 4: Add the autoshow hook (not exported)**
+- [x] **Step 4: Add the autoshow hook (not exported)**
 
 Add to `enhance.js`:
 
@@ -1136,7 +1146,7 @@ export function initFastBlocksUI(root = document) {
 }
 ```
 
-- [ ] **Step 5: Shrink the public entrypoint**
+- [x] **Step 5: Shrink the public entrypoint**
 
 Replace the export block in `fastblocks_ui/static/js/fastblocks-ui.js`:
 
@@ -1148,12 +1158,12 @@ export {
 } from './enhance.js';
 ```
 
-- [ ] **Step 6: Run everything**
+- [x] **Step 6: Run everything**
 
 Run: `npx vitest run && npm run validate && uv run pytest tests/ -q && npx playwright test`
 Expected: all pass
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
