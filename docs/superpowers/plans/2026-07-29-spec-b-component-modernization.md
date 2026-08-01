@@ -1182,7 +1182,19 @@ render an open dialog via data-ui-dialog-autoshow, including across htmx swaps."
 
 ---
 
-### Task 10: B3 — the contrast harness, before any token derives
+### Task 10: B3 — the contrast harness, before any token derives  DONE (`95e195c`)
+
+> **The spec's contrast function was wrong.** `getComputedStyle` returns colours
+> in their authored space (`oklch(...)`), never `rgb()`, so parsing its numbers
+> as 0-255 channels yields nonsense. Rasterise through a 1x1 canvas instead.
+>
+> **Task 11's gate: 79/185 grid colours currently fail `-contrast on base`**
+> (worst 1.91:1). Two pairs plus the responsiveness guard are `test.fixme`;
+> Task 11 removes all three.
+>
+> **Open, needs a decision:** `--ui-color-border` is 1.47:1 and
+> `--ui-color-border-strong` 2.60:1 against the surface, both below SC 1.4.11's
+> 3:1. Pre-existing, left as a visible fixme.
 
 Built first, deliberately. It is the gate that decides Task 11's mix percentages, so it must exist and pass against the current hand-authored palette before anything derives.
 
@@ -1194,7 +1206,7 @@ Built first, deliberately. It is the gate that decides Task 11's mix percentages
 - Consumes: `fastblocks-ui.css` tokens
 - Produces: a passing baseline that Task 11 must not regress
 
-- [ ] **Step 1: Create the fixture**
+- [x] **Step 1: Create the fixture**
 
 Create `tests/e2e/fixtures/token-contrast.html`:
 
@@ -1206,7 +1218,7 @@ Create `tests/e2e/fixtures/token-contrast.html`:
 <div id="probe"></div>
 ```
 
-- [ ] **Step 2: Write the spec with a fixed, checked-in sample grid**
+- [x] **Step 2: Write the spec with a fixed, checked-in sample grid**
 
 Create `tests/e2e/token-contrast.spec.js`:
 
@@ -1296,7 +1308,7 @@ test.describe('Derived token contrast', () => {
 });
 ```
 
-- [ ] **Step 3: Run it against the current hand-authored palette**
+- [x] **Step 3: Run it against the current hand-authored palette**
 
 Run: `npx playwright test tests/e2e/token-contrast.spec.js --project=chromium`
 
@@ -1304,11 +1316,11 @@ Expected: the two `-contrast`-on-`primary` pairs **pass** for the shipped colour
 
 **This is the correct starting state.** Record the failure count in the commit message; Task 11 is what makes the grid meaningful.
 
-- [ ] **Step 4: Mark the not-yet-derived pairs as expected failures**
+- [x] **Step 4: Mark the not-yet-derived pairs as expected failures**
 
 For any pair failing only because the token is not yet derived, add `test.fixme(...)` with a comment naming Task 11. Do not weaken the thresholds.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tests/e2e/fixtures/token-contrast.html tests/e2e/token-contrast.spec.js
