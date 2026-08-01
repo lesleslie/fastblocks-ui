@@ -687,7 +687,19 @@ convention -- and Spec A had begun replicating it."
 
 ---
 
-### Task 7: B2 — `ui-dropdown` onto Popover API and anchor positioning
+### Task 7: B2 — `ui-dropdown` onto Popover API and anchor positioning  DONE (`4dca767`)
+
+> **Three corrections for Tasks 8-9, which use the same primitives:**
+> 1. Never set `display` on a `[popover]` in the author layer — it defeats the
+>    UA's `:not(:popover-open) { display: none }`. Cascade layers do not order
+>    author styles against the UA sheet.
+> 2. `aria-expanded` on a `popovertarget` invoker is implicit ARIA and is never a
+>    DOM attribute in any engine. Style open state from the panel's
+>    `:popover-open`. Task 9's plan text assumed otherwise.
+> 3. WebKit does not focus a button on click (macOS convention). Drive
+>    focus-restoration assertions from the keyboard.
+>
+> Use `tools/refresh_demo_assets.py` for demo re-inlining from here on.
 
 Deletes the `position: relative` ancestor contract that `components.css:437-448` and `menu()`'s docstring both document rather than fix.
 
@@ -701,7 +713,7 @@ Deletes the `position: relative` ancestor contract that `components.css:437-448`
 - Consumes: `dropdown()` from Task 5
 - Produces: `dropdown(items, *, id, label="Menu", class_=None, **attrs)` — **`id` becomes required**, because `popovertarget` needs a stable target. This is the htmx stable-ID constraint surfacing in the API, exactly as Spec A's `drawer()` did.
 
-- [ ] **Step 1: Write the failing e2e test**
+- [x] **Step 1: Write the failing e2e test**
 
 Create `tests/e2e/dropdown.spec.js`:
 
@@ -751,12 +763,12 @@ test.describe('Dropdown', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to confirm it fails**
+- [x] **Step 2: Run it to confirm it fails**
 
 Run: `npx playwright test tests/e2e/dropdown.spec.js --project=chromium`
 Expected: FAIL — the current `.ui-dropdown` uses `[hidden]`, not `popover`
 
-- [ ] **Step 3: Replace the CSS**
+- [x] **Step 3: Replace the CSS**
 
 In `components.css`, replace the entire `.ui-dropdown` rule (including the 12-line positioning comment and `.ui-dropdown[hidden]`) with:
 
@@ -790,7 +802,7 @@ In `components.css`, replace the entire `.ui-dropdown` rule (including the 12-li
   }
 ```
 
-- [ ] **Step 4: Update the helper**
+- [x] **Step 4: Update the helper**
 
 In `helpers.py`, change `dropdown()` to require `id` and emit `popover`:
 
@@ -821,7 +833,7 @@ def dropdown(
 
 Keep the rest of the body (item rendering) unchanged. Delete the `custom_element` parameter only if `grep -rn 'custom_element' fastblocks_ui/ demo/ tests/` shows no dropdown-specific use; otherwise leave it.
 
-- [ ] **Step 5: Update the manifest params and the demo**
+- [x] **Step 5: Update the manifest params and the demo**
 
 ```bash
 uv run python scripts/sync_manifest_params.py
@@ -835,14 +847,14 @@ Update `demo/demo.html`'s dropdown section to the popover markup, regenerating t
 uv run python -c "import fastblocks_ui; print(fastblocks_ui.dropdown([('One','#1')], id='demo-dropdown'))"
 ```
 
-- [ ] **Step 6: Run everything, all three engines**
+- [x] **Step 6: Run everything, all three engines**
 
 Run: `npx playwright test tests/e2e/dropdown.spec.js`
 Expected: 12 passed (4 tests × 3 engines). **If `aria-expanded` fails in any engine, stop** — the CSS in Task 9 depends on it and a polyfill would be needed.
 
 Run: `uv run pytest tests/ -q && npm run validate && npx playwright test`
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
