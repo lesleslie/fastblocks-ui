@@ -869,7 +869,17 @@ static-position placement."
 
 ---
 
-### Task 8: B2 — `ui-dialog` onto `command`/`commandfor`, dropping non-modal
+### Task 8: B2 — `ui-dialog` onto `command`/`commandfor`, dropping non-modal  DONE (`1d383bc`)
+
+> **The modal focus-trap guarantee is narrower than it looks.** Engines route
+> Tab through `<body>` or the dialog element itself while cycling, so
+> `dialog.contains(activeElement)` is NOT invariant. Assert the real property:
+> focus never reaches background interactive controls.
+>
+> **`tests/test_demo_parity.py` hand-mirrors `build_demo.py`.** Change one
+> without the other and the parity test validates `demo.html` against a stale
+> expectation — passing while the two demo pages diverge. Update the mirror
+> FIRST and confirm it fails before touching `demo.html`.
 
 Non-modal `<dialog open>` support is dropped, which is what genuinely retires `trapTabFocus` — not the platform, which never covered the non-modal path.
 
@@ -884,7 +894,7 @@ Non-modal `<dialog open>` support is dropped, which is what genuinely retires `t
 - Consumes: nothing from earlier tasks
 - Produces: `dialog(content, *, id, title=None, autoshow=False, class_=None, **attrs) -> SafeHTML`. The `open` parameter is **removed**; `autoshow` replaces it and renders `data-ui-dialog-autoshow`, consumed by Task 9's `enhanceDialogAutoshow`.
 
-- [ ] **Step 1: Write the failing e2e test**
+- [x] **Step 1: Write the failing e2e test**
 
 Create `tests/e2e/dialog.spec.js`:
 
@@ -931,12 +941,12 @@ test.describe('Dialog', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to confirm it fails**
+- [x] **Step 2: Run it to confirm it fails**
 
 Run: `npx playwright test tests/e2e/dialog.spec.js --project=chromium`
 Expected: FAIL — nothing wires `command`/`commandfor` yet
 
-- [ ] **Step 3: Update `dialog()`**
+- [x] **Step 3: Update `dialog()`**
 
 In `helpers.py`, replace the `open: bool = False` parameter with `autoshow: bool = False`, require `id`, and render `data-ui-dialog-autoshow` instead of `open`:
 
@@ -974,11 +984,11 @@ def dialog(
 
 Keep the existing `title_id` / `aria_labelledby` logic exactly as it is — it is the dialog's accessible name and must not regress.
 
-- [ ] **Step 4: Delete the obsolete e2e spec**
+- [x] **Step 4: Delete the obsolete e2e spec**
 
 Run: `git rm tests/e2e/dialog-focus-trap.spec.js`
 
-- [ ] **Step 5: Regenerate and update the demo**
+- [x] **Step 5: Regenerate and update the demo**
 
 ```bash
 uv run python scripts/sync_manifest_params.py
@@ -992,14 +1002,14 @@ Update `demo/demo.html`'s dialog section to `command`/`commandfor` markup, regen
 uv run python -c "import fastblocks_ui; print(fastblocks_ui.dialog('Body', id='demo-dialog', title='Title'))"
 ```
 
-- [ ] **Step 6: Run everything**
+- [x] **Step 6: Run everything**
 
 Run: `npx playwright test tests/e2e/dialog.spec.js`
 Expected: 9 passed (3 tests × 3 engines)
 
 Run: `uv run pytest tests/ -q && npm run validate`
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
