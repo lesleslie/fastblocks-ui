@@ -498,8 +498,11 @@ Use the wrapper form only when you need the optional enhancement layer:
 
 ```jinja
 {{ tabs(items, custom_element=True) }}
-{{ dialog("Content", title="Settings", custom_element=True) }}
-{{ menu([("Profile", "/profile")], custom_element=True) }}
+
+{# `<ui-tabs>` is the only custom element. dialog() and dropdown() dropped
+   custom_element in 0.8.0 -- command/commandfor and the Popover API drive
+   those natively, so the wrappers had nothing left to do. Passing it now
+   raises TypeError rather than silently rendering a stray attribute. #}
 ```
 
 The default helper output remains the canonical server-rendered surface.

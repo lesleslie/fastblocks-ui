@@ -24,8 +24,7 @@ and does not use shadow DOM by default. htmx targets, triggers, and swapped
 regions should remain normal light DOM nodes so the server stays authoritative
 for selected tabs, open menus, form state, and validation state.
 
-Optional light-DOM Custom Elements such as `<ui-tabs>`, `<ui-dialog>`, and
-`<ui-dropdown>` are available as opt-in wrappers around the canonical helper output
+The optional light-DOM Custom Element `<ui-tabs>` is available as an opt-in wrapper around the canonical helper output
 and are tracked in [docs/light-dom-custom-elements-spec.md](docs/light-dom-custom-elements-spec.md).
 
 ## Installation

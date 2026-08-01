@@ -619,7 +619,6 @@ def dialog(
     id: str,
     title: object | None = None,
     autoshow: bool = False,
-    custom_element: bool = False,
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
@@ -642,6 +641,17 @@ def dialog(
     a server expresses "this dialog is open" now that ``<dialog open>`` is not a
     supported rendering.
     """
+    # `**attrs` is an intentional escape hatch, so a retired keyword would
+    # otherwise pass straight through and render as a bogus `custom-element`
+    # attribute -- a silent wrong answer for anyone migrating. Fail loudly
+    # instead. Not a general typo guard; specifically the parameter this
+    # release removed.
+    if "custom_element" in attrs:
+        raise TypeError(
+            "dialog() no longer accepts 'custom_element': the <ui-dialog> custom "
+            "element was removed in 0.8.0. The platform now drives this "
+            "component -- see docs/light-dom-custom-elements-spec.md."
+        )
     classes = _flatten_classes("ui-dialog", class_)
     attr_html = _render_attrs(
         attrs, class_=classes, id=id, data_ui_dialog_autoshow=autoshow or None
@@ -667,11 +677,7 @@ def dialog(
             f"{_render_fragment(title)}</h2>"
         )
     parts.extend((_render_fragment(content), "</div></dialog>"))
-    dialog_markup = "".join(parts)
-    if custom_element:
-        host_attr_html = _render_attrs(class_=classes, data_ui_dialog=True)
-        return _safe(f"<ui-dialog{host_attr_html}>{dialog_markup}</ui-dialog>")
-    return _safe(dialog_markup)
+    return _safe("".join(parts))
 
 
 # The tag is interpolated into the markup unescaped, so it is validated against
@@ -821,7 +827,6 @@ def dropdown(
     *,
     id: str,
     label: str = "Menu",
-    custom_element: bool = False,
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
@@ -848,6 +853,17 @@ def dropdown(
     reflected as a DOM attribute (measured null in Chromium 151, Firefox 153 and
     WebKit 26.5). Style the open state from the panel's ``:popover-open``.
     """
+    # `**attrs` is an intentional escape hatch, so a retired keyword would
+    # otherwise pass straight through and render as a bogus `custom-element`
+    # attribute -- a silent wrong answer for anyone migrating. Fail loudly
+    # instead. Not a general typo guard; specifically the parameter this
+    # release removed.
+    if "custom_element" in attrs:
+        raise TypeError(
+            "dropdown() no longer accepts 'custom_element': the <ui-dropdown> custom "
+            "element was removed in 0.8.0. The platform now drives this "
+            "component -- see docs/light-dom-custom-elements-spec.md."
+        )
     classes = _flatten_classes("ui-dropdown", class_)
     # See tabs() above -- appending the label duplicated `aria-label`.
     if not _has_attr(attrs, "aria-label"):
@@ -857,14 +873,7 @@ def dropdown(
         f'<a class="ui-dropdown__item" href="{escape(_safe_url(href), quote=True)}">{_render_fragment(text)}</a>'
         for text, href in (items or [])
     ]
-    menu_markup = f"<nav{attr_html}>{''.join(links)}</nav>"
-    if custom_element:
-        host_attr_html = _render_attrs(
-            class_=classes,
-            aria_label=attrs.get("aria_label", attrs.get("aria-label", label)),
-        )
-        return _safe(f"<ui-dropdown{host_attr_html}>{menu_markup}</ui-dropdown>")
-    return _safe(menu_markup)
+    return _safe(f"<nav{attr_html}>{''.join(links)}</nav>")
 
 
 # The enumerated `aria-current` tokens. ARIA treats any unlisted non-null value

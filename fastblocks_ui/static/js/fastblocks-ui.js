@@ -6,9 +6,7 @@
  */
 export {
   defineFastBlocksCustomElements,
-  enhanceDialogs,
   enhanceDrawers,
-  enhanceMenus,
   enhanceTabs,
   initFastBlocksUI,
 } from './enhance.js';

@@ -3,10 +3,22 @@
 Status: Implemented
 Plan: FBUI-011 in `docs/fastblocks-ui-implementation-plan.md`
 
-This spec defines a future FastBlocks UI enhancement layer for optional Custom
-Elements such as `<ui-tabs>`, `<ui-dialog>`, and `<ui-dropdown>`. It is not a revival
-of the archived FastBulma/FAST plan and does not replace the current helper-first
-API.
+This spec defines the FastBlocks UI enhancement layer for optional Custom
+Elements. It is not a revival of the archived FastBulma/FAST plan and does not
+replace the current helper-first API.
+
+**Scope as of 0.8.0: `<ui-tabs>` only.**
+
+`<ui-dialog>` and `<ui-dropdown>` were **Retired in 0.8.0**. Tabs has no platform
+equivalent and still genuinely needs JavaScript, so it keeps an element
+lifecycle. Dialogs and dropdowns no longer do: `command`/`commandfor` and the
+Popover API now supply opening, closing, Escape, light-dismiss, the backdrop,
+focus return and an inert background, natively and with no script. Keeping a
+JavaScript implementation alongside would have meant two divergent ways to
+drive the same component.
+
+The sections below describing those two elements are kept as a record of what
+was built and why it was withdrawn, not as documentation of shipping behaviour.
 
 ## Product Goal
 
@@ -81,7 +93,7 @@ Responsibilities:
 - dispatch a cancelable `ui-tab-change` event before changing state
 - dispatch `ui-tab-changed` after state is reflected in markup
 
-### `<ui-dialog>`
+### `<ui-dialog>` — Retired in 0.8.0
 
 Enhances native `<dialog>` markup or a light-DOM fallback wrapper when native
 dialog behavior is unavailable.
@@ -110,7 +122,7 @@ Responsibilities:
 - sync state when users close via Escape, backdrop, form submission, or htmx
   replacement
 
-### `<ui-dropdown>`
+### `<ui-dropdown>` — Retired in 0.8.0
 
 Enhances disclosure/navigation menu markup.
 
@@ -201,7 +213,8 @@ existing helper markup:
   and panel structure as the plain helper.
 - `dialog(..., custom_element=True)` renders a `<ui-dialog>` host around the
   canonical `<dialog>` markup.
-- `dropdown(..., custom_element=True)` renders a `<ui-dropdown>` host around the same
+- ~~`dropdown(..., custom_element=True)` renders a `<ui-dropdown>` host around the same~~
+  *(retired: the parameter now raises `TypeError`)*  The former behaviour wrapped
   disclosure markup used by the plain helper.
 
 The browser layer upgrades those hosts in place and resyncs after fragment

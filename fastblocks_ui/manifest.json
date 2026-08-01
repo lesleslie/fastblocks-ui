@@ -285,12 +285,6 @@
           "kind": "keyword_only",
           "name": "autoshow",
           "type": "bool"
-        },
-        {
-          "default": false,
-          "kind": "keyword_only",
-          "name": "custom_element",
-          "type": "bool"
         }
       ]
     },
@@ -357,12 +351,6 @@
           "kind": "keyword_only",
           "name": "label",
           "type": "str"
-        },
-        {
-          "default": false,
-          "kind": "keyword_only",
-          "name": "custom_element",
-          "type": "bool"
         }
       ]
     },

@@ -798,8 +798,9 @@ class TestDocumentationConsistency(unittest.TestCase):
         for phrase in (
             "fusion of Bulma, Kelp, and Web Awesome",
             "<ui-tabs>",
-            "<ui-dialog>",
-            "<ui-dropdown>",
+            # <ui-dialog> and <ui-dropdown> were removed in 0.8.0; the spec now
+            # records that as a decision rather than describing them as live.
+            "Retired in 0.8.0",
             "Why light DOM is the default:",
             "Existing children must not be moved into closed implementation details.",
             "State must be reflected in attributes",
@@ -892,19 +893,26 @@ class TestHelpers(unittest.TestCase):
         self.assertNotIn(" open", dialog_markup)
         self.assertIn('class="ui-dropdown"', menu_markup)
 
-    def test_custom_element_wrappers_remain_opt_in(self):
+    def test_custom_element_wrapper_remains_opt_in_for_tabs(self):
+        """`<ui-tabs>` is the only custom element left.
+
+        `<ui-dialog>` and `<ui-dropdown>` were removed once command/commandfor
+        and the Popover API took over: they had become wrappers whose JavaScript
+        could never fire, because the helpers stopped emitting the trigger
+        attributes they searched for. Tabs still genuinely needs JavaScript, so
+        it keeps the opt-in wrapper.
+        """
         tabs_markup = tabs(
             [("profile", "Profile", "<p>Profile</p>")],
             custom_element=True,
         )
-        dialog_markup = dialog("Content", id="d", title="Dialog title", custom_element=True)
-        menu_markup = dropdown([("Profile", "/profile")], id="m", custom_element=True)
-
         self.assertIn("<ui-tabs", tabs_markup)
-        self.assertIn("<ui-dialog", dialog_markup)
-        self.assertIn("<ui-dropdown", menu_markup)
-        self.assertIn('<dialog class="ui-dialog"', dialog_markup)
-        self.assertIn('<nav class="ui-dropdown"', menu_markup)
+
+        # The retired parameter must be gone, not silently ignored.
+        with self.assertRaises(TypeError):
+            dialog("Content", id="d", custom_element=True)
+        with self.assertRaises(TypeError):
+            dropdown([("Profile", "/profile")], id="m", custom_element=True)
 
     def test_navbar_breadcrumb_and_table_layout_helpers(self):
         navbar_markup = navbar(

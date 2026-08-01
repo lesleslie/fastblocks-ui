@@ -72,155 +72,6 @@ describe('FastBlocks UI enhancement layer', () => {
     expect(document.activeElement).toBe(secondTab);
   });
 
-  it('opens and closes dialogs with focus restoration', () => {
-    root.innerHTML = `
-      <button type="button" data-ui-dialog-trigger aria-controls="test-dialog" aria-expanded="false">
-        Open dialog
-      </button>
-      <dialog id="test-dialog" data-ui-dialog aria-hidden="true" aria-labelledby="dialog-title">
-        <h2 id="dialog-title">Dialog title</h2>
-        <button type="button" data-ui-dialog-close>Close</button>
-      </dialog>
-    `;
-
-    cleanup = enhanceDialogs(document);
-
-    const trigger = root.querySelector('[data-ui-dialog-trigger]');
-    const dialog = root.querySelector('#test-dialog');
-    const closeButton = root.querySelector('[data-ui-dialog-close]');
-
-    trigger.focus();
-    trigger.click();
-
-    expect(dialog.hasAttribute('open')).toBe(true);
-    expect(dialog.getAttribute('aria-hidden')).toBe('false');
-    expect(trigger.getAttribute('aria-expanded')).toBe('true');
-    expect(document.activeElement).toBe(closeButton);
-
-    closeButton.click();
-
-    expect(dialog.hasAttribute('open')).toBe(false);
-    expect(dialog.getAttribute('aria-hidden')).toBe('true');
-    expect(trigger.getAttribute('aria-expanded')).toBe('false');
-    expect(document.activeElement).toBe(trigger);
-  });
-
-  it('dispatches ui-dialog-* events on the plain (function-path) dialog element (WS-12)', () => {
-    root.innerHTML = `
-      <button type="button" data-ui-dialog-trigger aria-controls="event-dialog" aria-expanded="false">
-        Open dialog
-      </button>
-      <dialog id="event-dialog" data-ui-dialog aria-hidden="true">
-        <button type="button" data-ui-dialog-close>Close</button>
-      </dialog>
-    `;
-
-    cleanup = enhanceDialogs(document);
-
-    const trigger = root.querySelector('[data-ui-dialog-trigger]');
-    const dialog = root.querySelector('#event-dialog');
-    const closeButton = root.querySelector('[data-ui-dialog-close]');
-
-    const events = [];
-    ['ui-dialog-open', 'ui-dialog-opened', 'ui-dialog-close', 'ui-dialog-closed'].forEach((name) => {
-      dialog.addEventListener(name, () => events.push(name));
-    });
-
-    trigger.click();
-    closeButton.click();
-
-    expect(events).toEqual([
-      'ui-dialog-open',
-      'ui-dialog-opened',
-      'ui-dialog-close',
-      'ui-dialog-closed',
-    ]);
-  });
-
-  it('honors a canceled ui-dialog-open event on the plain (function-path) dialog (WS-12)', () => {
-    root.innerHTML = `
-      <button type="button" data-ui-dialog-trigger aria-controls="cancel-dialog" aria-expanded="false">
-        Open dialog
-      </button>
-      <dialog id="cancel-dialog" data-ui-dialog aria-hidden="true">
-        <button type="button" data-ui-dialog-close>Close</button>
-      </dialog>
-    `;
-
-    cleanup = enhanceDialogs(document);
-
-    const trigger = root.querySelector('[data-ui-dialog-trigger]');
-    const dialog = root.querySelector('#cancel-dialog');
-
-    dialog.addEventListener('ui-dialog-open', (event) => event.preventDefault(), { once: true });
-    trigger.click();
-
-    expect(dialog.hasAttribute('open')).toBe(false);
-    expect(trigger.getAttribute('aria-expanded')).toBe('false');
-  });
-
-  it('resyncs aria state when a plain (function-path) dialog closes natively, e.g. form[method=dialog] (WS-12)', () => {
-    root.innerHTML = `
-      <button type="button" data-ui-dialog-trigger aria-controls="native-close-dialog" aria-expanded="false">
-        Open dialog
-      </button>
-      <dialog id="native-close-dialog" data-ui-dialog aria-hidden="true">
-        <form method="dialog">
-          <button type="submit" data-ui-dialog-close>Close</button>
-        </form>
-      </dialog>
-    `;
-
-    cleanup = enhanceDialogs(document);
-
-    const trigger = root.querySelector('[data-ui-dialog-trigger]');
-    const dialog = root.querySelector('#native-close-dialog');
-
-    trigger.click();
-    expect(dialog.hasAttribute('open')).toBe(true);
-    expect(trigger.getAttribute('aria-expanded')).toBe('true');
-
-    // Simulate the browser's native dialog close (form[method=dialog] submit,
-    // or dialog.close() called directly) rather than our own close handler --
-    // jsdom doesn't implement <dialog> form submission, so fire the `close`
-    // event dialog elements emit natively in that case.
-    dialog.removeAttribute('open');
-    dialog.dispatchEvent(new Event('close'));
-
-    expect(dialog.getAttribute('aria-hidden')).toBe('true');
-    expect(trigger.getAttribute('aria-expanded')).toBe('false');
-  });
-
-  it('toggles menus and closes them on outside click or escape', () => {
-    root.innerHTML = `
-      <button id="menu-trigger" type="button" data-ui-dropdown-trigger aria-controls="test-menu" aria-expanded="false">
-        Menu
-      </button>
-      <div id="test-menu" data-ui-dropdown hidden aria-label="Actions">
-        <a href="#">Edit</a>
-      </div>
-    `;
-
-    cleanup = enhanceMenus(document);
-
-    const trigger = root.querySelector('#menu-trigger');
-    const menu = root.querySelector('#test-menu');
-
-    trigger.click();
-    expect(menu.hidden).toBe(false);
-    expect(trigger.getAttribute('aria-expanded')).toBe('true');
-
-    document.body.click();
-    expect(menu.hidden).toBe(true);
-    expect(trigger.getAttribute('aria-expanded')).toBe('false');
-
-    trigger.click();
-    expect(menu.hidden).toBe(false);
-
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    expect(menu.hidden).toBe(true);
-  });
-
   it('returns a cleanup function from the combined initializer', () => {
     cleanup = initFastBlocksUI(document);
     expect(typeof cleanup).toBe('function');
@@ -274,282 +125,6 @@ describe('FastBlocks UI enhancement layer', () => {
     expect(root.querySelector('#panel-2').hasAttribute('hidden')).toBe(true);
   });
 
-  it('defines lightweight custom elements and upgrades dialogs and menus', () => {
-    defineFastBlocksCustomElements(window);
-
-    root.innerHTML = `
-      <ui-dialog class="ui-dialog" data-ui-dialog>
-        <button type="button" data-ui-dialog-trigger aria-controls="settings-dialog" aria-expanded="false">
-          Open dialog
-        </button>
-        <dialog id="settings-dialog" class="ui-dialog" aria-hidden="true">
-          <button type="button" data-ui-dialog-close>Close</button>
-        </dialog>
-      </ui-dialog>
-      <ui-dropdown class="ui-dropdown" data-ui-dropdown>
-        <button id="menu-trigger" type="button" data-ui-dropdown-trigger aria-controls="menu-panel" aria-expanded="false">
-          Menu
-        </button>
-        <div id="menu-panel" data-ui-dropdown hidden aria-label="Actions">
-          <a href="#">Edit</a>
-        </div>
-      </ui-dropdown>
-    `;
-
-    const dialogHost = root.querySelector('ui-dialog');
-    const dialogTrigger = root.querySelector('[data-ui-dialog-trigger]');
-    const dialogSurface = root.querySelector('#settings-dialog');
-    const dialogClose = root.querySelector('[data-ui-dialog-close]');
-    const menuHost = root.querySelector('ui-dropdown');
-    const menuTrigger = root.querySelector('#menu-trigger');
-    const menuBody = root.querySelector('#menu-panel');
-
-    dialogTrigger.click();
-    expect(dialogHost.hasAttribute('open')).toBe(true);
-    expect(dialogSurface.hasAttribute('open')).toBe(true);
-    expect(dialogTrigger.getAttribute('aria-expanded')).toBe('true');
-    dialogClose.click();
-    expect(dialogHost.hasAttribute('open')).toBe(false);
-    expect(dialogSurface.hasAttribute('open')).toBe(false);
-
-    menuTrigger.click();
-    expect(menuHost.hasAttribute('open')).toBe(true);
-    expect(menuBody.hidden).toBe(false);
-    document.body.click();
-    expect(menuHost.hasAttribute('open')).toBe(false);
-    expect(menuBody.hidden).toBe(true);
-  });
-
-  it('honors cancelable dialog and menu events and reconnects cleanly', () => {
-    defineFastBlocksCustomElements(window);
-
-    root.innerHTML = `
-      <ui-dialog class="ui-dialog" data-ui-dialog>
-        <button type="button" data-ui-dialog-trigger aria-controls="settings-dialog" aria-expanded="false">
-          Open dialog
-        </button>
-        <dialog id="settings-dialog" class="ui-dialog" aria-hidden="true">
-          <button type="button" data-ui-dialog-close>Close</button>
-        </dialog>
-      </ui-dialog>
-      <ui-dropdown class="ui-dropdown" data-ui-dropdown>
-        <button id="menu-trigger" type="button" data-ui-dropdown-trigger aria-controls="menu-panel" aria-expanded="false">
-          Menu
-        </button>
-        <div id="menu-panel" data-ui-dropdown hidden aria-label="Actions">
-          <a href="#">Edit</a>
-        </div>
-      </ui-dropdown>
-    `;
-
-    const dialogHost = root.querySelector('ui-dialog');
-    const dialogTrigger = root.querySelector('[data-ui-dialog-trigger]');
-    const menuHost = root.querySelector('ui-dropdown');
-    const menuTrigger = root.querySelector('#menu-trigger');
-    const menuBody = root.querySelector('#menu-panel');
-
-    dialogHost.addEventListener('ui-dialog-open', (event) => event.preventDefault(), { once: true });
-    dialogTrigger.click();
-    expect(dialogHost.hasAttribute('open')).toBe(false);
-
-    menuHost.addEventListener('ui-dropdown-open', (event) => event.preventDefault(), { once: true });
-    menuTrigger.click();
-    expect(menuHost.hasAttribute('open')).toBe(false);
-    expect(menuBody.hidden).toBe(true);
-
-    const menuOpenEvents = [];
-    menuHost.addEventListener('ui-dropdown-opened', () => menuOpenEvents.push('open'));
-    menuHost.remove();
-    document.body.appendChild(menuHost);
-    menuTrigger.click();
-    expect(menuHost.hasAttribute('open')).toBe(true);
-    expect(menuOpenEvents).toHaveLength(1);
-  });
-
-  it('navigates menu items with the keyboard and restores focus on escape', () => {
-    root.innerHTML = `
-      <button id="menu-trigger" type="button" data-ui-dropdown-trigger aria-controls="kbd-menu" aria-expanded="false">Menu</button>
-      <div id="kbd-menu" data-ui-dropdown hidden aria-label="Actions">
-        <a href="#one">One</a>
-        <a href="#two">Two</a>
-        <a href="#three">Three</a>
-      </div>
-    `;
-
-    cleanup = enhanceMenus(document);
-
-    const trigger = root.querySelector('#menu-trigger');
-    const items = root.querySelectorAll('#kbd-menu a');
-
-    trigger.focus();
-    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
-    expect(root.querySelector('#kbd-menu').hidden).toBe(false);
-    expect(document.activeElement).toBe(items[0]);
-
-    items[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
-    expect(document.activeElement).toBe(items[1]);
-
-    items[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
-    expect(document.activeElement).toBe(items[2]);
-
-    items[2].dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
-    expect(document.activeElement).toBe(items[0]);
-
-    items[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
-    expect(document.activeElement).toBe(items[2]);
-
-    items[2].dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    expect(root.querySelector('#kbd-menu').hidden).toBe(true);
-    expect(document.activeElement).toBe(trigger);
-  });
-
-  it('traps Tab focus in the non-modal dialog fallback path', () => {
-    defineFastBlocksCustomElements(window);
-
-    root.innerHTML = `
-      <ui-dialog class="ui-dialog" data-ui-dialog>
-        <button type="button" data-ui-dialog-trigger aria-controls="ft-dialog" aria-expanded="false">Open</button>
-        <dialog id="ft-dialog" class="ui-dialog" aria-hidden="true">
-          <button id="ft-first" type="button" data-ui-dialog-close>Close</button>
-          <a id="ft-last" href="#ok">OK</a>
-        </dialog>
-      </ui-dialog>
-    `;
-
-    const dialog = root.querySelector('#ft-dialog');
-    // Force the non-modal fallback so our trap (not native showModal) runs.
-    dialog.showModal = undefined;
-    root.querySelector('[data-ui-dialog-trigger]').click();
-
-    const first = root.querySelector('#ft-first');
-    const last = root.querySelector('#ft-last');
-
-    last.focus();
-    last.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-    expect(document.activeElement).toBe(first); // wrapped forward
-
-    first.focus();
-    first.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }),
-    );
-    expect(document.activeElement).toBe(last); // wrapped backward
-  });
-
-  it('resyncs the ui-dialog wrapper when the native dialog closes some other way (WS-12)', () => {
-    defineFastBlocksCustomElements(window);
-
-    root.innerHTML = `
-      <ui-dialog class="ui-dialog" data-ui-dialog>
-        <button type="button" data-ui-dialog-trigger aria-controls="ce-native-close" aria-expanded="false">
-          Open dialog
-        </button>
-        <dialog id="ce-native-close" class="ui-dialog" aria-hidden="true">
-          <form method="dialog">
-            <button type="submit" data-ui-dialog-close>Close</button>
-          </form>
-        </dialog>
-      </ui-dialog>
-    `;
-
-    const dialogHost = root.querySelector('ui-dialog');
-    const trigger = root.querySelector('[data-ui-dialog-trigger]');
-    const dialog = root.querySelector('#ce-native-close');
-
-    trigger.click();
-    expect(dialogHost.hasAttribute('open')).toBe(true);
-
-    // jsdom doesn't implement <dialog> form submission; simulate the native
-    // `close` event a real browser fires in that case.
-    dialog.removeAttribute('open');
-    dialog.dispatchEvent(new Event('close'));
-
-    expect(dialogHost.hasAttribute('open')).toBe(false);
-    expect(dialogHost.getAttribute('aria-hidden')).toBe('true');
-    expect(trigger.getAttribute('aria-expanded')).toBe('false');
-  });
-
-  it('navigates ui-dropdown custom-element items with arrow keys', () => {
-    defineFastBlocksCustomElements(window);
-
-    root.innerHTML = `
-      <ui-dropdown class="ui-dropdown" data-ui-dropdown>
-        <button id="cm-trigger" type="button" data-ui-dropdown-trigger aria-controls="cm-menu" aria-expanded="false">Menu</button>
-        <div id="cm-menu" data-ui-dropdown hidden aria-label="Actions">
-          <a href="#a">A</a>
-          <a href="#b">B</a>
-        </div>
-      </ui-dropdown>
-    `;
-
-    const trigger = root.querySelector('#cm-trigger');
-    const items = root.querySelectorAll('#cm-menu a');
-
-    trigger.click();
-    items[0].focus();
-    items[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
-    expect(document.activeElement).toBe(items[1]);
-  });
-
-  it('resyncs custom elements after fragment replacement', async () => {
-    defineFastBlocksCustomElements(window);
-
-    root.innerHTML = `
-      <ui-dialog class="ui-dialog" data-ui-dialog>
-        <button type="button" data-ui-dialog-trigger aria-controls="initial-dialog" aria-expanded="false">
-          Open dialog
-        </button>
-        <dialog id="initial-dialog" class="ui-dialog" aria-hidden="true">
-          <button type="button" data-ui-dialog-close>Close</button>
-        </dialog>
-      </ui-dialog>
-      <ui-dropdown class="ui-dropdown" data-ui-dropdown>
-        <button id="menu-trigger" type="button" data-ui-dropdown-trigger aria-controls="menu-panel" aria-expanded="false">
-          Menu
-        </button>
-        <div id="menu-panel" data-ui-dropdown hidden aria-label="Actions">
-          <a href="#">Edit</a>
-        </div>
-      </ui-dropdown>
-    `;
-
-    const dialogHost = root.querySelector('ui-dialog');
-    const menuHost = root.querySelector('ui-dropdown');
-
-    dialogHost.innerHTML = `
-      <button type="button" data-ui-dialog-trigger aria-controls="replacement-dialog" aria-expanded="false">
-        Open replacement
-      </button>
-      <dialog id="replacement-dialog" class="ui-dialog" aria-hidden="true">
-        <button type="button" data-ui-dialog-close>Close replacement</button>
-      </dialog>
-    `;
-
-    menuHost.innerHTML = `
-      <button id="replacement-menu-trigger" type="button" data-ui-dropdown-trigger aria-controls="replacement-menu" aria-expanded="false">
-        Menu
-      </button>
-      <div id="replacement-menu" data-ui-dropdown hidden aria-label="Replacement actions">
-        <a href="#">View</a>
-      </div>
-    `;
-
-    await Promise.resolve();
-    await Promise.resolve();
-
-    const replacementTrigger = root.querySelector('[aria-controls="replacement-dialog"]');
-    const replacementClose = root.querySelector('[data-ui-dialog-close]');
-    const replacementMenuTrigger = root.querySelector('#replacement-menu-trigger');
-    const replacementMenu = root.querySelector('#replacement-menu');
-
-    replacementTrigger.click();
-    expect(dialogHost.hasAttribute('open')).toBe(true);
-    replacementClose.click();
-    expect(dialogHost.hasAttribute('open')).toBe(false);
-
-    replacementMenuTrigger.click();
-    expect(menuHost.hasAttribute('open')).toBe(true);
-    expect(replacementMenu.hidden).toBe(false);
-  });
 });
 
 // jsdom (as of the version vitest pulls in here) implements neither
@@ -787,5 +362,74 @@ describe('enhanceDrawers without matchMedia', () => {
     } finally {
       if (saved) window.matchMedia = saved;
     }
+  });
+});
+
+describe('public export surface after the platform migration', () => {
+  it('exports exactly the four entry points that still need JavaScript', async () => {
+    const mod = await import('../../fastblocks_ui/static/js/fastblocks-ui.js');
+    expect(Object.keys(mod).sort()).toEqual([
+      'defineFastBlocksCustomElements',
+      'enhanceDrawers',
+      'enhanceTabs',
+      'initFastBlocksUI',
+    ]);
+  });
+
+  it('no longer registers ui-dialog or ui-dropdown custom elements', async () => {
+    const registered = [];
+    const registry = {
+      get: () => undefined,
+      define: (name) => registered.push(name),
+    };
+    const { defineFastBlocksCustomElements } = await import(
+      '../../fastblocks_ui/static/js/enhance.js'
+    );
+    defineFastBlocksCustomElements({ customElements: registry });
+    expect(registered).toContain('ui-tabs');
+    expect(registered).not.toContain('ui-dialog');
+    expect(registered).not.toContain('ui-dropdown');
+  });
+});
+
+describe('dialog autoshow', () => {
+  it('opens a dialog marked data-ui-dialog-autoshow', async () => {
+    document.body.innerHTML = '<dialog id="d" data-ui-dialog-autoshow></dialog>';
+    const dialog = document.getElementById('d');
+    dialog.showModal = vi.fn(function () {
+      this.setAttribute('open', '');
+    });
+    const { initFastBlocksUI } = await import('../../fastblocks_ui/static/js/enhance.js');
+    initFastBlocksUI(document);
+    expect(dialog.showModal).toHaveBeenCalledTimes(1);
+  });
+
+  it('is a no-op for a dialog that is already open', async () => {
+    document.body.innerHTML = '<dialog id="d" open data-ui-dialog-autoshow></dialog>';
+    const dialog = document.getElementById('d');
+    dialog.showModal = vi.fn();
+    const { initFastBlocksUI } = await import('../../fastblocks_ui/static/js/enhance.js');
+    initFastBlocksUI(document);
+    expect(dialog.showModal).not.toHaveBeenCalled();
+  });
+
+  it('does not throw when no autoshow dialog is present', async () => {
+    document.body.innerHTML = '<div></div>';
+    const { initFastBlocksUI } = await import('../../fastblocks_ui/static/js/enhance.js');
+    expect(() => initFastBlocksUI(document)).not.toThrow();
+  });
+
+  it('reopens after an htmx swap replaces the markup', async () => {
+    document.body.innerHTML = '<div></div>';
+    const { initFastBlocksUI } = await import('../../fastblocks_ui/static/js/enhance.js');
+    initFastBlocksUI(document);
+
+    document.body.innerHTML = '<dialog id="d" data-ui-dialog-autoshow></dialog>';
+    const dialog = document.getElementById('d');
+    dialog.showModal = vi.fn(function () {
+      this.setAttribute('open', '');
+    });
+    document.dispatchEvent(new Event('htmx:afterSwap'));
+    expect(dialog.showModal).toHaveBeenCalledTimes(1);
   });
 });

@@ -22,8 +22,7 @@ helper-backed server rendering. The v1 runtime does not register Custom Elements
 and does not use shadow DOM by default. Optional JavaScript enhances existing
 markup instead of becoming the rendering source of truth.
 
-Optional light-DOM Custom Elements such as `<ui-tabs>`, `<ui-dialog>`, and
-`<ui-dropdown>` are available as opt-in wrappers around the canonical helper output
+The optional light-DOM Custom Element `<ui-tabs>` is available as an opt-in wrapper around the canonical helper output
 and are tracked in [docs/light-dom-custom-elements-spec.md](docs/light-dom-custom-elements-spec.md).
 
 ### Architecture

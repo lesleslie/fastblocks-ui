@@ -860,11 +860,13 @@ class TestInlinedJsFreshness(unittest.TestCase):
         inlined = "\n".join(
             re.findall(r'<script type="module">\n?(.*?)</script>', DEMO_HTML, re.S)
         )
+        # enhanceDialogs / enhanceMenus are deliberately absent: the Popover API
+        # and command/commandfor replaced them, and enhanceDialogAutoshow is
+        # intentionally not exported -- its public surface is the
+        # data-ui-dialog-autoshow attribute, not the function.
         for symbol in (
             "enhanceDrawers",
             "enhanceTabs",
-            "enhanceDialogs",
-            "enhanceMenus",
         ):
             with self.subTest(symbol=symbol):
                 self.assertIn(symbol, entrypoint)
