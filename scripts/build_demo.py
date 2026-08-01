@@ -667,10 +667,10 @@ def dialog_demo() -> SafeHTML:
     # no way to id its optional title heading for aria-labelledby, so the
     # heading + close button are passed as pre-rendered `content` instead of
     # via `title=`.
-    close_button = button("Close", type="button", data_ui_dialog_close=True)
+    close_button = button("Close", type="button", command="close", commandfor="demo-dialog")
     content = _safe(
         '<h4 id="demo-dialog-title">Settings</h4>'
-        "<p>Native &lt;dialog&gt; with enhancement-only behavior.</p>"
+        "<p>Native &lt;dialog&gt;, opened and closed entirely by the platform.</p>"
         + str(close_button)
     )
     return _safe(
@@ -680,17 +680,14 @@ def dialog_demo() -> SafeHTML:
                 "Open dialog",
                 type="button",
                 variant="primary",
-                data_ui_dialog_trigger=True,
-                aria_controls="demo-dialog",
-                aria_expanded="false",
+                command="show-modal",
+                commandfor="demo-dialog",
             )
         )
         + str(
             dialog(
                 content,
                 id="demo-dialog",
-                data_ui_dialog=True,
-                aria_hidden="true",
                 aria_labelledby="demo-dialog-title",
             )
         )
@@ -1287,7 +1284,7 @@ def build_categories() -> list[
                 (
                     "dialog",
                     "Dialog",
-                    "Native <dialog> with enhancement-only open/close behavior.",
+                    "Native <dialog>, opened and closed by command/commandfor with no JavaScript.",
                     dialog_demo(),
                 ),
             ],

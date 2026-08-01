@@ -54,12 +54,18 @@ test.describe('FastBlocks UI smoke', () => {
 
   test('opens and closes the dialog', async ({ page }) => {
     await clickWhenStable(page.getByRole('button', { name: 'Open dialog' }));
-    await expect(page.locator('#demo-dialog')).toHaveAttribute('open', '');
-    await expect(page.locator('#demo-dialog')).toHaveAttribute('aria-hidden', 'false');
+    await expect(page.locator('#demo-dialog')).toBeVisible();
+    // Modal, not merely open -- that is what supplies the focus trap and the
+    // inert background, replacing the hand-rolled trapTabFocus().
+    expect(
+      await page.locator('#demo-dialog').evaluate((el) => el.matches(':modal')),
+    ).toBe(true);
+    // No aria-hidden toggling: a modal dialog makes the rest of the document
+    // inert, so nothing needs to be hidden by hand.
+    await expect(page.locator('#demo-dialog')).not.toHaveAttribute('aria-hidden', 'false');
 
-    await page.locator('#demo-dialog [data-ui-dialog-close]').click();
-    await expect(page.locator('#demo-dialog')).not.toHaveAttribute('open', '');
-    await expect(page.locator('#demo-dialog')).toHaveAttribute('aria-hidden', 'true');
+    await page.getByRole('button', { name: 'Close' }).click();
+    await expect(page.locator('#demo-dialog')).toBeHidden();
   });
 
   test('toggles the dropdown', async ({ page }) => {

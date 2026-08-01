@@ -269,6 +269,12 @@
           "type": "object"
         },
         {
+          "kind": "keyword_only",
+          "name": "id",
+          "required": true,
+          "type": "str"
+        },
+        {
           "default": null,
           "kind": "keyword_only",
           "name": "title",
@@ -277,7 +283,7 @@
         {
           "default": false,
           "kind": "keyword_only",
-          "name": "open",
+          "name": "autoshow",
           "type": "bool"
         },
         {

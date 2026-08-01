@@ -645,23 +645,34 @@ Load dialog content from the server when the dialog opens, and return the same
 ```python
 @app.get("/settings/dialog")
 def settings_dialog(request):
+    # `autoshow=True` is how a server says "this dialog is open". The
+    # enhancement layer promotes it to showModal() on load and after an htmx
+    # swap; `<dialog open>` is no longer a supported rendering, because a
+    # non-modal dialog gets no focus trap from the platform.
     return dialog(
         "<form method='post'>...</form>",
+        id="settings-dialog",
         title="Settings",
-        open=True,
+        autoshow=True,
     )
 ```
 
 ```html
-<ui-dialog class="ui-dialog" data-ui-dialog>
-  <button type="button" data-ui-dialog-trigger aria-controls="settings-dialog">
-    Open settings
-  </button>
-  <dialog id="settings-dialog" class="ui-dialog" aria-hidden="true">
+<button type="button" command="show-modal" commandfor="settings-dialog">
+  Open settings
+</button>
+
+<dialog id="settings-dialog" class="ui-dialog">
+  <div class="ui-dialog__surface">
     <!-- htmx can swap this fragment with server-rendered content -->
-  </dialog>
-</ui-dialog>
+    <button type="button" command="close" commandfor="settings-dialog">Close</button>
+  </div>
+</dialog>
 ```
+
+The browser supplies opening, closing, Escape, the backdrop, focus return, and
+an inert background. No JavaScript is involved, and no `aria-hidden` toggling is
+needed -- a modal dialog makes the rest of the document inert on its own.
 
 ### Menu Refresh (htmx Pattern)
 

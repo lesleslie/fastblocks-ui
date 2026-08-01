@@ -697,18 +697,18 @@ class TestDemoParity(unittest.TestCase):
         self.assertFragmentInDemo(html)
 
     def test_dialog(self) -> None:
-        close_button = button("Close", type="button", data_ui_dialog_close=True)
+        close_button = button(
+            "Close", type="button", command="close", commandfor="demo-dialog"
+        )
         content = _safe(
             '<h4 id="demo-dialog-title">Settings</h4>'
-            "<p>Native &lt;dialog&gt; with enhancement-only behavior.</p>"
+            "<p>Native &lt;dialog&gt;, opened and closed entirely by the platform.</p>"
             + str(close_button)
         )
         html = str(
             dialog(
                 content,
                 id="demo-dialog",
-                data_ui_dialog=True,
-                aria_hidden="true",
                 aria_labelledby="demo-dialog-title",
             )
         )

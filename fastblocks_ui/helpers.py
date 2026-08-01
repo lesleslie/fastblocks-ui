@@ -616,14 +616,36 @@ def validation_summary(
 def dialog(
     content: object,
     *,
+    id: str,
     title: object | None = None,
-    open: bool = False,
+    autoshow: bool = False,
     custom_element: bool = False,
     class_: object = None,
     **attrs: object,
 ) -> SafeHTML:
+    """Render a modal ``<dialog class="ui-dialog">``.
+
+    Opened by ``<button command="show-modal" commandfor="{id}">`` and closed by
+    ``command="close"``; no JavaScript is involved. ``id`` is required because
+    ``commandfor`` needs a stable target -- the htmx stable-ID constraint
+    surfacing in the API, as it does for :func:`dropdown` and :func:`drawer`.
+
+    **Every dialog is modal.** The previous ``open=True`` rendered a NON-modal
+    ``<dialog open>``, and the platform does not trap focus in a non-modal
+    dialog -- by design, since one is specified to let focus leave. Supporting
+    it meant hand-rolling a trap. Verified against all three engines: a modal
+    dialog never lets Tab reach background controls, so the trap is redundant
+    once non-modal support is gone.
+
+    ``autoshow=True`` renders ``data-ui-dialog-autoshow``, which the enhancement
+    layer promotes to ``showModal()`` on load and after an htmx swap. That is how
+    a server expresses "this dialog is open" now that ``<dialog open>`` is not a
+    supported rendering.
+    """
     classes = _flatten_classes("ui-dialog", class_)
-    attr_html = _render_attrs(attrs, class_=classes, open=open or None)
+    attr_html = _render_attrs(
+        attrs, class_=classes, id=id, data_ui_dialog_autoshow=autoshow or None
+    )
     # Link the visible title to the dialog. Previously the title rendered as a
     # bare `<h2>` with no id and nothing referenced it, so the dialog had no
     # accessible name at all -- screen readers announced an unnamed dialog.
@@ -634,7 +656,9 @@ def dialog(
             + sha256(_render_fragment(title).encode("utf-8")).hexdigest()[:10]
         )
         attrs.setdefault("aria_labelledby", title_id)
-        attr_html = _render_attrs(attrs, class_=classes, open=open or None)
+        attr_html = _render_attrs(
+            attrs, class_=classes, id=id, data_ui_dialog_autoshow=autoshow or None
+        )
 
     parts = [f"<dialog{attr_html}>", '<div class="ui-dialog__surface">']
     if title is not None:
@@ -645,12 +669,7 @@ def dialog(
     parts.extend((_render_fragment(content), "</div></dialog>"))
     dialog_markup = "".join(parts)
     if custom_element:
-        host_attr_html = _render_attrs(
-            class_=classes,
-            data_ui_dialog=True,
-            open=open or None,
-            aria_hidden=str(not open).lower(),
-        )
+        host_attr_html = _render_attrs(class_=classes, data_ui_dialog=True)
         return _safe(f"<ui-dialog{host_attr_html}>{dialog_markup}</ui-dialog>")
     return _safe(dialog_markup)
 

@@ -872,7 +872,7 @@ class TestHelpers(unittest.TestCase):
         checkbox_markup = checkbox(label="Remember me", class_="is-inline")
         switch_markup = switch(label="Auto save", checked=True)
         alert_markup = alert("Saved", variant="success")
-        dialog_markup = dialog("Content", title="Dialog title", open=True)
+        dialog_markup = dialog("Content", id="d", title="Dialog title", autoshow=True)
         menu_markup = dropdown([("Profile", "/profile"), ("Settings", "/settings")], id="m")
 
         self.assertIn('<select class="ui-select">', select_markup)
@@ -885,7 +885,11 @@ class TestHelpers(unittest.TestCase):
         self.assertIn("checked", switch_markup)
         self.assertNotIn("aria-checked", switch_markup)
         self.assertIn('class="ui-alert is-success"', alert_markup)
-        self.assertIn('<dialog class="ui-dialog" open', dialog_markup)
+        self.assertIn('<dialog class="ui-dialog" id="d"', dialog_markup)
+        # `open` is gone: every dialog is modal, opened via command/commandfor.
+        # Server-rendered open state is expressed by data-ui-dialog-autoshow.
+        self.assertIn("data-ui-dialog-autoshow", dialog_markup)
+        self.assertNotIn(" open", dialog_markup)
         self.assertIn('class="ui-dropdown"', menu_markup)
 
     def test_custom_element_wrappers_remain_opt_in(self):
@@ -893,7 +897,7 @@ class TestHelpers(unittest.TestCase):
             [("profile", "Profile", "<p>Profile</p>")],
             custom_element=True,
         )
-        dialog_markup = dialog("Content", title="Dialog title", custom_element=True)
+        dialog_markup = dialog("Content", id="d", title="Dialog title", custom_element=True)
         menu_markup = dropdown([("Profile", "/profile")], id="m", custom_element=True)
 
         self.assertIn("<ui-tabs", tabs_markup)
@@ -1520,7 +1524,7 @@ class TestMediumTierRegressions(unittest.TestCase):
         self.assertEqual(html.count('aria-current="page"'), 1)
 
     def test_dialog_title_is_programmatically_linked(self) -> None:
-        html = str(dialog("Body", title="Settings"))
+        html = str(dialog("Body", id="d", title="Settings"))
         labelledby = re.search(r'aria-labelledby="([^"]+)"', html)
         self.assertIsNotNone(
             labelledby, f"dialog has a visible title but no accessible name: {html}"
@@ -2237,9 +2241,11 @@ class TestRenderAttrsDefaultCollisions(unittest.TestCase):
         self.assertEqual(markup.count("type="), 1)
         self.assertIn('type="submit"', markup)
 
-    def test_dialog_open_param_default_does_not_collide_with_open_(self):
-        markup = fastblocks_ui.dialog("Body", open=True, open_=True)
-        self.assertEqual(markup.count(" open"), 1)
+    def test_dialog_id_param_does_not_collide_with_id_(self):
+        # Repointed from the retired `open` parameter to `id`, which is now the
+        # named parameter carrying the same duplicate-attribute risk.
+        markup = fastblocks_ui.dialog("Body", id="a", id_="b")
+        self.assertEqual(markup.count(" id="), 1)
 
 
 class TestStickyLayoutCss(unittest.TestCase):

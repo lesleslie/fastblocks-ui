@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Dialog probe</title>
+    <link rel="stylesheet" href="/fastblocks_ui/static/css/fastblocks-ui.css" />
+  </head>
+  <body>
+    <button class="ui-button" id="before">Before</button>
+    <button class="ui-button" id="open" command="show-modal" commandfor="dlg">Open</button>
+    <button class="ui-button" id="after">After</button>
+
+    <dialog class="ui-dialog" id="dlg" aria-labelledby="dlg-title">
+      <div class="ui-dialog__surface">
+        <h2 id="dlg-title">Confirm</h2>
+        <a id="inside-link" href="#x">A link inside</a>
+        <button class="ui-button" id="close" command="close" commandfor="dlg">Close</button>
+      </div>
+    </dialog>
+  </body>
+</html>
