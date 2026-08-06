@@ -16,7 +16,8 @@
        upstream bump is a lookup. See tokens.css for why these are oklch()
        and for the WCAG-over-sRGB caveat. */
     --ui-color-surface: oklch(20.8% 0.042 265.755); /* slate-900 */
-    --ui-color-surface-raised: oklch(21% 0.034 264.665); /* gray-900 */
+    /* Derived -- see tokens.css. gray-900 on slate-900 was 1.008:1. */
+    --ui-color-surface-raised: color-mix(in oklab, var(--ui-color-surface) 55%, var(--ui-color-surface-muted));
     --ui-color-surface-muted: oklch(27.9% 0.041 260.031); /* slate-800 */
     --ui-color-surface-subtle: oklch(25.7% 0.09 281.288); /* indigo-950 */
     --ui-color-text: oklch(86.9% 0.022 252.894); /* slate-300 */
@@ -36,6 +37,13 @@
        surface-muted, clearing the bar on both backgrounds a focused control
        can sit on. */
     --ui-color-focus: oklch(67.3% 0.182 276.935); /* indigo-400 */
+
+    /* Selection/current-state indicators, which SC 1.4.11 covers at 3:1.
+       `--ui-color-primary` stays indigo-600 in this theme by design (see
+       the note above), and indigo-600 on slate-900 is 2.76:1 -- the same
+       figure that forced `-focus` to exist. Indicators need their own
+       token for the same reason; this is 5.70:1. */
+    --ui-color-primary-indicator: oklch(67.3% 0.182 276.935); /* indigo-400 */
 
     /* Primary deliberately does NOT lighten in dark mode. The obvious
        choice, indigo-400/-300, reaches only 2.98:1/1.99:1 against white

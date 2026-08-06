@@ -115,7 +115,13 @@
     --ui-color-danger-strong: color-mix(in oklab, var(--ui-color-danger) 80%, rgb(from var(--ui-color-danger-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-surface: #ffffff;
-    --ui-color-surface-raised: oklch(98.5% 0.002 247.839); /* gray-50 */
+    /* `-raised` is DERIVED, not a picked shade. It must sit between `surface`
+       and `surface-muted`; in the dark theme it did not -- gray-900 against
+       slate-900 measured 1.008:1, i.e. no step at all, so `.ui-button:hover`
+       was invisible and table striping/hover did nothing. Mixing guarantees
+       the ordering holds in whatever theme is active, and the two shades can
+       no longer be picked from different Tailwind families and collide. */
+    --ui-color-surface-raised: color-mix(in oklab, var(--ui-color-surface) 55%, var(--ui-color-surface-muted));
     --ui-color-surface-muted: oklch(96.7% 0.003 264.542); /* gray-100 */
     --ui-color-surface-subtle: oklch(96.2% 0.018 272.314); /* indigo-50 */
     --ui-color-text: oklch(37.3% 0.034 259.733); /* gray-700 */
@@ -141,6 +147,10 @@
        gain. Asserted in tests/e2e/token-contrast.spec.js for both themes. */
     --ui-color-border-control: oklch(55.1% 0.027 264.364); /* gray-500 */
     --ui-color-focus: oklch(51.1% 0.262 276.966); /* indigo-600 */
+    /* Light mode needs no separate indicator shade: primary is 6.46:1
+       here. Declared so components can reference one token in both
+       themes -- see theme.css for why dark overrides it. */
+    --ui-color-primary-indicator: var(--ui-color-primary);
 
     --ui-space-0: 0;
     --ui-space-1: 0.25rem;

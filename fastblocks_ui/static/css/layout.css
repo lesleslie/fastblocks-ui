@@ -973,14 +973,21 @@
     transition: all 160ms ease;
   }
 
+  /* `-indicator`, not `-primary`: on the dark surface indigo-600 is 2.76:1,
+     so hovering used to DROP the boundary below the 3:1 the resting state
+     already meets via `-border-control`. A state change must not weaken the
+     boundary -- the same defect fixed for the switch in e3974f2. */
   .ui-pagination__item:hover {
-    border-color: var(--ui-color-primary);
-    color: var(--ui-color-primary);
+    border-color: var(--ui-color-primary-indicator);
+    color: var(--ui-color-primary-indicator);
   }
 
+  /* The fill keeps `-primary` so its derived `-contrast` text pair still
+     applies; the BORDER carries the 3:1 boundary that identifies the current
+     page as a state (SC 1.4.11). */
   .ui-pagination__item.is-current {
     background: var(--ui-color-primary);
-    border-color: var(--ui-color-primary);
+    border-color: var(--ui-color-primary-indicator);
     color: var(--ui-color-primary-contrast);
     font-weight: 600;
   }
