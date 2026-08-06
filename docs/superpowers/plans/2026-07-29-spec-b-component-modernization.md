@@ -37,17 +37,20 @@ Three roadmap items are already implemented in the current source. Confirm, do n
 | 1.6 `accent-color` | Shipped at `components.css:281` on `.ui-checkbox input, .ui-switch input` |
 | 1.2 focus trap "now native" | False. `enhance.js:846` already delegates modal dialogs to the browser; the hand-rolled trap covers only the non-modal path |
 
----
+______________________________________________________________________
 
-### Task 1: Wire the Baseline gate into the pytest suite  ✅ DONE (`737911f`)
+### Task 1: Wire the Baseline gate into the pytest suite ✅ DONE (`737911f`)
 
 Closes the one B0 item that Spec A's ownership of `tests/` blocked. The repo's established pattern for a non-Python gate is a pytest test that shells out — `tests/test_fastblocks_ui.py:341` already does this for `tools/build_css.py --check`.
 
 **Files:**
+
 - Modify: `tests/test_fastblocks_ui.py` (add a class beside `TestManifestParamsSync`)
 
 **Interfaces:**
+
 - Consumes: `scripts/check-baseline.mjs` (exit 0 = pass, 1 = violation), `.baseline-allowlist.json`
+
 - Produces: nothing later tasks import
 
 - [x] **Step 1: Unbreak the gate that Spec A's merge turns red**
@@ -204,9 +207,9 @@ Also asserts package.json and pyproject.toml agree. crackerjack bumps only
 pyproject.toml, which is how the two drifted apart between 0.7.0 and 0.7.1."
 ```
 
----
+______________________________________________________________________
 
-### Task 2: B1 — client-side field validation states  ✅ DONE (`5a78075`)
+### Task 2: B1 — client-side field validation states ✅ DONE (`5a78075`)
 
 > **Executed with two deviations, both test-side.** The spec's `page.setContent()`
 > approach cannot resolve a root-relative stylesheet href (the page stays on
@@ -218,12 +221,15 @@ pyproject.toml, which is how the two drifted apart between 0.7.0 and 0.7.1."
 Adds `:user-invalid` feedback *beneath* the existing server-authoritative `aria-invalid` rules. Source order matters: `aria-invalid` must win on equal specificity, so the new rules go **before** the existing block at `components.css:208`.
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/components.css` (insert before line 208)
 - Modify: `fastblocks_ui/static/css/fastblocks-ui.css` (regenerated, never hand-edited)
 - Test: `tests/e2e/field-validation.spec.js` (create)
 
 **Interfaces:**
+
 - Consumes: `--ui-color-danger`, `--ui-space-3` from `tokens.css`
+
 - Produces: `.ui-field:has(:user-invalid)` styling contract relied on by Task 12's docs
 
 - [x] **Step 1: Write the failing e2e test**
@@ -319,9 +325,9 @@ authoritative. :user-invalid only matches after interaction, so untouched
 required fields no longer need to avoid :invalid."
 ```
 
----
+______________________________________________________________________
 
-### Task 3: B1 — native control theming  ✅ DONE (`2bf8244`)
+### Task 3: B1 — native control theming ✅ DONE (`2bf8244`)
 
 > **Scope reduced during execution.** The planned `accent-color` on
 > `.ui-progress` was dropped: the component is already themed in `layout.css`
@@ -335,12 +341,15 @@ Two one-line platform wins. `field-sizing` reached Baseline Newly on 2026-06-16,
 `accent-color` is already applied to `.ui-checkbox input, .ui-switch input` at `components.css:281`; this extends it to `<progress>`, which is the remaining native control the token can theme.
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/components.css`
 - Modify: `fastblocks_ui/static/css/fastblocks-ui.css` (regenerated)
 - Test: `tests/e2e/field-validation.spec.js` (extend)
 
 **Interfaces:**
+
 - Consumes: `--ui-color-primary`
+
 - Produces: nothing later tasks import
 
 - [x] **Step 1: Write the failing test**
@@ -422,20 +431,23 @@ field-sizing: content reached Baseline Newly 2026-06-16, so no guard is needed.
 accent-color already themed checkbox/switch; extends it to <progress>."
 ```
 
----
+______________________________________________________________________
 
-### Task 4: B1 — retire deprecated `clip` from `.ui-visually-hidden`  DONE (`3d4a1d7`)
+### Task 4: B1 — retire deprecated `clip` from `.ui-visually-hidden` DONE (`3d4a1d7`)
 
 Surfaced by the Baseline gate. `clip` is universally supported but deprecated, and Spec A's `.ui-burger__label` uses `clip-path`, so the library ships two visually-hidden implementations — one of them deprecated. This retires the deprecated one.
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/utilities.css:34-44`
 - Read only: `fastblocks_ui/static/css/components.css` (`.ui-burger__label` — verify, no edit)
 - Modify: `.baseline-allowlist.json` (remove two entries)
 - Modify: `fastblocks_ui/static/css/fastblocks-ui.css` (regenerated)
 
 **Interfaces:**
+
 - Consumes: nothing
+
 - Produces: `.ui-visually-hidden` as the single visually-hidden implementation
 
 - [x] **Step 1: Replace the utility**
@@ -508,9 +520,9 @@ The Baseline gate flagged .ui-visually-hidden's deprecated clip/rect(). Spec A's
 allowlist entries that covered the deprecation are removed."
 ```
 
----
+______________________________________________________________________
 
-### Task 5: B2 — rename `ui-menu` to `ui-dropdown`  DONE (`7683f43`)
+### Task 5: B2 — rename `ui-menu` to `ui-dropdown` DONE (`7683f43`)
 
 > **Scope was wider than listed.** Also covered: the `<ui-menu>` custom element
 > and its four events, JS selector constants, `data-ui-menu*` hooks, the demo
@@ -520,14 +532,14 @@ allowlist entries that covered the deprecation are removed."
 > the plan's file list omitted `tests/e2e/`.
 >
 > **Re-inlining `demo/demo.html` is hazardous.** It embeds `manifest.js`, whose
-> source contains the literal string `<script type="application/json"
-> id="fastblocks-ui-manifest-data">`. Any regex anchored on that markup matches
+> source contains the literal string `<script type="application/json" id="fastblocks-ui-manifest-data">`. Any regex anchored on that markup matches
 > inside the inlined script first. Anchor on previously-committed file content
 > instead, and note the real element is the FIRST of three occurrences.
 
 Spec A named `ui-nav-list` rather than `ui-menu-list` purely to avoid implying kinship with this component. Renaming dissolves that tension. This task is the rename only; the popover migration is Task 7.
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/components.css` (`.ui-menu`, `.ui-menu__item`, `.ui-menu[hidden]`)
 - Modify: `fastblocks_ui/helpers.py` (`menu()` → `dropdown()`)
 - Modify: `fastblocks_ui/__init__.py` (export)
@@ -536,7 +548,9 @@ Spec A named `ui-nav-list` rather than `ui-menu-list` purely to avoid implying k
 - Modify: `tests/test_fastblocks_ui.py`, `tests/test_demo_parity.py`
 
 **Interfaces:**
+
 - Consumes: nothing
+
 - Produces: `dropdown(items, *, label="Menu", custom_element=False, class_=None, **attrs) -> SafeHTML`; CSS classes `.ui-dropdown`, `.ui-dropdown__item`; manifest entry `{"name": "dropdown", "class_name": "ui-dropdown", "helper": "dropdown"}`
 
 - [x] **Step 1: Update the failing tests first**
@@ -591,9 +605,9 @@ rather than ui-menu-list solely to avoid implying kinship with this component;
 the rename removes the ambiguity at its source."
 ```
 
----
+______________________________________________________________________
 
-### Task 6: B2 — apply the element-naming rule to Bulma-derived components  DONE (`88a9f07`)
+### Task 6: B2 — apply the element-naming rule to Bulma-derived components DONE (`88a9f07`)
 
 > **Substring hazard the plan did not flag.** `--ui-shell-aside-width` contains
 > the `ui-shell-aside` class token. The rename must use a negative lookbehind on
@@ -607,6 +621,7 @@ the rename removes the ambiguity at its source."
 The surface splits by origin: freshly authored components use `__`, components ported from Bulma's vocabulary use `-`. Spec A commits to `__` in prose and then ships `ui-burger__bar` alongside `ui-shell-main`, so the split is replicating.
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/layout.css`, `fastblocks_ui/static/css/components.css`
 - Modify: `fastblocks_ui/helpers.py` (any helper emitting these classes)
 - Modify: `fastblocks_ui/manifest.json` (`class_name` values only — no `name` changes)
@@ -614,7 +629,9 @@ The surface splits by origin: freshly authored components use `__`, components p
 - Modify: `tests/test_fastblocks_ui.py`, `tests/test_demo_parity.py`
 
 **Interfaces:**
+
 - Consumes: nothing
+
 - Produces: the renamed classes below; no Python signature changes
 
 - [x] **Step 1: Apply this exact rename table**
@@ -662,10 +679,12 @@ Then update `demo/demo.html` by hand to match, regenerating each "real helper ou
 - [x] **Step 5: Verify no old names survive**
 
 Run:
+
 ```bash
 grep -rn 'ui-hero-\|ui-level-\|ui-media-\|ui-navbar-\|ui-table-container\|ui-shell-' \
   fastblocks_ui/ demo/ scripts/ tests/ --include='*.css' --include='*.py' --include='*.html' --include='*.json'
 ```
+
 Expected: no output
 
 - [x] **Step 6: Run everything**
@@ -685,18 +704,19 @@ dialog. The split was archaeological -- Bulma-derived components kept Bulma's
 convention -- and Spec A had begun replicating it."
 ```
 
----
+______________________________________________________________________
 
-### Task 7: B2 — `ui-dropdown` onto Popover API and anchor positioning  DONE (`4dca767`)
+### Task 7: B2 — `ui-dropdown` onto Popover API and anchor positioning DONE (`4dca767`)
 
 > **Three corrections for Tasks 8-9, which use the same primitives:**
+>
 > 1. Never set `display` on a `[popover]` in the author layer — it defeats the
 >    UA's `:not(:popover-open) { display: none }`. Cascade layers do not order
 >    author styles against the UA sheet.
-> 2. `aria-expanded` on a `popovertarget` invoker is implicit ARIA and is never a
+> 1. `aria-expanded` on a `popovertarget` invoker is implicit ARIA and is never a
 >    DOM attribute in any engine. Style open state from the panel's
 >    `:popover-open`. Task 9's plan text assumed otherwise.
-> 3. WebKit does not focus a button on click (macOS convention). Drive
+> 1. WebKit does not focus a button on click (macOS convention). Drive
 >    focus-restoration assertions from the keyboard.
 >
 > Use `tools/refresh_demo_assets.py` for demo re-inlining from here on.
@@ -704,13 +724,16 @@ convention -- and Spec A had begun replicating it."
 Deletes the `position: relative` ancestor contract that `components.css:437-448` and `menu()`'s docstring both document rather than fix.
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/components.css` (`.ui-dropdown`)
 - Modify: `fastblocks_ui/helpers.py` (`dropdown()` — emit `popover`, drop the docstring warning)
 - Modify: `scripts/build_demo.py`, `demo/demo.html`, `demo/index.html`
 - Test: `tests/e2e/dropdown.spec.js` (create)
 
 **Interfaces:**
+
 - Consumes: `dropdown()` from Task 5
+
 - Produces: `dropdown(items, *, id, label="Menu", class_=None, **attrs)` — **`id` becomes required**, because `popovertarget` needs a stable target. This is the htmx stable-ID constraint surfacing in the API, exactly as Spec A's `drawer()` did.
 
 - [x] **Step 1: Write the failing e2e test**
@@ -867,9 +890,9 @@ the Baseline floor so it is @supports-guarded; the fallback is the browser's
 static-position placement."
 ```
 
----
+______________________________________________________________________
 
-### Task 8: B2 — `ui-dialog` onto `command`/`commandfor`, dropping non-modal  DONE (`1d383bc`)
+### Task 8: B2 — `ui-dialog` onto `command`/`commandfor`, dropping non-modal DONE (`1d383bc`)
 
 > **The modal focus-trap guarantee is narrower than it looks.** Engines route
 > Tab through `<body>` or the dialog element itself while cycling, so
@@ -884,6 +907,7 @@ static-position placement."
 Non-modal `<dialog open>` support is dropped, which is what genuinely retires `trapTabFocus` — not the platform, which never covered the non-modal path.
 
 **Files:**
+
 - Modify: `fastblocks_ui/helpers.py` (`dialog()`)
 - Modify: `fastblocks_ui/static/css/components.css` (`.ui-dialog`)
 - Modify: `scripts/build_demo.py`, `demo/demo.html`, `demo/index.html`
@@ -891,7 +915,9 @@ Non-modal `<dialog open>` support is dropped, which is what genuinely retires `t
 - Delete: `tests/e2e/dialog-focus-trap.spec.js`
 
 **Interfaces:**
+
 - Consumes: nothing from earlier tasks
+
 - Produces: `dialog(content, *, id, title=None, autoshow=False, class_=None, **attrs) -> SafeHTML`. The `open` parameter is **removed**; `autoshow` replaces it and renders `data-ui-dialog-autoshow`, consumed by Task 9's `enhanceDialogAutoshow`.
 
 - [x] **Step 1: Write the failing e2e test**
@@ -1025,9 +1051,9 @@ feature is what retires the trap; the roadmap's claim that engines now cover it
 natively was wrong. dialog-focus-trap.spec.js is deleted with it."
 ```
 
----
+______________________________________________________________________
 
-### Task 9: B2 — delete the retired JS exports, add the autoshow hook  DONE (`adecb5e`)
+### Task 9: B2 — delete the retired JS exports, add the autoshow hook DONE (`adecb5e`)
 
 > **The plan was not executable as written.** It said to leave the custom
 > elements alone while deleting the helpers; they were the last consumers of
@@ -1042,12 +1068,15 @@ natively was wrong. dialog-focus-trap.spec.js is deleted with it."
 Public exports drop from five to three. A named import of a removed ES export is a module-instantiation error, so this is a hard break by design.
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/js/enhance.js`
 - Modify: `fastblocks_ui/static/js/fastblocks-ui.js`
 - Test: `tests/js/fastblocks-ui.test.js`
 
 **Interfaces:**
+
 - Consumes: `data-ui-dialog-autoshow` from Task 8
+
 - Produces: public exports `defineFastBlocksCustomElements`, `enhanceTabs`, `initFastBlocksUI` only
 
 - [x] **Step 1: Write the failing vitest tests**
@@ -1107,6 +1136,7 @@ Verify nothing else references them:
 ```bash
 grep -n 'trapTabFocus\|focusableWithin\|dialogState\|MENU_TRIGGER\|DIALOG_TRIGGER\|enhanceMenus\|enhanceDialogs' fastblocks_ui/static/js/enhance.js
 ```
+
 Expected: no output
 
 Leave the custom-element (`ui-dialog`, `ui-menu` host) definitions alone unless they reference deleted helpers; if they do, reduce them to markup-sync only.
@@ -1180,9 +1210,9 @@ Adds enhanceDialogAutoshow (internal, not exported) so a server can still
 render an open dialog via data-ui-dialog-autoshow, including across htmx swaps."
 ```
 
----
+______________________________________________________________________
 
-### Task 10: B3 — the contrast harness, before any token derives  DONE (`95e195c`)
+### Task 10: B3 — the contrast harness, before any token derives DONE (`95e195c`)
 
 > **The spec's contrast function was wrong.** `getComputedStyle` returns colours
 > in their authored space (`oklch(...)`), never `rgb()`, so parsing its numbers
@@ -1199,11 +1229,14 @@ render an open dialog via data-ui-dialog-autoshow, including across htmx swaps."
 Built first, deliberately. It is the gate that decides Task 11's mix percentages, so it must exist and pass against the current hand-authored palette before anything derives.
 
 **Files:**
+
 - Create: `tests/e2e/fixtures/token-contrast.html`
 - Create: `tests/e2e/token-contrast.spec.js`
 
 **Interfaces:**
+
 - Consumes: `fastblocks-ui.css` tokens
+
 - Produces: a passing baseline that Task 11 must not regress
 
 - [x] **Step 1: Create the fixture**
@@ -1331,9 +1364,9 @@ color-mix() and gamut mapping are the engine's, not a reimplementation.
 Pairs awaiting Task 11's derivation are marked fixme, thresholds unchanged."
 ```
 
----
+______________________________________________________________________
 
-### Task 11: B3 — derive the token scales  DONE (`940da30`)
+### Task 11: B3 — derive the token scales DONE (`940da30`)
 
 > **The spec's `oklch(from ... clamp(0, (0.62 - l) * 1000, 1) 0 0)` pivot does
 > not work.** It bottoms out at 6/185 at every threshold, because oklch `l` is
@@ -1348,13 +1381,16 @@ Pairs awaiting Task 11's derivation are marked fixme, thresholds unchanged."
 > tests as passes. Commit gate changes before scanning parameters.
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/tokens.css`
 - Modify: `fastblocks_ui/static/css/theme.css` (dark-mode overrides that become redundant)
 - Modify: `fastblocks_ui/static/css/fastblocks-ui.css` (regenerated)
 - Modify: `tests/e2e/token-contrast.spec.js` (remove the fixmes)
 
 **Interfaces:**
+
 - Consumes: the harness from Task 10
+
 - Produces: `--ui-color-{primary,info,success,warning,danger}-{subtle,strong,contrast}` as derived values
 
 - [x] **Step 1: Remove one fixme and watch it fail**
@@ -1425,17 +1461,20 @@ contrast matrix, not chosen by eye. The Tailwind provenance comments are kept
 and retargeted to the default inputs."
 ```
 
----
+______________________________________________________________________
 
-### Task 12: Release readiness  DONE (`89d77e5`)
+### Task 12: Release readiness DONE (`89d77e5`)
 
 **Files:**
+
 - Modify: `CHANGELOG.md`
 - Modify: `docs/usage.md`, `docs/components.md`, `README.md`, `PACKAGE_README.md`
 - Modify: `docs/modernization-roadmap.md` (mark items done, fold in the corrections)
 
 **Interfaces:**
+
 - Consumes: everything above
+
 - Produces: a release-ready tree; **no version fields touched**
 
 - [x] **Step 1: Write the CHANGELOG entry**
@@ -1465,6 +1504,7 @@ npm run validate
 npx playwright test
 npx playwright test --config=playwright.audit.config.js
 ```
+
 Expected: every command exits 0
 
 - [x] **Step 5: Confirm no version field moved**
@@ -1489,13 +1529,14 @@ Then report to Les, do not act:
 > Note: `package.json` is at 0.7.0 while `pyproject.toml` is at 0.7.1 — worth
 > confirming the bump covers both.
 
----
+______________________________________________________________________
 
 ## Self-review
 
 **Spec coverage:** B0 → Task 1 (deferred pytest wiring). B1 → Tasks 2, 3, 4. B2 → Tasks 5, 6, 7, 8, 9. B3 → Tasks 10, 11. Rename audit → Tasks 5, 6. Cross-repo obligations → Task 12's report (the sibling repos themselves are Spec C's own plan). Corrections C1–C4 → the "do not fix again" table plus Task 12 Step 3.
 
 **Known gaps, stated rather than hidden:**
+
 - The spec lists `ui-navbar__menu` as "decide during B2 whether it is redundant once `ui-dropdown` exists." Task 5 Step 5 renames it; the redundancy call is left to the implementer with the context in front of them.
 - Task 3's `.ui-progress` accent-color extension goes slightly beyond roadmap item 1.6, which is already implemented. It is one declaration and completes the item's stated intent.
 - Task 10's harness measures the sRGB projection of OKLCH colours, matching how `tokens.css`'s existing ratios were measured and how WCAG 2 is defined. WCAG 2's known gap on wide-gamut colour is inherited, not introduced.

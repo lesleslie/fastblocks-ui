@@ -214,7 +214,7 @@ existing helper markup:
 - `dialog(..., custom_element=True)` renders a `<ui-dialog>` host around the
   canonical `<dialog>` markup.
 - ~~`dropdown(..., custom_element=True)` renders a `<ui-dropdown>` host around the same~~
-  *(retired: the parameter now raises `TypeError`)*  The former behaviour wrapped
+  *(retired: the parameter now raises `TypeError`)* The former behaviour wrapped
   disclosure markup used by the plain helper.
 
 The browser layer upgrades those hosts in place and resyncs after fragment

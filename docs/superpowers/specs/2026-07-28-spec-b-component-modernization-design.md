@@ -392,12 +392,12 @@ Established in `docs/spec-c-investigation.md`. Neither sibling hardcodes a
    renames `menu` → `dropdown`. `fastblocks-htmy` asserts
    `set(trusted_components()) == {c["name"] for c in manifest["components"]}`,
    an exact set equality, so both directions break it.
-2. **`fastblocks-htmy` regenerates** `ui/_generated.py` and `layout/_generated.py`
+1. **`fastblocks-htmy` regenerates** `ui/_generated.py` and `layout/_generated.py`
    from the manifest, and its hand-written `Menu` wrapper becomes `Dropdown`.
-3. **Version pins** — `fastblocks-htmy` moves to `>=0.8,<0.9` in both
+1. **Version pins** — `fastblocks-htmy` moves to `>=0.8,<0.9` in both
    `pyproject.toml` and `_UI_MIN`/`_UI_MAX`; `fastblocks` moves its optional
    `fastblocks_ui` extra to the same range.
-4. **`fastblocks`'s five Jinja globals** (`ui_button`, `ui_card`, `ui_field`,
+1. **`fastblocks`'s five Jinja globals** (`ui_button`, `ui_card`, `ui_field`,
    `ui_alert`, `ui_container`) touch no renamed component and need no change.
 
 Release order: `fastblocks-ui` 0.8.0 → `fastblocks-htmy` → `fastblocks`.
@@ -456,4 +456,4 @@ in step. The inlined-CSS drift gate from f188d25 extends to the new rules.
   (12% / 80%). The matrix in B3 determines the real values; the plan must run it
   before the percentages are fixed.
 - `ui-navbar__menu` may prove redundant once `ui-dropdown` exists; decide during
-  B2 rather than pre-emptively.
+  B2 rather than preemptively.

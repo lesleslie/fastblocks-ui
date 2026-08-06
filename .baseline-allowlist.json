@@ -13,19 +13,19 @@
     "floor, or when 'reviewBy' has passed -- a stale exemption is a silent lie",
     "about the support policy, so it breaks the build like any other violation."
   ],
-  "floor": "newly",
   "allow": [
     {
+      "degradation": "Checkbox and radio controls render in the UA default accent colour instead of --ui-color-primary. Purely cosmetic; no layout or behaviour change.",
       "key": "css.properties.accent-color",
       "reason": "BCD data gap, not a real support gap. The support record lists chrome 93, edge 93, firefox 92, firefox_android 92, safari 26.2 and safari_ios 26.2, but has no chrome_android entry at all, and Baseline requires all seven. The property shipped in Chrome 93 across platforms. Re-check once BCD backfills the record.",
-      "degradation": "Checkbox and radio controls render in the UA default accent colour instead of --ui-color-primary. Purely cosmetic; no layout or behaviour change.",
       "reviewBy": "2027-01-31"
     },
     {
+      "degradation": "On Safari, an open .ui-drawer whose content is too short to scroll chains its scroll to the page behind it. Cosmetic -- the drawer still traps focus, light-dismisses, and returns focus to the burger.",
       "key": "css.properties.overscroll-behavior",
       "reason": "Neither a data gap nor something @supports can cover. Every engine shipped this partial_implementation -- it has no effect on scroll containers without scrollable overflow. Chrome fixed that in 144 and Firefox in 150; Safari has not (webkit.org/b/243452), so Baseline counts it unsupported. Crucially Safari still PARSES the property, so `@supports (overscroll-behavior: contain)` evaluates true there: a guard would protect nothing while appearing to. A partial implementation therefore always belongs here rather than behind a guard.",
-      "degradation": "On Safari, an open .ui-drawer whose content is too short to scroll chains its scroll to the page behind it. Cosmetic -- the drawer still traps focus, light-dismisses, and returns focus to the burger.",
       "reviewBy": "2027-01-31"
     }
-  ]
+  ],
+  "floor": "newly"
 }

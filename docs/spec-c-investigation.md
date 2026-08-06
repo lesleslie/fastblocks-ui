@@ -98,11 +98,11 @@ Additional surfaces beyond the 27 helpers: `Size` and `Variant` type exports,
    Not a subset check. **Adding** a component to `manifest.json` fails this test
    exactly as hard as removing one.
 
-2. **Codegen drift gate** — `tests/test_components.py` shells out to
+1. **Codegen drift gate** — `tests/test_components.py` shells out to
    `scripts/generate_components.py --check`. Any change to a manifest `params`
    entry for a `codegen: true` component fails until regenerated.
 
-3. **Pin consistency** — `test_ui_compat_range_matches_pyproject_pin` asserts
+1. **Pin consistency** — `test_ui_compat_range_matches_pyproject_pin` asserts
    `_UI_MIN`/`_UI_MAX` match the `pyproject.toml` pin, so the two cannot drift.
 
 ### Two asset paths are hardcoded
@@ -153,10 +153,10 @@ That is the argument for 0.8.0 rather than a patch, independent of Spec B.
 **Release order:**
 
 1. `fastblocks-ui` 0.8.0 — publish first; nothing depends on the siblings.
-2. `fastblocks-htmy` — bump the `pyproject.toml` pin *and* `_UI_MIN`/`_UI_MAX` to
+1. `fastblocks-htmy` — bump the `pyproject.toml` pin *and* `_UI_MIN`/`_UI_MAX` to
    `(0, 8)`/`(0, 9)`, re-run `scripts/generate_components.py`, add wrappers for
    the five new Spec A components, rename `Menu` → `Dropdown`.
-3. `fastblocks` — bump the optional extra to `>=0.8,<0.9`. No code change: its
+1. `fastblocks` — bump the optional extra to `>=0.8,<0.9`. No code change: its
    five Jinja globals (`button`, `card`, `field`, `alert`, `container`) touch no
    renamed or resignatured component.
 
@@ -170,9 +170,9 @@ version pins are the only thing that would need widening.
    in the whole arrangement. Consider proposing it become a subset check plus an
    explicit "known missing" list, so additive releases upstream stop being
    breaking downstream. That is a change to *their* repo and out of scope here.
-2. Neither sibling has a test that would catch a `ui-*` class rename, because
+1. Neither sibling has a test that would catch a `ui-*` class rename, because
    neither hardcodes one. That is a good property, and worth stating in this
    repo's own docs so nobody "helpfully" adds a hardcoded class later.
-3. `fastblocks`'s optional-extra pin fails *silently* (resolves to an older
+1. `fastblocks`'s optional-extra pin fails *silently* (resolves to an older
    version) rather than loudly. Worth a runtime version check mirroring
    `fastblocks-htmy`'s `_check_fastblocks_ui()`.

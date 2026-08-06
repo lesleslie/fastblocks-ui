@@ -5,6 +5,122 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-08-06
+
+### Added
+
+- **BREAKING:** dialog: Move to command/commandfor, drop non-modal support
+- **BREAKING:** dropdown: Move onto the Popover API and anchor positioning
+- Add ui-burger popover toggle button
+- Add ui-drawer off-canvas panel on the Popover API
+- Add ui-nav-list and ui-nav-group vertical navigation
+- ci: Enforce a Baseline floor on the shipped CSS; spec B and C
+- ci: Let check-baseline scan an unmerged branch; correct overscroll data
+- Close drawer when viewport crosses its breakpoint
+- demo: Add showcase sections for the five new components
+- demo: Add showcase sections for the five new components
+- field: Add :user-invalid client-side validation styling
+- layout: Add sticky navbar reveal and responsive aside switch
+- layout: Add ui-shell full-bleed page shell
+- Rebuild generated demo on the public shell and drawer
+- Rebuild the hand-written demo on the public shell and drawer
+- textarea: Auto-grow with field-sizing: content
+- tokens: Derive colour scales from one input per role
+
+### Changed
+
+- **BREAKING:** api: Rename ui-menu to ui-dropdown
+- **BREAKING:** css: Apply one element-naming rule across all components
+- **BREAKING:** js: Retire the dialog and dropdown JavaScript layers
+- a11y: Retire deprecated `clip` from .ui-visually-hidden
+- Rename nav_group() to nav_groups()
+
+### Fixed
+
+- a11y: Close the four pre-existing contrast and RTL defects
+- a11y: Extend the 3:1 control border to pagination and focused switches
+- a11y: Give form controls a 3:1 border (WCAG 2.1 SC 1.4.11)
+- a11y: Make scroll containers keyboard-reachable and nav names unique
+- a11y: Saturate the -contrast switch; restore [hidden]; close review gaps
+- burger: Select the open state from the drawer, not aria-expanded
+- css: Move ui-measure to utilities and gate the utility surface
+- demo: Drop the nav skip link below the drawer breakpoint
+- demo: Make the escaped-markup block keyboard scrollable
+- demo: Re-inline the CSS bundle, both JS modules and the manifest
+- drawer: Guard matchMedia so a missing API cannot abort init
+- drawer: Reset the UA popover box model so the panel lands on the right edge
+- e2e: Wait for content-visibility layout to settle before clicking
+- Expose nav_list's active item to assistive tech
+- helpers: Close style-spelling gap and pin _safe_css_length boundaries
+- helpers: Dedupe _render_attrs against a helper's own positional defaults
+- helpers: Detect a caller's aria-label under any spelling
+- js: Direct :popover-open feature detect, self-inclusive drawer discovery
+- layout: Hide only the shell's own burger above the breakpoint
+- layout: Scope the sticky-bar side effects and repair two can't-fail tests
+- lint: Satisfy refurb, lychee and ruff before the 0.8.0 bump
+- Make nav_list's aria-current token a validated parameter
+- Make the desktop hide opt-in via .ui-burger.is-shell-toggle
+- scripts: Emit sorted manifest keys so sync agrees with the formatter
+- shell: Don't reserve an aside track when there is no aside
+
+### Documentation
+
+- Correct the aria-expanded claim in spec and plan
+- css: Explain why .ui-nav-list__item carries no rule of its own
+- Document ui-shell, ui-drawer, ui-burger, and ui-nav-list
+- helpers: Document and test the aria_label=None opt-out
+- Implementation plan for full-bleed demo layout
+- Implementation plan for Spec B component modernization
+- js: Correct the enhanceDrawers comment after the burger-scoping fix
+- plan: Add the missing JS drift gate to Task 8
+- plan: Align Task 6 with the enhance.js contract
+- plan: Carry the drawer box-model reset into Task 3's CSS
+- plan: Declare parity tests expected-red until Task 8
+- plan: Drop dead reduced-motion rules from Tasks 4 and 5
+- plan: Fix a sequencing bug found by re-checking Spec A's branch
+- plan: Fix interpreter paths, nav_group attr duplication, add Task 0
+- plan: Make Task 9's axe gate baseline-relative
+- plan: Mark Task 1 done; Spec A's hard gate is satisfied
+- plan: Mark Task 10 done; record the canvas measurement fix and the border gap
+- plan: Mark Task 11 done — B3 phase complete
+- plan: Mark Task 12 done — Spec B complete
+- plan: Mark Task 2 done, record the two test-side deviations
+- plan: Mark Task 3 done; record the dropped accent-color scope
+- plan: Mark Task 4 done — B1 phase complete
+- plan: Mark Task 5 done; record the demo re-inlining hazard
+- plan: Mark Task 6 done; record the custom-property substring hazard
+- plan: Mark Task 7 done; record three popover corrections for Tasks 8-9
+- plan: Mark Task 8 done; record the parity-mirror staleness trap
+- plan: Mark Task 9 done — B2 phase complete
+- plan: Note in-page aria-current token for Task 7 sidebar
+- plan: Task 0 commits only the sync script, not manifest.json
+- plan: Tell Task 8 to mirror Task 7's banner role and theme-toggle fixes
+- Record the Spec B breaking changes and correct the roadmap
+- Spec full-bleed demo layout with sticky nav and popover drawer
+- spec: Correct six stale snippets and record what changed
+- test: Correct the JS drift gate docstring
+
+### Testing
+
+- a11y: Extract one correct colour-measurement implementation
+- a11y: Sweep both demo pages across the shell breakpoint
+- ci: Gate the Baseline floor and version parity from pytest
+- demo: Retarget parity selectors and add the missing JS drift gate
+- e2e: Correct unverified comment claims and tighten the ARIA canary
+- e2e: Cover the drawer, sticky column, and navbar reveal
+- e2e: Verify demo-layout.spec.js and axe sweeps under real Firefox/WebKit
+- parity: Derive JS_DIR from get_js_path() instead of hardcoding it
+- parity: Pin shell/nav_list/nav_groups showcase fragments
+- tokens: Activate the contrast gates for Task 11
+- tokens: Real-engine contrast harness over an OKLCH brand grid
+
+### Internal
+
+- quality: Clear the one refurb finding this branch introduced
+- security: Scope the secret scanner to first-party code
+- Sync package.json version to 0.7.1
+- Sync uv.lock version to 0.7.1
+
 ## [Unreleased]
 
 ### Breaking changes
@@ -117,13 +233,16 @@ focus trap, rather than failing visibly. Use `autoshow=True`.
   one sits below the declared floor (Baseline Newly) without an `@supports`
   guard or a justified allowlist entry. Wired into `npm run validate` and the
   pytest suite. `--css-dir` lets an unmerged branch be checked before it lands.
+
 - **`:user-invalid` field styling.** Client-side validation feedback layered
   under the existing server-set `aria-invalid` rules, which stay authoritative.
   `:user-invalid` matches only after the user edits a field, so untouched
   required fields no longer render as already-failing.
+
 - **Auto-growing textareas** via `field-sizing: content` (Baseline Newly since
   2026-06-16), with a `min-block-size` floor because the property stops honouring
   `rows`.
+
 - **`--ui-color-border-control`.** Used wherever a border is the ONLY thing
   identifying an interactive control: text inputs, selects, textareas, the switch
   track (resting and focused), and pagination items. Those all measured 1.47:1
@@ -134,10 +253,12 @@ focus trap, rather than failing visibly. Use `autoshow=True`.
   a card, table, dialog or navbar is identified by its contents, so 1.4.11 does
   not apply and darkening them would change the library's whole visual weight
   for no conformance gain.
+
 - **Derived colour scales.** Each semantic role now needs ONE input:
   `-contrast`, `-subtle` and `-strong` follow from it, in both themes. Set
   `--ui-color-primary` and the scale follows. Verified over a 185-colour OKLCH
   grid in all three engines.
+
 - `tools/refresh_demo_assets.py` for the copies `demo/demo.html` inlines.
 
 ### Changed
@@ -150,7 +271,7 @@ focus trap, rather than failing visibly. Use `autoshow=True`.
 ### Fixed
 
 - `package-lock.json` carried an integrity hash that codespell had corrupted
-  (`COo` -> `coup` inside base64), which made `npm ci` and `npm install` fail
+  (`coup` -> `coup` inside base64), which made `npm ci` and `npm install` fail
   with `EINTEGRITY` on any cold cache.
 - `package.json` and `uv.lock` had drifted from `pyproject.toml`'s version; a
   pytest assertion now keeps all three in step.
@@ -160,7 +281,6 @@ focus trap, rather than failing visibly. Use `autoshow=True`.
 - An intermittent WebKit failure in the tabs smoke test. `content-visibility`
   settling between mousedown and mouseup meant no `click` event was dispatched
   at all, so the handler never ran while focus had already moved.
-
 
 ### Added
 
@@ -173,10 +293,12 @@ focus trap, rather than failing visibly. Use `autoshow=True`.
   one column below 1024px, main plus aside above — with `--ui-shell-max`
   defaulting to `none` (genuinely edge-to-edge) and `--ui-shell-aside-width` to
   `16rem`.
+
 - `ui-drawer` is built on the Popover API: light dismiss, Escape, top-layer
   stacking, tab-order placement while shown, focus return, and the implicit
   `aria-expanded`/`aria-details` invoker relationship all come from the
   platform, with no author JavaScript for any of them.
+
 - One JavaScript enhancement, `enhanceDrawers`, for the one case the platform
   does not cover: a drawer opened below its breakpoint stays in the top layer,
   so widening the viewport past it would leave a stale popover and a full-page
@@ -184,6 +306,7 @@ focus trap, rather than failing visibly. Use `autoshow=True`.
   `data-ui-drawer-breakpoint` get a single `matchMedia` listener that calls
   `hidePopover()` on the upward crossing. Drawers without the attribute get no
   listener.
+
 - `ui-measure`, a utility (not a component) that caps line length for readable
   prose; override with `--ui-measure-size`.
 
@@ -199,6 +322,7 @@ focus trap, rather than failing visibly. Use `autoshow=True`.
   section navigation as a right-hand sticky column that becomes an off-canvas
   drawer below 1024px. The demo is built from public `ui-*` components instead
   of demo-local CSS.
+
 - In-page anchors now use a single `:root { scroll-padding-top }` rather than
   per-section `scroll-margin-top`. That rule and its neighbouring
   `scrollbar-gutter: stable` are scoped to pages that actually render a
