@@ -1427,7 +1427,7 @@ and retargeted to the default inputs."
 
 ---
 
-### Task 12: Release readiness
+### Task 12: Release readiness  DONE (`89d77e5`)
 
 **Files:**
 - Modify: `CHANGELOG.md`
@@ -1438,11 +1438,11 @@ and retargeted to the default inputs."
 - Consumes: everything above
 - Produces: a release-ready tree; **no version fields touched**
 
-- [ ] **Step 1: Write the CHANGELOG entry**
+- [x] **Step 1: Write the CHANGELOG entry**
 
 Under a new `## Unreleased` heading, document every breaking change with a migration line each: the `ui-menu` → `ui-dropdown` rename, the element-naming renames (with the full table from Task 6), the removed `enhanceMenus`/`enhanceDialogs` exports, `dialog()`'s `open` → `autoshow`, the required `id` on `dialog()` and `dropdown()`, and the dropped non-modal dialog support.
 
-- [ ] **Step 2: Update the docs**
+- [x] **Step 2: Update the docs**
 
 Run this to find every stale reference, and fix each:
 
@@ -1451,11 +1451,11 @@ grep -rn 'ui-menu\|enhanceMenus\|enhanceDialogs\|data-ui-menu-target\|data-ui-di
   README.md PACKAGE_README.md docs/*.md
 ```
 
-- [ ] **Step 3: Update the roadmap**
+- [x] **Step 3: Update the roadmap**
 
 In `docs/modernization-roadmap.md`, mark items 1.1–1.6 and 2.1 done, and replace the support figures for `accent-color`, `anchor-positioning`, `overscroll-behavior`, `field-sizing`, `container-style-queries` and `relative-color` with the verified values from the spec's C4 table.
 
-- [ ] **Step 4: Full verification**
+- [x] **Step 4: Full verification**
 
 ```bash
 python tools/build_css.py --check
@@ -1467,12 +1467,12 @@ npx playwright test --config=playwright.audit.config.js
 ```
 Expected: every command exits 0
 
-- [ ] **Step 5: Confirm no version field moved**
+- [x] **Step 5: Confirm no version field moved**
 
 Run: `git diff main --stat -- pyproject.toml package.json`
 Expected: no `version` line in the diff
 
-- [ ] **Step 6: Commit and report**
+- [x] **Step 6: Commit and report**
 
 ```bash
 git add -A
