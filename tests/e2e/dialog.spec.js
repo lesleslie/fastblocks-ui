@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { installProbe } from './contrast-utils.js';
 
 const PAGE = '/tests/e2e/fixtures/dialog.html';
 
@@ -82,11 +83,20 @@ test.describe('Dialog on command/commandfor', () => {
   });
 
   test('renders a backdrop', async ({ page }) => {
+    await installProbe(page);
     await page.locator('#open').click();
-    const hasBackdrop = await page.locator('#dlg').evaluate((el) => {
+    // Measure the rendered ALPHA rather than string-matching the computed
+    // value. Engines serialise colours in their authored space, so comparing
+    // against the literals 'rgba(0, 0, 0, 0)' and 'transparent' would miss a
+    // genuinely invisible backdrop written as `color(srgb 0 0 0 / 0)` and pass
+    // for the wrong reason.
+    const alpha = await page.locator('#dlg').evaluate((el) => {
       const bg = getComputedStyle(el, '::backdrop').backgroundColor;
-      return bg !== '' && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent';
+      if (!bg) {
+        return 0;
+      }
+      return window.__uiContrast.rasterise(bg)[3];
     });
-    expect(hasBackdrop).toBe(true);
+    expect(alpha, `backdrop alpha ${alpha}/255`).toBeGreaterThan(0);
   });
 });
