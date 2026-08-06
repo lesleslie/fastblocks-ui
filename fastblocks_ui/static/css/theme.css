@@ -45,10 +45,21 @@
        enough to still feel dark-mode-native. So primary stays at
        indigo-600/-700, the same pair light mode uses, and the primary
        button/hero is intentionally one colour in both themes (6.29:1). */
+    /* Derived exactly as in tokens.css -- see the long note there. Dark mode
+       must derive too: if only the light theme did, a consumer overriding
+       `--ui-color-primary` would get a correct derived scale in light and a
+       stale hard-coded one in dark, which is worse than deriving neither.
+
+       The formula needs no dark-specific variant. These bases sit on a dark
+       surface, so `-contrast` computes to black and "mix away from the
+       foreground" means mix toward white -- reproducing the lighter `-strong`
+       (cyan-300, red-300 ...) this theme previously hand-picked, and the
+       light-fill/black-text pairing the note above argues for. */
     --ui-color-primary: oklch(51.1% 0.262 276.966); /* indigo-600 */
-    --ui-color-primary-contrast: #ffffff;
-    --ui-color-primary-subtle: oklch(35.9% 0.144 278.697); /* indigo-900 */
-    --ui-color-primary-strong: oklch(45.7% 0.24 277.023); /* indigo-700 */
+    --_ui-primary-fg: rgb(from var(--ui-color-primary) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --ui-color-primary-contrast: rgb(from var(--_ui-primary-fg) r r r);
+    --ui-color-primary-subtle: color-mix(in oklab, var(--ui-color-primary) 12%, var(--ui-color-surface));
+    --ui-color-primary-strong: color-mix(in oklab, var(--ui-color-primary) 80%, rgb(from var(--ui-color-primary-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     /* info/success/warning/danger all take the 400 shade with BLACK
        `-contrast` text. A pastel fill under white text fails AA every
@@ -56,23 +67,27 @@
        instead of darkening the fill keeps dark mode looking like dark
        mode. Keep the pairing if you re-bump: light fill + black text. */
     --ui-color-info: oklch(78.9% 0.154 211.53); /* cyan-400 */
-    --ui-color-info-contrast: #000000;
-    --ui-color-info-subtle: oklch(39.8% 0.07 227.392); /* cyan-900 */
-    --ui-color-info-strong: oklch(86.5% 0.127 207.078); /* cyan-300 */
+    --_ui-info-fg: rgb(from var(--ui-color-info) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --ui-color-info-contrast: rgb(from var(--_ui-info-fg) r r r);
+    --ui-color-info-subtle: color-mix(in oklab, var(--ui-color-info) 12%, var(--ui-color-surface));
+    --ui-color-info-strong: color-mix(in oklab, var(--ui-color-info) 80%, rgb(from var(--ui-color-info-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-success: oklch(79.2% 0.209 151.711); /* green-400 */
-    --ui-color-success-contrast: #000000;
-    --ui-color-success-subtle: oklch(39.3% 0.095 152.535); /* green-900 */
-    --ui-color-success-strong: oklch(87.1% 0.15 154.449); /* green-300 */
+    --_ui-success-fg: rgb(from var(--ui-color-success) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --ui-color-success-contrast: rgb(from var(--_ui-success-fg) r r r);
+    --ui-color-success-subtle: color-mix(in oklab, var(--ui-color-success) 12%, var(--ui-color-surface));
+    --ui-color-success-strong: color-mix(in oklab, var(--ui-color-success) 80%, rgb(from var(--ui-color-success-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-warning: oklch(85.2% 0.199 91.936); /* yellow-400 */
-    --ui-color-warning-contrast: #000000;
-    --ui-color-warning-subtle: oklch(42.1% 0.095 57.708); /* yellow-900 */
-    --ui-color-warning-strong: oklch(90.5% 0.182 98.111); /* yellow-300 */
+    --_ui-warning-fg: rgb(from var(--ui-color-warning) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --ui-color-warning-contrast: rgb(from var(--_ui-warning-fg) r r r);
+    --ui-color-warning-subtle: color-mix(in oklab, var(--ui-color-warning) 12%, var(--ui-color-surface));
+    --ui-color-warning-strong: color-mix(in oklab, var(--ui-color-warning) 80%, rgb(from var(--ui-color-warning-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-danger: oklch(70.4% 0.191 22.216); /* red-400 */
-    --ui-color-danger-contrast: #000000;
-    --ui-color-danger-subtle: oklch(39.6% 0.141 25.723); /* red-900 */
-    --ui-color-danger-strong: oklch(80.8% 0.114 19.571); /* red-300 */
+    --_ui-danger-fg: rgb(from var(--ui-color-danger) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --ui-color-danger-contrast: rgb(from var(--_ui-danger-fg) r r r);
+    --ui-color-danger-subtle: color-mix(in oklab, var(--ui-color-danger) 12%, var(--ui-color-surface));
+    --ui-color-danger-strong: color-mix(in oklab, var(--ui-color-danger) 80%, rgb(from var(--ui-color-danger-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
   }
 }

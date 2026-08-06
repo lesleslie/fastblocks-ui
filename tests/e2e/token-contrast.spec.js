@@ -126,6 +126,50 @@ test.describe('Derived token contrast', () => {
     });
   }
 
+  // The grid above varies --ui-color-primary only. The other four roles share
+  // the identical formula, so this checks the SHIPPED value of each role in
+  // BOTH themes -- which is what actually renders, and what a per-role typo in
+  // the derivation would break.
+  for (const theme of ['light', 'dark']) {
+    test(`every role's derived scale holds its ratios in the ${theme} theme`, async ({ page }) => {
+      const measured = await page.evaluate(([mode, roles]) => {
+        document.documentElement.setAttribute('data-theme', mode);
+        const probe = document.getElementById('probe');
+        const ctx = document.getElementById('raster').getContext('2d', { willReadFrequently: true });
+        const toSrgb = (token) => {
+          probe.style.color = `var(${token})`;
+          ctx.clearRect(0, 0, 1, 1);
+          ctx.fillStyle = getComputedStyle(probe).color;
+          ctx.fillRect(0, 0, 1, 1);
+          const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+          return [r, g, b];
+        };
+        const lum = ([r, g, b]) => {
+          const f = (v) => {
+            const s = v / 255;
+            return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+          };
+          return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+        };
+        const cr = (a, b) => {
+          const [x, y] = [lum(a), lum(b)];
+          return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+        };
+        const out = {};
+        for (const role of roles) {
+          out[`${role} on base`] = cr(toSrgb(`--ui-color-${role}-contrast`), toSrgb(`--ui-color-${role}`));
+          out[`${role} on strong`] = cr(toSrgb(`--ui-color-${role}-contrast`), toSrgb(`--ui-color-${role}-strong`));
+          out[`text on ${role} subtle`] = cr(toSrgb('--ui-color-text'), toSrgb(`--ui-color-${role}-subtle`));
+        }
+        return out;
+      }, [theme, Object.keys(SHIPPED)]);
+
+      for (const [pair, ratio] of Object.entries(measured)) {
+        expect(ratio, `${theme}: ${pair} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+  }
+
   // The shipped palette is audited in tokens.css; this pins those measurements
   // so a future token edit cannot quietly regress them.
   //
@@ -245,3 +289,6 @@ test.describe('Derived token contrast', () => {
     expect(ratio, `${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(3);
   });
 });
+
+
+

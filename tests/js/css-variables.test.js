@@ -31,14 +31,22 @@ describe('CSS Variable Bridge Layer', () => {
         expect(value.toLowerCase()).toBe('oklch(51.1% 0.262 276.966)');
       });
 
-      it('should define --ui-color-primary-subtle', () => {
+      it('derives --ui-color-primary-subtle from --ui-color-primary', () => {
         const value = getCSSVariable('--ui-color-primary-subtle');
-        expect(value.toLowerCase()).toBe('oklch(93% 0.034 272.788)'); // indigo-100
+        // Derived, not a literal: one input per role produces the scale.
+        // The rendered ratios are asserted in a real engine by
+        // tests/e2e/token-contrast.spec.js across 185 brand colours.
+        expect(value).toContain('color-mix');
+        expect(value).toContain('--ui-color-primary');
       });
 
-      it('should define --ui-color-primary-strong', () => {
+      it('derives --ui-color-primary-strong from --ui-color-primary', () => {
         const value = getCSSVariable('--ui-color-primary-strong');
-        expect(value.toLowerCase()).toBe('oklch(45.7% 0.24 277.023)'); // indigo-700
+        // Derived, not a literal: one input per role produces the scale.
+        // The rendered ratios are asserted in a real engine by
+        // tests/e2e/token-contrast.spec.js across 185 brand colours.
+        expect(value).toContain('color-mix');
+        expect(value).toContain('--ui-color-primary');
       });
     });
 
@@ -48,14 +56,22 @@ describe('CSS Variable Bridge Layer', () => {
         expect(value.toLowerCase()).toBe('oklch(52.7% 0.154 150.069)'); // green-500
       });
 
-      it('should define --ui-color-success-subtle', () => {
+      it('derives --ui-color-success-subtle from --ui-color-success', () => {
         const value = getCSSVariable('--ui-color-success-subtle');
-        expect(value.toLowerCase()).toBe('oklch(96.2% 0.044 156.743)'); // green-100
+        // Derived, not a literal: one input per role produces the scale.
+        // The rendered ratios are asserted in a real engine by
+        // tests/e2e/token-contrast.spec.js across 185 brand colours.
+        expect(value).toContain('color-mix');
+        expect(value).toContain('--ui-color-success');
       });
 
-      it('should define --ui-color-success-strong', () => {
+      it('derives --ui-color-success-strong from --ui-color-success', () => {
         const value = getCSSVariable('--ui-color-success-strong');
-        expect(value.toLowerCase()).toBe('oklch(44.8% 0.119 151.328)'); // green-600
+        // Derived, not a literal: one input per role produces the scale.
+        // The rendered ratios are asserted in a real engine by
+        // tests/e2e/token-contrast.spec.js across 185 brand colours.
+        expect(value).toContain('color-mix');
+        expect(value).toContain('--ui-color-success');
       });
     });
 
@@ -72,9 +88,13 @@ describe('CSS Variable Bridge Layer', () => {
         expect(value.toLowerCase()).toBe('oklch(57.7% 0.245 27.325)'); // red-500
       });
 
-      it('should define --ui-color-danger-subtle', () => {
+      it('derives --ui-color-danger-subtle from --ui-color-danger', () => {
         const value = getCSSVariable('--ui-color-danger-subtle');
-        expect(value.toLowerCase()).toBe('oklch(93.6% 0.032 17.717)'); // red-100
+        // Derived, not a literal: one input per role produces the scale.
+        // The rendered ratios are asserted in a real engine by
+        // tests/e2e/token-contrast.spec.js across 185 brand colours.
+        expect(value).toContain('color-mix');
+        expect(value).toContain('--ui-color-danger');
       });
     });
 
@@ -84,14 +104,22 @@ describe('CSS Variable Bridge Layer', () => {
         expect(value.toLowerCase()).toBe('oklch(52% 0.105 223.128)'); // cyan-500
       });
 
-      it('should define --ui-color-info-subtle', () => {
+      it('derives --ui-color-info-subtle from --ui-color-info', () => {
         const value = getCSSVariable('--ui-color-info-subtle');
-        expect(value.toLowerCase()).toBe('oklch(95.6% 0.045 203.388)'); // cyan-100
+        // Derived, not a literal: one input per role produces the scale.
+        // The rendered ratios are asserted in a real engine by
+        // tests/e2e/token-contrast.spec.js across 185 brand colours.
+        expect(value).toContain('color-mix');
+        expect(value).toContain('--ui-color-info');
       });
 
-      it('should define --ui-color-info-strong', () => {
+      it('derives --ui-color-info-strong from --ui-color-info', () => {
         const value = getCSSVariable('--ui-color-info-strong');
-        expect(value.toLowerCase()).toBe('oklch(45% 0.085 224.283)'); // cyan-600
+        // Derived, not a literal: one input per role produces the scale.
+        // The rendered ratios are asserted in a real engine by
+        // tests/e2e/token-contrast.spec.js across 185 brand colours.
+        expect(value).toContain('color-mix');
+        expect(value).toContain('--ui-color-info');
       });
     });
 

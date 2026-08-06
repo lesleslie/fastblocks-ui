@@ -21,10 +21,47 @@
        switch: none regressed, the largest movement was -0.37 (dark warning
        + black, 13.71 -> 13.35), and the tightest pair remains danger +
        white text at 4.77:1 (was 4.83:1) against AA's 4.5:1. */
+    /* ---- Derived scales -------------------------------------------------
+       Each role needs ONE input: `-contrast`, `-subtle` and `-strong` follow
+       from it, so a consumer sets `--ui-color-primary` and gets the scale.
+
+       `-contrast` picks pure black or white by computing the base colour's
+       WCAG relative luminance and comparing it to 0.179 -- the exact point
+       where black and white give equal contrast. `color-contrast()` would say
+       this in one word and has ZERO browser support (web-features: baseline
+       false, empty support map), so it is spelled out with relative colour
+       syntax and pow().
+
+       Three details are load-bearing, each found by measurement:
+
+       1. `clamp(0, r, 255)` BEFORE `pow()`. An out-of-gamut oklch colour
+          yields negative channels here -- oklch(52% 0.105 223.128) resolves
+          red to -26 -- and `pow()` of a negative base is invalid, which
+          silently invalidated the declaration and fell back to inherit.
+          Clamping is what the browser does to render those colours anyway.
+
+       2. The decision is computed once into a throwaway `--_ui-*-fg` colour's
+          red channel and fanned out with `r r r`. Inlining it per channel
+          works but makes this file unreadable.
+
+       3. `-strong` mixes toward the INVERSE of `-contrast`, not toward black.
+          One foreground must stay legible on both `base` and `-strong`, since
+          `.ui-button.is-primary` keeps its colour when `:hover` swaps the
+          background -- so for a light brand (black text) darkening `-strong`
+          moves the background toward the text. Mixing away from the
+          foreground keeps both readable.
+
+       Verified over a 185-colour OKLCH grid in all three engines by
+       tests/e2e/token-contrast.spec.js: 0 failures, down from 79. A
+       lightness-only pivot bottomed out at 6 -- oklch `l` is perceptual
+       lightness while WCAG uses relative luminance, and the two diverge with
+       chroma, so no threshold on `l` separates a vivid cyan from a muted blue
+       at the same `l`. ---------------------------------------------------- */
     --ui-color-primary: oklch(51.1% 0.262 276.966); /* indigo-600 */
-    --ui-color-primary-contrast: #ffffff;
-    --ui-color-primary-subtle: oklch(93% 0.034 272.788); /* indigo-100 */
-    --ui-color-primary-strong: oklch(45.7% 0.24 277.023); /* indigo-700 */
+    --_ui-primary-fg: rgb(from var(--ui-color-primary) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --ui-color-primary-contrast: rgb(from var(--_ui-primary-fg) r r r);
+    --ui-color-primary-subtle: color-mix(in oklab, var(--ui-color-primary) 12%, var(--ui-color-surface));
+    --ui-color-primary-strong: color-mix(in oklab, var(--ui-color-primary) 80%, rgb(from var(--ui-color-primary-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     /* info/success sit at 700/800 rather than the more obvious 500/600.
        Tailwind's 500/600 cyan and green fail AA against white text (2.43:1
@@ -34,24 +71,28 @@
        Tailwind value, and passes comfortably. Danger needed only one step
        (500 -> 600). Keep this offset if you re-bump the palette. */
     --ui-color-info: oklch(52% 0.105 223.128); /* cyan-700 */
-    --ui-color-info-contrast: #ffffff;
-    --ui-color-info-subtle: oklch(95.6% 0.045 203.388); /* cyan-100 */
-    --ui-color-info-strong: oklch(45% 0.085 224.283); /* cyan-800 */
+    --_ui-info-fg: rgb(from var(--ui-color-info) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --ui-color-info-contrast: rgb(from var(--_ui-info-fg) r r r);
+    --ui-color-info-subtle: color-mix(in oklab, var(--ui-color-info) 12%, var(--ui-color-surface));
+    --ui-color-info-strong: color-mix(in oklab, var(--ui-color-info) 80%, rgb(from var(--ui-color-info-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-success: oklch(52.7% 0.154 150.069); /* green-700 */
-    --ui-color-success-contrast: #ffffff;
-    --ui-color-success-subtle: oklch(96.2% 0.044 156.743); /* green-100 */
-    --ui-color-success-strong: oklch(44.8% 0.119 151.328); /* green-800 */
+    --_ui-success-fg: rgb(from var(--ui-color-success) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --ui-color-success-contrast: rgb(from var(--_ui-success-fg) r r r);
+    --ui-color-success-subtle: color-mix(in oklab, var(--ui-color-success) 12%, var(--ui-color-surface));
+    --ui-color-success-strong: color-mix(in oklab, var(--ui-color-success) 80%, rgb(from var(--ui-color-success-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-warning: oklch(79.5% 0.184 86.047); /* yellow-500 */
-    --ui-color-warning-contrast: #000000;
-    --ui-color-warning-subtle: oklch(97.3% 0.071 103.193); /* yellow-100 */
-    --ui-color-warning-strong: oklch(68.1% 0.162 75.834); /* yellow-600 */
+    --_ui-warning-fg: rgb(from var(--ui-color-warning) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --ui-color-warning-contrast: rgb(from var(--_ui-warning-fg) r r r);
+    --ui-color-warning-subtle: color-mix(in oklab, var(--ui-color-warning) 12%, var(--ui-color-surface));
+    --ui-color-warning-strong: color-mix(in oklab, var(--ui-color-warning) 80%, rgb(from var(--ui-color-warning-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-danger: oklch(57.7% 0.245 27.325); /* red-600 */
-    --ui-color-danger-contrast: #ffffff;
-    --ui-color-danger-subtle: oklch(93.6% 0.032 17.717); /* red-100 */
-    --ui-color-danger-strong: oklch(50.5% 0.213 27.518); /* red-700 */
+    --_ui-danger-fg: rgb(from var(--ui-color-danger) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --ui-color-danger-contrast: rgb(from var(--_ui-danger-fg) r r r);
+    --ui-color-danger-subtle: color-mix(in oklab, var(--ui-color-danger) 12%, var(--ui-color-surface));
+    --ui-color-danger-strong: color-mix(in oklab, var(--ui-color-danger) 80%, rgb(from var(--ui-color-danger-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-surface: #ffffff;
     --ui-color-surface-raised: oklch(98.5% 0.002 247.839); /* gray-50 */
