@@ -206,7 +206,7 @@ def _render_attrs(attrs: dict[str, object] | None = None, /, **defaults: object)
         for name, value in defaults.items()
         if not _has_attr(caller_attrs, _normalise_attr_name(name))
     }
-    merged = {**live_defaults, **caller_attrs}
+    merged = live_defaults | caller_attrs
 
     rendered: list[str] = []
     if class_value:

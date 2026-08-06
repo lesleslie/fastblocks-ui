@@ -3,11 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <title>Field validation probe</title>
-    <!-- Served by playwright.config.js's `python3 -m http.server 8080` from the
-         repo root, so this resolves. A fixture file rather than page.setContent()
-         because setContent leaves the page on about:blank, where a root-relative
-         stylesheet href has no origin to resolve against. -->
-    <link rel="stylesheet" href="/fastblocks_ui/static/css/fastblocks-ui.css" />
+    <!-- A fixture file rather than page.setContent(), because setContent leaves
+         the page on about:blank where a relative stylesheet href has no base to
+         resolve against.
+
+         The href is relative, not root-relative: playwright serves this from the
+         repo root so both forms resolve identically when served, but only the
+         relative one resolves on disk -- which keeps the link checker happy and
+         lets the fixture open as a bare file. -->
+    <link rel="stylesheet" href="../../../fastblocks_ui/static/css/fastblocks-ui.css" />
   </head>
   <body>
     <form id="probe-form">
