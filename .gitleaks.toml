@@ -1,0 +1,50 @@
+# Secret-scanning config for betterleaks / gitleaks.
+#
+# The scanner walks the filesystem, not the git index, so by default it descends
+# into dependency caches that are gitignored and contain no code of ours. Every
+# finding that prompted this file came from `.crackerjack/uv/cache/` -- 388 MB of
+# third-party package source with zero tracked files -- and every one was a false
+# positive by construction:
+#
+#   - `cryptography` ships test key vectors and documentation examples containing
+#     real-looking PEM blocks, deliberately and publicly.
+#   - `google-auth` has PEM header constants ("-----BEGIN PRIVATE KEY-----") in
+#     its parsing code.
+#   - `crackerjack`'s own services/patterns/security/credentials.py holds the
+#     regexes a secret scanner matches on -- a secret scanner detecting another
+#     secret scanner's patterns.
+#   - `fastmcp`'s README shows `curl -H "Authorization: Bearer ..."` examples.
+#
+# Excluding these is scoping, not suppression: nothing here is ours, none of it
+# is committed, and none of it is deployed. Paths that DO belong to this project
+# are still scanned in full -- see the `verify` note at the bottom.
+
+[extend]
+useDefault = true
+
+# Every path below is gitignored with zero tracked files. `.pyscn/` is
+# deliberately NOT excluded: it holds a tracked report artefact, it scans
+# clean, and excluding a tracked path from secret scanning is real coverage
+# lost for no benefit.
+[[allowlists]]
+description = "Dependency and tool caches: not our code, gitignored, never shipped"
+paths = [
+  '''(^|/)\.crackerjack/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)\.venv/''',
+  '''(^|/)\.pytest_cache/''',
+  '''(^|/)htmlcov/''',
+  '''(^|/)test-results/''',
+  '''(^|/)playwright-report/''',
+  # The scanner's OWN report. It writes matched secrets into this file, then on
+  # the next run scans the report and rediscovers every one of them -- a
+  # self-referential loop that grows with each scan. 91 of the findings that
+  # prompted this config came from here alone.
+  '''(^|/)\.cache/''',
+]
+
+# Verify the exclusions are scoped and not blanket-silencing:
+#   betterleaks dir . --no-banner        # should report 0 leaks
+#   betterleaks dir fastblocks_ui tests scripts tools --no-banner
+# The second command scans only first-party paths with no exclusions in play,
+# and must also report 0. If it ever does not, the finding is real.
