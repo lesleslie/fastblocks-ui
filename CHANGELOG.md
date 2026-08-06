@@ -7,6 +7,122 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking changes
+
+Spec B modernises the existing components onto platform primitives. Every break
+below is deliberate; each replaces library code with something the browser now
+does natively. See `docs/superpowers/specs/2026-07-28-spec-b-component-modernization-design.md`.
+
+**`ui-menu` is now `ui-dropdown`.** The `.ui-menu` / `.ui-menu__item` classes,
+the `menu()` helper, the `<ui-menu>` custom element, the `data-ui-menu*`
+attributes and the `ui-menu-*` events are all renamed.
+
+- *Migration:* rename `menu(...)` to `dropdown(...)` and `.ui-menu` to
+  `.ui-dropdown` in your templates and CSS overrides.
+- *Why:* `ui-nav-list` was named to avoid implying kinship with this component,
+  which behaves nothing like it. The rename removes the ambiguity at its source.
+
+**Element classes move to the BEM `__` separator.**
+
+| Old | New |
+| --- | --- |
+| `ui-hero-head` / `-body` / `-foot` | `ui-hero__head` / `__body` / `__foot` |
+| `ui-level-left` / `-right` / `-item` / `-content` | `ui-level__left` / `__right` / `__item` / `__content` |
+| `ui-media-left` / `-right` / `-content` | `ui-media__left` / `__right` / `__content` |
+| `ui-navbar-brand` / `-start` / `-end` / `-item` / `-menu` | `ui-navbar__brand` / `__start` / `__end` / `__item` / `__menu` |
+| `ui-table-container` | `ui-table__container` |
+| `ui-shell-main` / `-aside` | `ui-shell__main` / `__aside` |
+
+- *Not renamed:* `ui-columns`/`ui-column` and `ui-tiles`/`ui-tile` are sibling
+  components rather than elements; all `is-*` modifiers; all utilities.
+- *Why:* the split was archaeological -- components ported from Bulma kept
+  Bulma's hyphen while freshly authored ones used `__`, and the inconsistency
+  had begun replicating into new code.
+
+**`dropdown()` requires `id` and renders a popover.** The trigger uses
+`popovertarget` instead of `data-ui-dropdown-trigger` + `aria-controls` +
+`aria-expanded`.
+
+- *Migration:* `dropdown(items, id="account")` with
+  `<button popovertarget="account">`.
+- *Removed with it:* the `position: relative` ancestor contract every caller
+  previously had to satisfy, the `z-index: 20` stacking guess, and the
+  `[hidden]` toggling.
+
+**`dialog()` requires `id`; `open=` is replaced by `autoshow=`. Every dialog is
+now modal.**
+
+- *Migration:* `dialog(body, id="settings")` opened by
+  `<button command="show-modal" commandfor="settings">` and closed by
+  `command="close"`. Replace `open=True` with `autoshow=True`.
+- *Why:* the platform does not trap focus in a NON-modal dialog, by design --
+  one is specified to let focus leave. Supporting it meant hand-rolling a trap.
+  Dropping the feature is what retires the trap; the platform did not "catch up".
+- *Server-owned state:* `autoshow=True` renders `data-ui-dialog-autoshow`, which
+  the enhancement layer promotes to `showModal()` on load and after
+  `htmx:afterSwap`. That replaces `<dialog open>` as the way a server says
+  "this dialog is open".
+
+**The public JavaScript surface drops from six exports to four.**
+
+- Removed: `enhanceMenus`, `enhanceDialogs`.
+- Remaining: `defineFastBlocksCustomElements`, `enhanceDrawers`, `enhanceTabs`,
+  `initFastBlocksUI`.
+- *Note:* a named import of a removed ES export is a module-instantiation error,
+  so a stale `import { enhanceMenus }` takes down the whole enhancement layer
+  rather than degrading. Remove those imports before upgrading.
+
+**The `<ui-dialog>` and `<ui-dropdown>` custom elements are removed, and
+`dialog()` / `dropdown()` no longer accept `custom_element`.** `<ui-tabs>`
+remains -- tabs has no platform equivalent and still needs JavaScript.
+
+- *Migration:* drop the parameter. Both helpers raise `TypeError` naming the
+  replacement rather than silently rendering a stray `custom-element` attribute.
+
+### Added
+
+- **Baseline support gate.** `scripts/check-baseline.mjs` resolves every CSS
+  feature the library uses against the W3C WebDX Baseline dataset and fails when
+  one sits below the declared floor (Baseline Newly) without an `@supports`
+  guard or a justified allowlist entry. Wired into `npm run validate` and the
+  pytest suite. `--css-dir` lets an unmerged branch be checked before it lands.
+- **`:user-invalid` field styling.** Client-side validation feedback layered
+  under the existing server-set `aria-invalid` rules, which stay authoritative.
+  `:user-invalid` matches only after the user edits a field, so untouched
+  required fields no longer render as already-failing.
+- **Auto-growing textareas** via `field-sizing: content` (Baseline Newly since
+  2026-06-16), with a `min-block-size` floor because the property stops honouring
+  `rows`.
+- **`--ui-color-border-control`.** Form controls fill with the page's own surface
+  colour, so their border is the only thing identifying the control. It measured
+  1.47:1 where WCAG 2.1 SC 1.4.11 requires 3:1; the new token measures 4.84:1 in
+  light and 3.74:1 in dark. Decorative borders keep the lighter
+  `--ui-color-border`.
+- **Derived colour scales.** Each semantic role now needs ONE input:
+  `-contrast`, `-subtle` and `-strong` follow from it, in both themes. Set
+  `--ui-color-primary` and the scale follows. Verified over a 185-colour OKLCH
+  grid in all three engines.
+- `tools/refresh_demo_assets.py` for the copies `demo/demo.html` inlines.
+
+### Changed
+
+- `.ui-visually-hidden` moves off the deprecated `clip: rect(...)` onto
+  `clip-path`, matching `.ui-burger__label` and collapsing two divergent
+  implementations into one.
+- `enhance.js` shrinks from 1069 to 416 lines.
+
+### Fixed
+
+- `package-lock.json` carried an integrity hash that codespell had corrupted
+  (`COo` -> `coup` inside base64), which made `npm ci` and `npm install` fail
+  with `EINTEGRITY` on any cold cache.
+- `package.json` and `uv.lock` had drifted from `pyproject.toml`'s version; a
+  pytest assertion now keeps all three in step.
+- An intermittent WebKit failure in the tabs smoke test. `content-visibility`
+  settling between mousedown and mouseup meant no `click` event was dispatched
+  at all, so the handler never ran while focus had already moved.
+
+
 ### Added
 
 - `nav_groups()` renders `.ui-nav-groups`. Named plural because it takes a

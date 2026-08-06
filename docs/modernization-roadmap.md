@@ -7,6 +7,52 @@
   Everything here is Spec B (this library) and Spec C (sibling packages), each of
   which needs its own requirements pass before implementation.
 
+## Status as of 0.8.0
+
+Tier 1 and Tier 2.1 are **implemented**. Spec B's design doc is
+`docs/superpowers/specs/2026-07-28-spec-b-component-modernization-design.md`
+and the executed plan is `docs/superpowers/plans/2026-07-29-spec-b-component-modernization.md`.
+
+| Item | Status |
+|---|---|
+| 1.1 `ui-menu` -> Popover + anchor positioning | Done, renamed `ui-dropdown` |
+| 1.2 `ui-dialog` -> `command`/`commandfor` | Done, non-modal support dropped |
+| 1.3 `:has()` on `ui-field` | Was **already implemented** before this work |
+| 1.4 `:user-valid` / `:user-invalid` | Done (additive, not the bug fix described) |
+| 1.5 `field-sizing: content` | Done, no guard needed |
+| 1.6 `accent-color` | Was **already implemented** before this work |
+| 2.1 `color-mix()` colour scales | Done, both themes, 0/185 grid failures |
+| Baseline tooling | Done -- `scripts/check-baseline.mjs` |
+
+### Corrections to this document
+
+Several claims below did not survive verification. They are left in place with
+this note rather than silently edited, because the *pattern* matters: support
+figures and code-reading assumptions both decay, and the roadmap's own advice to
+re-verify was correct.
+
+- **1.3 and 1.6 were already implemented.** `:has()` shipped keyed on
+  `aria-invalid` (server-set, deliberately), and `accent-color` was already on
+  `.ui-checkbox input, .ui-switch input`.
+- **1.4 is additive, not a bug fix.** The document argues `:user-invalid` fixes
+  `:invalid` matching empty required fields at load. The library never used
+  `:invalid`, so there was no defect -- only a missing feature.
+- **1.2's rationale was wrong.** `dialog-focus-trap.spec.js` did not test
+  something engines now do natively: `enhance.js` already delegated modal
+  dialogs to the browser and ran the hand-rolled trap only on the NON-modal
+  path, where no platform trap exists by design. The trap retired because that
+  feature was dropped.
+- **Support figures.** `accent-color` and `overscroll-behavior` are not
+  Baseline (the latter is `partial_implementation` in every engine, and Safari
+  still is -- so `@supports` cannot guard it, since Safari parses it).
+  `field-sizing`, `container-style-queries` and `relative-color` were all better
+  than assumed. `color-contrast()` has ZERO support and cannot be used.
+- **The proposed `-contrast` formula does not work.** A pivot on oklch `l`
+  bottoms out at 6/185 grid failures at any threshold, because `l` is perceptual
+  lightness while WCAG uses relative luminance. True luminance via `pow()` gets
+  to 0 -- with channels clamped to [0,255] first, since out-of-gamut colours
+  yield negative channels and `pow()` of a negative base is invalid.
+
 ## Why this document exists
 
 FastBlocks UI is a clean-slate library. Its reference points are not: Bulma is
