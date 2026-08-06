@@ -81,7 +81,7 @@ test.describe('Glass tint contrast (WCAG AA, 4.5:1)', () => {
 - [ ] **Step 2: Run it, confirm it fails**
 
 Run: `npx playwright test tests/e2e/glass-contrast.spec.js --project=chromium`
-Expected: FAIL — `compositeRatio` is not exported from `contrast-utils.js` (import error / `TypeError: compositeRatio is not a function`).
+Expected: FAIL — this repo's ESM setup makes a missing named export a module-link error, not a runtime `TypeError`: the test file fails to load with a `SyntaxError: The requested module './contrast-utils.js' does not provide an export named 'compositeRatio'`, before any test body runs.
 
 - [ ] **Step 3: Add `compositeRatio` to `contrast-utils.js`**
 
@@ -362,12 +362,24 @@ In `tests/e2e/glass-surface.spec.js`, add inside the existing `test.describe(...
 
 ```js
 
-  test('forced-colors disables blur and transparency on .is-glass', async ({ page }) => {
+  test('forced-colors disables blur and falls back to a solid background on .is-glass', async ({
+    page,
+  }) => {
     await page.emulateMedia({ forcedColors: 'active' });
-    const filter = await page
-      .locator('#card-glass')
-      .evaluate((el) => getComputedStyle(el).backdropFilter);
+    const card = page.locator('#card-glass');
+
+    const filter = await card.evaluate((el) => getComputedStyle(el).backdropFilter);
     expect(filter).toBe('none');
+
+    // The glass tint is intentionally translucent
+    // (`color-mix(... 78%, transparent)`); the forced-colors fallback must be
+    // fully opaque, not just blur-free, or a regression that keeps the
+    // translucent tint while only dropping blur would slip through a
+    // backdropFilter-only assertion.
+    const background = await card.evaluate((el) => getComputedStyle(el).backgroundColor);
+    const alphaMatch = background.match(/rgba?\([^)]*,\s*([\d.]+)\s*\)/);
+    const alpha = alphaMatch ? Number(alphaMatch[1]) : 1;
+    expect(alpha).toBe(1);
   });
 ```
 
@@ -432,12 +444,15 @@ Expected: PASS on both.
 
 - [ ] **Step 7: Verify the Baseline floor and bundle-size gates still pass**
 
+`check:baseline` requires `node_modules/@mdn/browser-compat-data` and `node_modules/web-features`, which are declared in `package.json` but are not guaranteed to be installed in a fresh checkout. Run `npm install` first if `ls node_modules/web-features` comes up empty — otherwise `check:baseline` fails immediately with `ERR_MODULE_NOT_FOUND`, before it evaluates any real CSS, which reads like a false positive for this feature if you don't already know the cause.
+
 Run:
 ```bash
+npm install   # only if node_modules/web-features is missing
 npm run check:baseline
 python -m pytest tests/test_fastblocks_ui.py::TestBundleSizeBudget -v
 ```
-Expected: both exit 0. `check:baseline` should report no new violation (every feature used — `backdrop-filter`, `@supports`, `forced-colors`, `prefers-reduced-transparency`, `color-mix()` — is at or above the project's `"newly"` floor; `color-mix()` is already used elsewhere in `tokens.css` with no exemption). If `check:baseline` unexpectedly fails, do not silence it — read `.baseline-allowlist.json`'s header comment for the exemption format and add an entry only if the failure is a genuine partial-implementation gap, not a real correctness issue.
+Expected: both exit 0. `backdrop-filter` (unprefixed) and `color-mix()` are real CSS properties/functions the checker resolves against BCD and checks against the `"newly"` floor — `color-mix()` already passes unexempted elsewhere in `tokens.css`, and `backdrop-filter` is Baseline "high" (widely available), so both pass on their own merits. `@supports not (...)`, `forced-colors`, and `prefers-reduced-transparency` are media/support-query *preludes*, which `scripts/check-baseline.mjs`'s scanner does not parse for compat keys at all (it scans declarations, not at-rule conditions) — they pass by never being evaluated, not because they clear the floor. Don't cite this run as evidence `prefers-reduced-transparency` is Baseline; the spec's own Accessibility contract already says its support is thin and treats it as defense in depth, not the primary guard. If `check:baseline` fails on something unexpected, do not silence it — read `.baseline-allowlist.json`'s header comment for the exemption format and add an entry only if the failure is a genuine partial-implementation gap, not a real correctness issue.
 
 - [ ] **Step 8: Commit**
 
@@ -700,7 +715,7 @@ Expected: empty output. This is a deliberate guard, not busywork — the spec's 
 
 - [ ] **Step 4: Full verification sweep**
 
-Run the complete relevant test surface in one pass:
+Run the complete relevant test surface in one pass (if `node_modules/web-features` is missing — see Task 3 Step 7 — run `npm install` first, or `check:baseline` fails on a missing dependency rather than a real finding):
 
 ```bash
 python -m pytest tests/ -q
