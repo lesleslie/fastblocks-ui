@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Interactive border probe</title>
+    <link rel="stylesheet" href="/fastblocks_ui/static/css/fastblocks-ui.css" />
+  </head>
+  <body>
+    <!-- Pagination items are <a> with text-decoration:none and body-coloured
+         text, so their border is the only thing marking them as controls. -->
+    <nav class="ui-pagination" aria-label="pagination">
+      <a class="ui-pagination__item" href="?page=1" id="page-1">1</a>
+      <a class="ui-pagination__item is-current" href="?page=2" aria-current="page">2</a>
+    </nav>
+
+    <label class="ui-switch">
+      <input type="checkbox" id="sw" />
+      <span class="ui-switch__track"><span class="ui-switch__thumb"></span></span>
+      Auto save
+    </label>
+  </body>
+</html>

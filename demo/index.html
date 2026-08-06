@@ -795,7 +795,10 @@
   }
 
   .ui-switch input:focus-visible + .ui-switch__track {
-    box-shadow: var(--ui-focus-ring), inset 0 0 0 1px var(--ui-color-border);
+    /* `-control`, matching the resting track above. Using the decorative
+       token here dropped the boundary from 4.84:1 to 1.47:1 exactly when
+       the control is focused -- the state that most needs to be legible. */
+    box-shadow: var(--ui-focus-ring), inset 0 0 0 1px var(--ui-color-border-control);
   }
 
   .ui-alert {
@@ -2156,7 +2159,12 @@
     min-width: 2.5rem;
     min-height: 2.5rem;
     padding: 0 0.5rem;
-    border: var(--ui-border-width) solid var(--ui-color-border);
+    /* `-control`, not the decorative border: these render as body-coloured
+       text with `text-decoration: none`, so this box is the ONLY thing marking
+       them as interactive. Strip it and "1 2 3" is indistinguishable from a
+       paragraph -- which is what WCAG 2.1 SC 1.4.11 covers. Cards and tables
+       keep the lighter token because their contents identify them. */
+    border: var(--ui-border-width) solid var(--ui-color-border-control);
     border-radius: var(--ui-radius-md);
     color: var(--ui-color-text);
     text-decoration: none;

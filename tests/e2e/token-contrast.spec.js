@@ -292,3 +292,70 @@ test.describe('Derived token contrast', () => {
 
 
 
+
+// SC 1.4.11 again, for controls whose border is the ONLY thing identifying
+// them. These are not decorative containers: a card or a table is identified by
+// its contents, but a pagination item renders as body-coloured text with no
+// underline inside a 2.5rem box -- strip the border and it is indistinguishable
+// from a paragraph.
+test.describe('Interactive component borders', () => {
+  const PROBE = '/tests/e2e/fixtures/interactive-borders.html';
+
+  const ratioOf = (page, selector, prop) =>
+    page.evaluate(
+      ([sel, property]) => {
+        const c = document.createElement('canvas');
+        c.width = c.height = 1;
+        const ctx = c.getContext('2d', { willReadFrequently: true });
+        const px = (col) => {
+          ctx.clearRect(0, 0, 1, 1);
+          ctx.fillStyle = col;
+          ctx.fillRect(0, 0, 1, 1);
+          const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+          return [r, g, b];
+        };
+        const lum = ([r, g, b]) => {
+          const f = (v) => {
+            const s = v / 255;
+            return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+          };
+          return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+        };
+        const el = document.querySelector(sel);
+        const styles = getComputedStyle(el);
+        // Engines serialise each shadow's colour in its AUTHORED space, so a
+        // token written in oklch() comes back as `oklch(...)`, not `rgb(...)`.
+        // Match any `fn(...)` and take the last, which is the inset boundary --
+        // the earlier ones are the focus ring's own two layers.
+        const edge = property === 'box-shadow'
+          ? (styles.boxShadow.match(/[a-z]+\([^)]*\)/g) || []).pop()
+          : styles.borderTopColor;
+        const surface = getComputedStyle(document.documentElement)
+          .getPropertyValue('--ui-color-surface')
+          .trim();
+        const [x, y] = [lum(px(edge)), lum(px(surface))];
+        return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+      },
+      [selector, prop],
+    );
+
+  test('a pagination item is identifiable at 3:1', async ({ page }) => {
+    await page.goto(PROBE);
+    const ratio = await ratioOf(page, '#page-1', 'border');
+    expect(ratio, `${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(3);
+  });
+
+  test('focusing a switch does not weaken its boundary', async ({ page }) => {
+    // Regression guard: the resting track moved to --ui-color-border-control
+    // while the :focus-visible rule still overrode box-shadow with the old
+    // decorative token, so focusing the control dropped its edge from 4.84:1
+    // back to 1.47:1 -- the state that most needs to be legible.
+    await page.goto(PROBE);
+    const resting = await ratioOf(page, '.ui-switch__track', 'box-shadow');
+    await page.locator('#sw').focus();
+    const focused = await ratioOf(page, '.ui-switch__track', 'box-shadow');
+    expect(focused, `resting ${resting.toFixed(2)}:1, focused ${focused.toFixed(2)}:1`)
+      .toBeGreaterThanOrEqual(3);
+  });
+});
+

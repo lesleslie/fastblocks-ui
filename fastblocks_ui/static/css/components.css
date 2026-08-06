@@ -391,7 +391,10 @@
   }
 
   .ui-switch input:focus-visible + .ui-switch__track {
-    box-shadow: var(--ui-focus-ring), inset 0 0 0 1px var(--ui-color-border);
+    /* `-control`, matching the resting track above. Using the decorative
+       token here dropped the boundary from 4.84:1 to 1.47:1 exactly when
+       the control is focused -- the state that most needs to be legible. */
+    box-shadow: var(--ui-focus-ring), inset 0 0 0 1px var(--ui-color-border-control);
   }
 
   .ui-alert {

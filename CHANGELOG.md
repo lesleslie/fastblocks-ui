@@ -93,11 +93,16 @@ remains -- tabs has no platform equivalent and still needs JavaScript.
 - **Auto-growing textareas** via `field-sizing: content` (Baseline Newly since
   2026-06-16), with a `min-block-size` floor because the property stops honouring
   `rows`.
-- **`--ui-color-border-control`.** Form controls fill with the page's own surface
-  colour, so their border is the only thing identifying the control. It measured
-  1.47:1 where WCAG 2.1 SC 1.4.11 requires 3:1; the new token measures 4.84:1 in
-  light and 3.74:1 in dark. Decorative borders keep the lighter
-  `--ui-color-border`.
+- **`--ui-color-border-control`.** Used wherever a border is the ONLY thing
+  identifying an interactive control: text inputs, selects, textareas, the switch
+  track (resting and focused), and pagination items. Those all measured 1.47:1
+  where WCAG 2.1 SC 1.4.11 requires 3:1; the new token measures 4.84:1 in light
+  and 3.74:1 in dark.
+
+  Decorative boundaries keep the lighter `--ui-color-border` deliberately --
+  a card, table, dialog or navbar is identified by its contents, so 1.4.11 does
+  not apply and darkening them would change the library's whole visual weight
+  for no conformance gain.
 - **Derived colour scales.** Each semantic role now needs ONE input:
   `-contrast`, `-subtle` and `-strong` follow from it, in both themes. Set
   `--ui-color-primary` and the scale follows. Verified over a 185-colour OKLCH
@@ -118,6 +123,9 @@ remains -- tabs has no platform equivalent and still needs JavaScript.
   with `EINTEGRITY` on any cold cache.
 - `package.json` and `uv.lock` had drifted from `pyproject.toml`'s version; a
   pytest assertion now keeps all three in step.
+- Focusing a switch dropped its boundary contrast from 4.84:1 back to 1.47:1,
+  because the `:focus-visible` rule overrode `box-shadow` with the decorative
+  border token while the resting rule used the control token.
 - An intermittent WebKit failure in the tabs smoke test. `content-visibility`
   settling between mousedown and mouseup meant no `click` event was dispatched
   at all, so the handler never ran while focus had already moved.
