@@ -2249,6 +2249,25 @@ class TestRenderAttrsDefaultCollisions(unittest.TestCase):
         self.assertEqual(markup.count("type="), 1)
         self.assertIn('type="submit"', markup)
 
+    def test_dialog_rejects_the_retired_open_parameter(self):
+        """`open` is the dangerous retired keyword, not `custom_element`.
+
+        `custom_element` passing through `**attrs` renders a bogus
+        `custom-element` attribute -- visibly wrong. `open` is a VALID
+        attribute on `<dialog>`, so it silently renders exactly the non-modal
+        open dialog 0.8.0 removed, with no focus trap: the hand-rolled trap
+        that used to back that path was deleted in the same release.
+        """
+        with self.assertRaises(TypeError) as ctx:
+            fastblocks_ui.dialog("Body", id="d", open=True)
+        self.assertIn("autoshow", str(ctx.exception))
+
+        # The replacement must still work.
+        self.assertIn(
+            "data-ui-dialog-autoshow",
+            str(fastblocks_ui.dialog("Body", id="d", autoshow=True)),
+        )
+
     def test_dialog_id_param_does_not_collide_with_id_(self):
         # Repointed from the retired `open` parameter to `id`, which is now the
         # named parameter carrying the same duplicate-attribute risk.

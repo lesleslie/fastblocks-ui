@@ -39,7 +39,8 @@
        Each role needs ONE input: `-contrast`, `-subtle` and `-strong` follow
        from it, so a consumer sets `--ui-color-primary` and gets the scale.
 
-       `-contrast` picks pure black or white by computing the base colour's
+       `-contrast` picks pure black or white (see note 0 -- the saturation bound
+       is what makes that literally true) by computing the base colour's
        WCAG relative luminance and comparing it to 0.179 -- the exact point
        where black and white give equal contrast. `color-contrast()` would say
        this in one word and has ZERO browser support (web-features: baseline
@@ -47,6 +48,25 @@
        syntax and pow().
 
        Three details are load-bearing, each found by measurement:
+
+       0. The multiplier is 1e9, and that is a correctness bound rather than a
+          round number. `clamp(0, (0.179 - Y) * M, 255)` is a RAMP, not a step:
+          it only saturates when |0.179 - Y| >= 255/M. At the original M = 1e5
+          that band was 0.00255 wide, and any brand colour inside it got a
+          MID-GREY foreground -- #757575 (Material Grey 600) rendered
+          rgb(111,111,111) on itself at 1.09:1, effectively invisible.
+
+          The smallest non-zero luminance gap between two distinct 8-bit sRGB
+          colours is 2.19e-5 (one step of the blue channel at the dark end of
+          the transfer curve). M = 1e9 turns that into 21914, so every
+          representable colour saturates to pure black or pure white. A colour
+          whose luminance is exactly 0.179 yields 0 -> black, which is correct:
+          at that luminance black and white are both 4.58:1 by construction.
+
+          The 185-colour grid did NOT catch this -- it samples oklch lightness
+          at five points, and the hazardous band was ~0.0025 wide in relative
+          luminance. tests/e2e/token-contrast.spec.js now pins the specific
+          colours instead of relying on the grid to stumble into them.
 
        1. `clamp(0, r, 255)` BEFORE `pow()`. An out-of-gamut oklch colour
           yields negative channels here -- oklch(52% 0.105 223.128) resolves
@@ -72,7 +92,7 @@
        chroma, so no threshold on `l` separates a vivid cyan from a muted blue
        at the same `l`. ---------------------------------------------------- */
     --ui-color-primary: oklch(51.1% 0.262 276.966); /* indigo-600 */
-    --_ui-primary-fg: rgb(from var(--ui-color-primary) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-primary-fg: rgb(from var(--ui-color-primary) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-primary-contrast: rgb(from var(--_ui-primary-fg) r r r);
     --ui-color-primary-subtle: color-mix(in oklab, var(--ui-color-primary) 12%, var(--ui-color-surface));
     --ui-color-primary-strong: color-mix(in oklab, var(--ui-color-primary) 80%, rgb(from var(--ui-color-primary-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
@@ -85,25 +105,25 @@
        Tailwind value, and passes comfortably. Danger needed only one step
        (500 -> 600). Keep this offset if you re-bump the palette. */
     --ui-color-info: oklch(52% 0.105 223.128); /* cyan-700 */
-    --_ui-info-fg: rgb(from var(--ui-color-info) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-info-fg: rgb(from var(--ui-color-info) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-info-contrast: rgb(from var(--_ui-info-fg) r r r);
     --ui-color-info-subtle: color-mix(in oklab, var(--ui-color-info) 12%, var(--ui-color-surface));
     --ui-color-info-strong: color-mix(in oklab, var(--ui-color-info) 80%, rgb(from var(--ui-color-info-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-success: oklch(52.7% 0.154 150.069); /* green-700 */
-    --_ui-success-fg: rgb(from var(--ui-color-success) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-success-fg: rgb(from var(--ui-color-success) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-success-contrast: rgb(from var(--_ui-success-fg) r r r);
     --ui-color-success-subtle: color-mix(in oklab, var(--ui-color-success) 12%, var(--ui-color-surface));
     --ui-color-success-strong: color-mix(in oklab, var(--ui-color-success) 80%, rgb(from var(--ui-color-success-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-warning: oklch(79.5% 0.184 86.047); /* yellow-500 */
-    --_ui-warning-fg: rgb(from var(--ui-color-warning) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-warning-fg: rgb(from var(--ui-color-warning) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-warning-contrast: rgb(from var(--_ui-warning-fg) r r r);
     --ui-color-warning-subtle: color-mix(in oklab, var(--ui-color-warning) 12%, var(--ui-color-surface));
     --ui-color-warning-strong: color-mix(in oklab, var(--ui-color-warning) 80%, rgb(from var(--ui-color-warning-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-danger: oklch(57.7% 0.245 27.325); /* red-600 */
-    --_ui-danger-fg: rgb(from var(--ui-color-danger) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-danger-fg: rgb(from var(--ui-color-danger) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-danger-contrast: rgb(from var(--_ui-danger-fg) r r r);
     --ui-color-danger-subtle: color-mix(in oklab, var(--ui-color-danger) 12%, var(--ui-color-surface));
     --ui-color-danger-strong: color-mix(in oklab, var(--ui-color-danger) 80%, rgb(from var(--ui-color-danger-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
@@ -237,7 +257,7 @@
        (cyan-300, red-300 ...) this theme previously hand-picked, and the
        light-fill/black-text pairing the note above argues for. */
     --ui-color-primary: oklch(51.1% 0.262 276.966); /* indigo-600 */
-    --_ui-primary-fg: rgb(from var(--ui-color-primary) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-primary-fg: rgb(from var(--ui-color-primary) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-primary-contrast: rgb(from var(--_ui-primary-fg) r r r);
     --ui-color-primary-subtle: color-mix(in oklab, var(--ui-color-primary) 12%, var(--ui-color-surface));
     --ui-color-primary-strong: color-mix(in oklab, var(--ui-color-primary) 80%, rgb(from var(--ui-color-primary-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
@@ -248,25 +268,25 @@
        instead of darkening the fill keeps dark mode looking like dark
        mode. Keep the pairing if you re-bump: light fill + black text. */
     --ui-color-info: oklch(78.9% 0.154 211.53); /* cyan-400 */
-    --_ui-info-fg: rgb(from var(--ui-color-info) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-info-fg: rgb(from var(--ui-color-info) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-info-contrast: rgb(from var(--_ui-info-fg) r r r);
     --ui-color-info-subtle: color-mix(in oklab, var(--ui-color-info) 12%, var(--ui-color-surface));
     --ui-color-info-strong: color-mix(in oklab, var(--ui-color-info) 80%, rgb(from var(--ui-color-info-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-success: oklch(79.2% 0.209 151.711); /* green-400 */
-    --_ui-success-fg: rgb(from var(--ui-color-success) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-success-fg: rgb(from var(--ui-color-success) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-success-contrast: rgb(from var(--_ui-success-fg) r r r);
     --ui-color-success-subtle: color-mix(in oklab, var(--ui-color-success) 12%, var(--ui-color-surface));
     --ui-color-success-strong: color-mix(in oklab, var(--ui-color-success) 80%, rgb(from var(--ui-color-success-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-warning: oklch(85.2% 0.199 91.936); /* yellow-400 */
-    --_ui-warning-fg: rgb(from var(--ui-color-warning) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-warning-fg: rgb(from var(--ui-color-warning) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-warning-contrast: rgb(from var(--_ui-warning-fg) r r r);
     --ui-color-warning-subtle: color-mix(in oklab, var(--ui-color-warning) 12%, var(--ui-color-surface));
     --ui-color-warning-strong: color-mix(in oklab, var(--ui-color-warning) 80%, rgb(from var(--ui-color-warning-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-danger: oklch(70.4% 0.191 22.216); /* red-400 */
-    --_ui-danger-fg: rgb(from var(--ui-color-danger) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-danger-fg: rgb(from var(--ui-color-danger) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-danger-contrast: rgb(from var(--_ui-danger-fg) r r r);
     --ui-color-danger-subtle: color-mix(in oklab, var(--ui-color-danger) 12%, var(--ui-color-surface));
     --ui-color-danger-strong: color-mix(in oklab, var(--ui-color-danger) 80%, rgb(from var(--ui-color-danger-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
@@ -909,8 +929,17 @@
      none }`, but ANY author `display` beats it -- cascade layers order author
      styles against each other, never against the UA stylesheet. Without this
      rule the panel renders permanently open. Scoped to `[popover]` so a
-     `.ui-dropdown` used without the attribute still lays out as a grid. */
-  .ui-dropdown[popover]:not(:popover-open) {
+     `.ui-dropdown` used without the attribute still lays out as a grid.
+
+     `[hidden]` is the SAME hazard by a different route: the UA hides it with
+     `[hidden] { display: none }`, which `display: grid` above also defeats.
+     `.ui-menu[hidden]` used to carry that rule and it was deleted with the
+     popover migration, so a server-rendered `<nav class="ui-dropdown" hidden>`
+     rendered visible -- which matters for a library whose contract is
+     server-owned state over htmx swaps. `.ui-tabs__panel[hidden]` keeps the
+     equivalent rule. */
+  .ui-dropdown[popover]:not(:popover-open),
+  .ui-dropdown[hidden] {
     display: none;
   }
 
@@ -1108,6 +1137,17 @@
       transition-duration: 0.01ms;
     }
   }
+  /* Vendor pseudo-elements are NOT matched by base.css's
+     `*, *::before, *::after` reduced-motion reset, so a 300ms animated
+     progress bar survived it in Chromium and WebKit. Same reasoning as the
+     `.ui-drawer::backdrop` carve-out above. (`::-moz-progress-bar` sets no
+     transition, so Firefox was never affected.) */
+  @media (prefers-reduced-motion: reduce) {
+    .ui-progress::-webkit-progress-value {
+      transition-duration: 1ms;
+    }
+  }
+
 
   /* `position: relative` here is load-bearing, not decorative:
      `.ui-burger__label` below is `position: absolute`, and without a
@@ -2487,7 +2527,7 @@
        (cyan-300, red-300 ...) this theme previously hand-picked, and the
        light-fill/black-text pairing the note above argues for. */
     --ui-color-primary: oklch(51.1% 0.262 276.966); /* indigo-600 */
-    --_ui-primary-fg: rgb(from var(--ui-color-primary) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-primary-fg: rgb(from var(--ui-color-primary) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-primary-contrast: rgb(from var(--_ui-primary-fg) r r r);
     --ui-color-primary-subtle: color-mix(in oklab, var(--ui-color-primary) 12%, var(--ui-color-surface));
     --ui-color-primary-strong: color-mix(in oklab, var(--ui-color-primary) 80%, rgb(from var(--ui-color-primary-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
@@ -2498,25 +2538,25 @@
        instead of darkening the fill keeps dark mode looking like dark
        mode. Keep the pairing if you re-bump: light fill + black text. */
     --ui-color-info: oklch(78.9% 0.154 211.53); /* cyan-400 */
-    --_ui-info-fg: rgb(from var(--ui-color-info) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-info-fg: rgb(from var(--ui-color-info) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-info-contrast: rgb(from var(--_ui-info-fg) r r r);
     --ui-color-info-subtle: color-mix(in oklab, var(--ui-color-info) 12%, var(--ui-color-surface));
     --ui-color-info-strong: color-mix(in oklab, var(--ui-color-info) 80%, rgb(from var(--ui-color-info-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-success: oklch(79.2% 0.209 151.711); /* green-400 */
-    --_ui-success-fg: rgb(from var(--ui-color-success) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-success-fg: rgb(from var(--ui-color-success) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-success-contrast: rgb(from var(--_ui-success-fg) r r r);
     --ui-color-success-subtle: color-mix(in oklab, var(--ui-color-success) 12%, var(--ui-color-surface));
     --ui-color-success-strong: color-mix(in oklab, var(--ui-color-success) 80%, rgb(from var(--ui-color-success-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-warning: oklch(85.2% 0.199 91.936); /* yellow-400 */
-    --_ui-warning-fg: rgb(from var(--ui-color-warning) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-warning-fg: rgb(from var(--ui-color-warning) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-warning-contrast: rgb(from var(--_ui-warning-fg) r r r);
     --ui-color-warning-subtle: color-mix(in oklab, var(--ui-color-warning) 12%, var(--ui-color-surface));
     --ui-color-warning-strong: color-mix(in oklab, var(--ui-color-warning) 80%, rgb(from var(--ui-color-warning-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-danger: oklch(70.4% 0.191 22.216); /* red-400 */
-    --_ui-danger-fg: rgb(from var(--ui-color-danger) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-danger-fg: rgb(from var(--ui-color-danger) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-danger-contrast: rgb(from var(--_ui-danger-fg) r r r);
     --ui-color-danger-subtle: color-mix(in oklab, var(--ui-color-danger) 12%, var(--ui-color-surface));
     --ui-color-danger-strong: color-mix(in oklab, var(--ui-color-danger) 80%, rgb(from var(--ui-color-danger-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
@@ -3032,7 +3072,7 @@ export function enhanceDrawers(root = document) {
   // Bail before the loop rather than letting `window.matchMedia(...)` throw.
   // `initFastBlocksUI` builds its cleanups in a single array literal, so an
   // exception raised here does not merely disable drawers -- it abandons the
-  // whole literal and leaves tabs, dialogs and menus un-enhanced too. Real
+  // whole literal and leaves tabs and dialog autoshow without their cleanup handles too. Real
   // browsers have had `matchMedia` since ~2012; the realistic exposure is a
   // non-browser DOM (this project's jsdom does not implement it).
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -3103,17 +3143,43 @@ export function enhanceDrawers(root = document) {
 // renders closed. Deliberately NOT exported -- the public surface is the
 // attribute, not this function.
 function enhanceDialogAutoshow(root = document) {
+  const selector = 'dialog[data-ui-dialog-autoshow]';
+
+  const open = (dialog) => {
+    if (dialog.open || typeof dialog.showModal !== 'function') {
+      return;
+    }
+    try {
+      dialog.showModal();
+    } catch {
+      // showModal() throws InvalidStateError on a disconnected element. This
+      // runs inside initFastBlocksUI's array literal, so an unguarded throw
+      // here would abort before enhanceDrawers() registers -- exactly the
+      // failure enhanceDrawers' own comment warns about.
+    }
+  };
+
   const show = () => {
-    root.querySelectorAll('dialog[data-ui-dialog-autoshow]').forEach((dialog) => {
-      if (!dialog.open && typeof dialog.showModal === 'function') {
-        dialog.showModal();
-      }
-    });
+    // `querySelectorAll` matches descendants only, never `root` itself. An htmx
+    // swap can hand us the swapped node AS `root`, so a dialog that is the
+    // swap target would otherwise never open. Same guard enhanceDrawers uses.
+    root.querySelectorAll(selector).forEach(open);
+    if (typeof root.matches === 'function' && root.matches(selector)) {
+      open(root);
+    }
   };
 
   show();
-  document.addEventListener('htmx:afterSwap', show);
-  return () => document.removeEventListener('htmx:afterSwap', show);
+
+  // Bound to `root`, not `document`: htmx:afterSwap bubbles, so a
+  // document-level listener would (a) accumulate one permanent listener per
+  // re-init, each closing over a detached fragment, and (b) re-open a dialog
+  // the user had dismissed whenever ANY unrelated swap fired elsewhere on the
+  // page. Listening on `root` scopes both problems to the subtree that owns
+  // the dialog.
+  const target = typeof root.addEventListener === 'function' ? root : document;
+  target.addEventListener('htmx:afterSwap', show);
+  return () => target.removeEventListener('htmx:afterSwap', show);
 }
 
 export function initFastBlocksUI(root = document) {

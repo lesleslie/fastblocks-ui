@@ -1,9 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   defineFastBlocksCustomElements,
-  enhanceDialogs,
   enhanceDrawers,
-  enhanceMenus,
   enhanceTabs,
   initFastBlocksUI,
 } from '@fastblocks-ui/js/fastblocks-ui.js';
@@ -296,7 +294,7 @@ describe('enhanceDrawers', () => {
     expect(drawer.hidePopover).not.toHaveBeenCalled();
   });
 
-  // Unlike enhanceTabs/enhanceDialogs/enhanceMenus, which delegate clicks via
+  // Unlike enhanceTabs, which delegates clicks via
   // `closest()` + `isWithinRoot()` and so keep working when `root` IS the
   // matched element, this function has no click delegation -- its whole job
   // is registering a matchMedia listener per drawer up front via

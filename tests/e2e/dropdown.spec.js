@@ -90,3 +90,19 @@ test.describe('Dropdown on the Popover API', () => {
     expect(topmost).toBe('first-item');
   });
 });
+
+test('a server-rendered hidden dropdown stays hidden', async ({ page }) => {
+  // `display: grid` on .ui-dropdown defeats the UA's `[hidden] { display: none }`
+  // exactly as it defeats the closed-popover rule -- author origin always beats
+  // UA origin. The old `.ui-menu[hidden]` rule was deleted with the popover
+  // migration, so this regressed silently. Server-owned state depends on it.
+  await page.setContent(
+    '<link rel="stylesheet" href="/fastblocks_ui/static/css/fastblocks-ui.css">',
+  );
+  await page.goto('/tests/e2e/fixtures/dropdown.html');
+  await page.locator('#panel').evaluate((el) => {
+    el.removeAttribute('popover');
+    el.setAttribute('hidden', '');
+  });
+  await expect(page.locator('#panel')).toBeHidden();
+});

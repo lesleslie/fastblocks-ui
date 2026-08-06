@@ -646,6 +646,19 @@ def dialog(
     # attribute -- a silent wrong answer for anyone migrating. Fail loudly
     # instead. Not a general typo guard; specifically the parameter this
     # release removed.
+    # `open` is the DANGEROUS retired keyword, not `custom_element`. A stray
+    # `custom-element` attribute is visibly wrong; `open` is a *valid*
+    # attribute on <dialog>, so passing it through `**attrs` would silently
+    # render exactly the non-modal open dialog 0.8.0 removed -- with no focus
+    # trap, because the hand-rolled trap that used to back that path was
+    # deleted in the same release.
+    if _has_attr(attrs, "open"):
+        raise TypeError(
+            "dialog() no longer accepts 'open': every dialog is modal in 0.8.0. "
+            "A non-modal <dialog open> gets no focus trap from the platform, by "
+            "design. Use autoshow=True, which renders data-ui-dialog-autoshow "
+            "and is promoted to showModal() on load and after an htmx swap."
+        )
     if "custom_element" in attrs:
         raise TypeError(
             "dialog() no longer accepts 'custom_element': the <ui-dialog> custom "
@@ -893,7 +906,7 @@ def nav_list(
     """Render a vertical navigation list (`<ul class="ui-nav-list">`).
 
     This is the in-flow sidebar list, not the dropdown: `dropdown()` renders
-    `.ui-dropdown`, which is `position: absolute` and overlays the page. The two
+    `.ui-dropdown`, which is a popover in the top layer and overlays the page. The two
     are unrelated despite both being navigation.
 
     Args:

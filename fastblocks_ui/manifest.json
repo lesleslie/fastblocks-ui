@@ -329,8 +329,8 @@
     },
     {
       "class_name": "ui-dropdown",
-      "codegen": true,
-      "description": "Disclosure and navigation menu styling.",
+      "codegen": false,
+      "description": "Disclosure and navigation dropdown styling.",
       "helper": "dropdown",
       "name": "dropdown",
       "params": [

@@ -101,6 +101,39 @@ test.describe('Derived token contrast', () => {
     });
   }
 
+  // Near-threshold colours, pinned individually because THE GRID CANNOT FIND
+  // THEM. `-contrast` is a clamp, and a clamp is a ramp unless the multiplier
+  // is large enough to saturate: at the original 1e5 the band where it returned
+  // an intermediate value was ~0.0025 wide in relative luminance, and a colour
+  // inside it got a MID-GREY foreground. #757575 rendered rgb(111,111,111) on
+  // itself at 1.09:1. The grid samples oklch lightness at five points and
+  // stepped straight over a band one sRGB step wide.
+  //
+  // These sit either side of the 0.179 crossover. Each must resolve to PURE
+  // black or white -- an intermediate value is the bug, even if it happens to
+  // clear 4.5:1 for one particular input.
+  for (const brand of ['#757575', '#767676', '#747474', '#808080', 'rgb(119,119,119)']) {
+    test(`${brand} near the luminance crossover resolves to pure black or white`, async ({
+      page,
+    }) => {
+      const { fg, ratio } = await page.evaluate((value) => {
+        const c = window.__uiContrast;
+        document.documentElement.style.setProperty('--ui-color-primary', value);
+        const foreground = c.readToken('--ui-color-primary-contrast');
+        const result = {
+          fg: foreground.slice(0, 3),
+          ratio: c.ratio(foreground, c.readToken('--ui-color-primary')),
+        };
+        document.documentElement.style.removeProperty('--ui-color-primary');
+        return result;
+      }, brand);
+
+      const isPure = fg.every((v) => v === 0) || fg.every((v) => v === 255);
+      expect(isPure, `${brand} -> rgb(${fg.join(',')}) is not pure black or white`).toBe(true);
+      expect(ratio, `${brand} -> ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+    });
+  }
+
   // Pins the audited figures in tokens.css so a token edit cannot quietly
   // regress them. Each role is paired with ITS OWN -contrast token: an earlier
   // version substituted every colour into --ui-color-primary and read

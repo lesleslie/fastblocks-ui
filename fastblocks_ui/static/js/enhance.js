@@ -302,7 +302,7 @@ export function enhanceDrawers(root = document) {
   // Bail before the loop rather than letting `window.matchMedia(...)` throw.
   // `initFastBlocksUI` builds its cleanups in a single array literal, so an
   // exception raised here does not merely disable drawers -- it abandons the
-  // whole literal and leaves tabs, dialogs and menus un-enhanced too. Real
+  // whole literal and leaves tabs and dialog autoshow without their cleanup handles too. Real
   // browsers have had `matchMedia` since ~2012; the realistic exposure is a
   // non-browser DOM (this project's jsdom does not implement it).
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -373,17 +373,43 @@ export function enhanceDrawers(root = document) {
 // renders closed. Deliberately NOT exported -- the public surface is the
 // attribute, not this function.
 function enhanceDialogAutoshow(root = document) {
+  const selector = 'dialog[data-ui-dialog-autoshow]';
+
+  const open = (dialog) => {
+    if (dialog.open || typeof dialog.showModal !== 'function') {
+      return;
+    }
+    try {
+      dialog.showModal();
+    } catch {
+      // showModal() throws InvalidStateError on a disconnected element. This
+      // runs inside initFastBlocksUI's array literal, so an unguarded throw
+      // here would abort before enhanceDrawers() registers -- exactly the
+      // failure enhanceDrawers' own comment warns about.
+    }
+  };
+
   const show = () => {
-    root.querySelectorAll('dialog[data-ui-dialog-autoshow]').forEach((dialog) => {
-      if (!dialog.open && typeof dialog.showModal === 'function') {
-        dialog.showModal();
-      }
-    });
+    // `querySelectorAll` matches descendants only, never `root` itself. An htmx
+    // swap can hand us the swapped node AS `root`, so a dialog that is the
+    // swap target would otherwise never open. Same guard enhanceDrawers uses.
+    root.querySelectorAll(selector).forEach(open);
+    if (typeof root.matches === 'function' && root.matches(selector)) {
+      open(root);
+    }
   };
 
   show();
-  document.addEventListener('htmx:afterSwap', show);
-  return () => document.removeEventListener('htmx:afterSwap', show);
+
+  // Bound to `root`, not `document`: htmx:afterSwap bubbles, so a
+  // document-level listener would (a) accumulate one permanent listener per
+  // re-init, each closing over a detached fragment, and (b) re-open a dialog
+  // the user had dismissed whenever ANY unrelated swap fired elsewhere on the
+  // page. Listening on `root` scopes both problems to the subtree that owns
+  // the dialog.
+  const target = typeof root.addEventListener === 'function' ? root : document;
+  target.addEventListener('htmx:afterSwap', show);
+  return () => target.removeEventListener('htmx:afterSwap', show);
 }
 
 export function initFastBlocksUI(root = document) {

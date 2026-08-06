@@ -48,7 +48,7 @@ HAND_WRITTEN = {
     "columns",  # *children (variadic positional)
     "select",  # options: list[tuple[object, object]]
     "tabs",  # items: list[tuple[str, str, object]]
-    "menu",  # items: list[tuple[object, object]]
+    "dropdown",  # items: list[tuple[object, object]]
     "nav_list",  # items: list[tuple[object, str]]
     "nav_groups",  # groups: list[tuple[object, list[tuple[object, str]]]]
     "navbar",  # items: list[tuple[object, str]] + multiple content slots

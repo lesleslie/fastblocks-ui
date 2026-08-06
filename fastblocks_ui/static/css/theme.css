@@ -56,7 +56,7 @@
        (cyan-300, red-300 ...) this theme previously hand-picked, and the
        light-fill/black-text pairing the note above argues for. */
     --ui-color-primary: oklch(51.1% 0.262 276.966); /* indigo-600 */
-    --_ui-primary-fg: rgb(from var(--ui-color-primary) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-primary-fg: rgb(from var(--ui-color-primary) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-primary-contrast: rgb(from var(--_ui-primary-fg) r r r);
     --ui-color-primary-subtle: color-mix(in oklab, var(--ui-color-primary) 12%, var(--ui-color-surface));
     --ui-color-primary-strong: color-mix(in oklab, var(--ui-color-primary) 80%, rgb(from var(--ui-color-primary-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
@@ -67,25 +67,25 @@
        instead of darkening the fill keeps dark mode looking like dark
        mode. Keep the pairing if you re-bump: light fill + black text. */
     --ui-color-info: oklch(78.9% 0.154 211.53); /* cyan-400 */
-    --_ui-info-fg: rgb(from var(--ui-color-info) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-info-fg: rgb(from var(--ui-color-info) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-info-contrast: rgb(from var(--_ui-info-fg) r r r);
     --ui-color-info-subtle: color-mix(in oklab, var(--ui-color-info) 12%, var(--ui-color-surface));
     --ui-color-info-strong: color-mix(in oklab, var(--ui-color-info) 80%, rgb(from var(--ui-color-info-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-success: oklch(79.2% 0.209 151.711); /* green-400 */
-    --_ui-success-fg: rgb(from var(--ui-color-success) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-success-fg: rgb(from var(--ui-color-success) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-success-contrast: rgb(from var(--_ui-success-fg) r r r);
     --ui-color-success-subtle: color-mix(in oklab, var(--ui-color-success) 12%, var(--ui-color-surface));
     --ui-color-success-strong: color-mix(in oklab, var(--ui-color-success) 80%, rgb(from var(--ui-color-success-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-warning: oklch(85.2% 0.199 91.936); /* yellow-400 */
-    --_ui-warning-fg: rgb(from var(--ui-color-warning) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-warning-fg: rgb(from var(--ui-color-warning) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-warning-contrast: rgb(from var(--_ui-warning-fg) r r r);
     --ui-color-warning-subtle: color-mix(in oklab, var(--ui-color-warning) 12%, var(--ui-color-surface));
     --ui-color-warning-strong: color-mix(in oklab, var(--ui-color-warning) 80%, rgb(from var(--ui-color-warning-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));
 
     --ui-color-danger: oklch(70.4% 0.191 22.216); /* red-400 */
-    --_ui-danger-fg: rgb(from var(--ui-color-danger) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 100000, 255) 0 0);
+    --_ui-danger-fg: rgb(from var(--ui-color-danger) clamp(0, (0.179 - (0.2126 * pow((clamp(0, r, 255) / 255 + 0.055) / 1.055, 2.4) + 0.7152 * pow((clamp(0, g, 255) / 255 + 0.055) / 1.055, 2.4) + 0.0722 * pow((clamp(0, b, 255) / 255 + 0.055) / 1.055, 2.4))) * 1000000000, 255) 0 0);
     --ui-color-danger-contrast: rgb(from var(--_ui-danger-fg) r r r);
     --ui-color-danger-subtle: color-mix(in oklab, var(--ui-color-danger) 12%, var(--ui-color-surface));
     --ui-color-danger-strong: color-mix(in oklab, var(--ui-color-danger) 80%, rgb(from var(--ui-color-danger-contrast) calc(255 - r) calc(255 - g) calc(255 - b)));

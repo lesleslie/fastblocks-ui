@@ -13,14 +13,37 @@ Spec B modernises the existing components onto platform primitives. Every break
 below is deliberate; each replaces library code with something the browser now
 does natively. See `docs/superpowers/specs/2026-07-28-spec-b-component-modernization-design.md`.
 
-**`ui-menu` is now `ui-dropdown`.** The `.ui-menu` / `.ui-menu__item` classes,
-the `menu()` helper, the `<ui-menu>` custom element, the `data-ui-menu*`
-attributes and the `ui-menu-*` events are all renamed.
+**`ui-menu` is now `ui-dropdown`.** The `.ui-menu` / `.ui-menu__item` classes
+and the `menu()` helper are renamed.
 
 - *Migration:* rename `menu(...)` to `dropdown(...)` and `.ui-menu` to
   `.ui-dropdown` in your templates and CSS overrides.
 - *Why:* `ui-nav-list` was named to avoid implying kinship with this component,
   which behaves nothing like it. The rename removes the ambiguity at its source.
+
+**Removed, not renamed — these have no replacement**, because the dropdown now
+has no JavaScript at all:
+
+- The `<ui-menu>` custom element.
+- The attributes `data-ui-menu-trigger`, `data-ui-menu-target`, `data-ui-menu`
+  and `data-ui-menu-open`. *Migration:* put `popovertarget="{id}"` on the
+  trigger and pass `id=` to `dropdown()`.
+- The events `ui-menu-open`, `ui-menu-close`, `ui-menu-opened`,
+  `ui-menu-closed`. There is no `ui-dropdown-*` equivalent. *Migration:* listen
+  for the platform's own `beforetoggle` / `toggle` events on the popover.
+
+**Dialog JavaScript hooks are removed with no replacement:**
+
+- The attributes `data-ui-dialog-trigger`, `data-ui-dialog-target`,
+  `data-ui-dialog-close`, `data-ui-dialog` and `data-ui-state`. *Migration:*
+  `command="show-modal"` / `command="close"` with `commandfor="{id}"`. A
+  `<button data-ui-dialog-trigger>` becomes an inert button, silently.
+- The events `ui-dialog-open`, `ui-dialog-close`, `ui-dialog-opened`,
+  `ui-dialog-closed`. *Migration:* the native `<dialog>` `close` event, and
+  `beforetoggle` / `toggle`. A stale `addEventListener('ui-dialog-opened', ...)`
+  will simply never fire -- no error, no warning.
+- `data-ui-state="closed"` was also a styling hook; CSS selecting on it stops
+  matching. Style from `:popover-open` / `[open]` instead.
 
 **Element classes move to the BEM `__` separator.**
 
@@ -48,6 +71,9 @@ attributes and the `ui-menu-*` events are all renamed.
 - *Removed with it:* the `position: relative` ancestor contract every caller
   previously had to satisfy, the `z-index: 20` stacking guess, and the
   `[hidden]` toggling.
+- *Note:* the attribute being replaced is `data-ui-dropdown-trigger` only if you
+  upgraded through an intermediate build; the attribute that actually shipped in
+  0.7.x is **`data-ui-menu-trigger`**. Grep for that one.
 
 **`dialog()` requires `id`; `open=` is replaced by `autoshow=`. Every dialog is
 now modal.**
@@ -78,6 +104,11 @@ remains -- tabs has no platform equivalent and still needs JavaScript.
 
 - *Migration:* drop the parameter. Both helpers raise `TypeError` naming the
   replacement rather than silently rendering a stray `custom-element` attribute.
+
+**`dialog(open=True)` raises `TypeError`.** This is guarded specifically because
+`open` is a *valid* attribute on `<dialog>`: left to pass through `**attrs` it
+would silently render the non-modal open dialog this release removed, with no
+focus trap, rather than failing visibly. Use `autoshow=True`.
 
 ### Added
 

@@ -505,8 +505,17 @@
      none }`, but ANY author `display` beats it -- cascade layers order author
      styles against each other, never against the UA stylesheet. Without this
      rule the panel renders permanently open. Scoped to `[popover]` so a
-     `.ui-dropdown` used without the attribute still lays out as a grid. */
-  .ui-dropdown[popover]:not(:popover-open) {
+     `.ui-dropdown` used without the attribute still lays out as a grid.
+
+     `[hidden]` is the SAME hazard by a different route: the UA hides it with
+     `[hidden] { display: none }`, which `display: grid` above also defeats.
+     `.ui-menu[hidden]` used to carry that rule and it was deleted with the
+     popover migration, so a server-rendered `<nav class="ui-dropdown" hidden>`
+     rendered visible -- which matters for a library whose contract is
+     server-owned state over htmx swaps. `.ui-tabs__panel[hidden]` keeps the
+     equivalent rule. */
+  .ui-dropdown[popover]:not(:popover-open),
+  .ui-dropdown[hidden] {
     display: none;
   }
 
@@ -704,6 +713,17 @@
       transition-duration: 0.01ms;
     }
   }
+  /* Vendor pseudo-elements are NOT matched by base.css's
+     `*, *::before, *::after` reduced-motion reset, so a 300ms animated
+     progress bar survived it in Chromium and WebKit. Same reasoning as the
+     `.ui-drawer::backdrop` carve-out above. (`::-moz-progress-bar` sets no
+     transition, so Firefox was never affected.) */
+  @media (prefers-reduced-motion: reduce) {
+    .ui-progress::-webkit-progress-value {
+      transition-duration: 1ms;
+    }
+  }
+
 
   /* `position: relative` here is load-bearing, not decorative:
      `.ui-burger__label` below is `position: absolute`, and without a

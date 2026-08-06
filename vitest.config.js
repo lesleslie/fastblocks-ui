@@ -31,8 +31,11 @@ export default defineConfig({
     testTimeout: 10000,
     hookTimeout: 10000,
     teardownTimeout: 10000,
-    // Enable UI for better debugging
-    ui: true,
+    // `ui: true` is deliberately NOT set here. It makes even `vitest run`
+    // announce "UI started at http://localhost:PORT/__vitest__/", but a `run`
+    // exits as soon as the tests finish, so that URL is dead on arrival and
+    // serves a 404 -- which reads as "the tests never ran". Use the `test:ui`
+    // script (`vitest --ui`), which starts a server that stays up.
   },
   resolve: {
     alias: {
