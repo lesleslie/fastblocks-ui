@@ -38,5 +38,5 @@
     "validate": "npm run lint && npm run check:baseline && npm run test:run"
   },
   "type": "module",
-  "version": "0.7.1"
+  "version": "0.8.0"
 }

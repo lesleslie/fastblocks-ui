@@ -45,6 +45,9 @@ node_modules/
 .vitest/
 coverage/
 playwright-report/
+
+# pyscn complexity reports are regenerated tool output
+.pyscn/
 playwright-results.json
 playwright-results/
 playwright-junit.xml
