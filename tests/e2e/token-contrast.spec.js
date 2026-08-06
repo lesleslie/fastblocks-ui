@@ -87,9 +87,7 @@ test.describe('Derived token contrast', () => {
   // state before Task 11, when they are hand-authored constants. Without this,
   // 185 grid points would silently measure the default palette 185 times and
   // report a clean pass.
-  test.fixme(
-    'derived tokens respond to --ui-color-primary',
-    async ({ page }) => {
+  test('derived tokens respond to --ui-color-primary', async ({ page }) => {
       const sample = async (brand) =>
         page.evaluate((value) => {
           const probe = document.getElementById('probe');
@@ -109,21 +107,13 @@ test.describe('Derived token contrast', () => {
 
       const a = await sample('oklch(0.55 0.2 250)');
       const b = await sample('oklch(0.85 0.05 90)');
-      expect(a.subtle).not.toBe(b.subtle);
-      expect(a.strong).not.toBe(b.strong);
-      expect(a.contrast).not.toBe(b.contrast);
-    },
-  );
+    expect(a.subtle).not.toBe(b.subtle);
+    expect(a.strong).not.toBe(b.strong);
+    expect(a.contrast).not.toBe(b.contrast);
+  });
 
   for (const pair of PAIRS) {
-    // `-contrast on base` and `-contrast on -strong` cannot pass until Task 11
-    // derives the foreground: --ui-color-primary-contrast is currently the
-    // constant #ffffff, so 79 of 185 grid colours fall below 4.5:1 -- every
-    // brand colour light enough that white text stops working. Measured, not
-    // estimated; the worst is 1.91:1. Task 11 removes these fixmes.
-    const pending = pair.fg === '--ui-color-primary-contrast';
-    const runner = pending ? test.fixme : test;
-    runner(`${pair.name} holds ${pair.min}:1 across the brand grid`, async ({ page }) => {
+    test(`${pair.name} holds ${pair.min}:1 across the brand grid`, async ({ page }) => {
       const failures = await page.evaluate(MEASURE, { grid: GRID, pair });
       expect(
         failures,
