@@ -24,6 +24,9 @@
     --ui-color-text-muted: oklch(70.4% 0.04 256.788); /* slate-400 */
     --ui-color-border: oklch(37.2% 0.044 257.287); /* slate-700 */
     --ui-color-border-strong: oklch(55.4% 0.046 257.417); /* slate-500 */
+    /* See tokens.css: form-control boundaries need 3:1 (SC 1.4.11). slate-700
+       measures 2.03:1 against this surface; slate-500 measures 3.74:1. */
+    --ui-color-border-control: oklch(55.4% 0.046 257.417); /* slate-500 */
 
     /* Dark mode needs its own focus colour. Unlike `--ui-color-primary` (which
        deliberately stays indigo-600 in both themes so its white text keeps

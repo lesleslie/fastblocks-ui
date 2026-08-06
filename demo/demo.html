@@ -78,6 +78,23 @@
     --ui-color-text-muted: oklch(55.1% 0.027 264.364); /* gray-500 */
     --ui-color-border: oklch(87.2% 0.01 258.338); /* gray-300 */
     --ui-color-border-strong: oklch(70.7% 0.022 261.325); /* gray-400 */
+
+    /* Form-control boundaries, separate from the decorative border above
+       because WCAG 2.1 SC 1.4.11 applies to one and not the other.
+
+       `.ui-input`/`.ui-select`/`.ui-textarea` fill with `--ui-color-surface`,
+       the same token as the page, so their 1px border is the ONLY thing that
+       identifies the control -- precisely the "visual information required to
+       identify user interface components" the SC covers. gray-300 measures
+       1.47:1 there, well under the required 3:1, and axe does not check
+       border-vs-background contrast so nothing flagged it.
+
+       gray-500 measures 4.84:1 in this theme and slate-500 3.74:1 in the dark
+       one. A shared darker border was rejected: cards, tables, dialogs and
+       navbars are decorative boundaries whose contents identify them, so
+       darkening those changes the whole library's weight for no conformance
+       gain. Asserted in tests/e2e/token-contrast.spec.js for both themes. */
+    --ui-color-border-control: oklch(55.1% 0.027 264.364); /* gray-500 */
     --ui-color-focus: oklch(51.1% 0.262 276.966); /* indigo-600 */
 
     --ui-space-0: 0;
@@ -149,6 +166,9 @@
     --ui-color-text-muted: oklch(70.4% 0.04 256.788); /* slate-400 */
     --ui-color-border: oklch(37.2% 0.044 257.287); /* slate-700 */
     --ui-color-border-strong: oklch(55.4% 0.046 257.417); /* slate-500 */
+    /* See tokens.css: form-control boundaries need 3:1 (SC 1.4.11). slate-700
+       measures 2.03:1 against this surface; slate-500 measures 3.74:1. */
+    --ui-color-border-control: oklch(55.4% 0.046 257.417); /* slate-500 */
 
     /* Dark mode needs its own focus colour. Unlike `--ui-color-primary` (which
        deliberately stays indigo-600 in both themes so its white text keeps
@@ -587,7 +607,10 @@
     width: 100%;
     min-height: 2.5rem;
     padding: 0.625rem 0.875rem;
-    border: var(--ui-border-width) solid var(--ui-color-border);
+    /* `-control`, not the shared `-border`: these fill with the page's own
+       surface colour, so this line is the only thing identifying the control.
+       See tokens.css and WCAG 2.1 SC 1.4.11. */
+    border: var(--ui-border-width) solid var(--ui-color-border-control);
     border-radius: var(--ui-radius-md);
     background: var(--ui-color-surface);
     color: var(--ui-color-text);
@@ -685,7 +708,7 @@
     flex: 0 0 auto;
     border-radius: var(--ui-radius-pill);
     background: var(--ui-color-surface-muted);
-    box-shadow: inset 0 0 0 1px var(--ui-color-border);
+    box-shadow: inset 0 0 0 1px var(--ui-color-border-control);
     transition: background-color 160ms ease, box-shadow 160ms ease;
   }
 
@@ -2370,6 +2393,9 @@
     --ui-color-text-muted: oklch(70.4% 0.04 256.788); /* slate-400 */
     --ui-color-border: oklch(37.2% 0.044 257.287); /* slate-700 */
     --ui-color-border-strong: oklch(55.4% 0.046 257.417); /* slate-500 */
+    /* See tokens.css: form-control boundaries need 3:1 (SC 1.4.11). slate-700
+       measures 2.03:1 against this surface; slate-500 measures 3.74:1. */
+    --ui-color-border-control: oklch(55.4% 0.046 257.417); /* slate-500 */
 
     /* Dark mode needs its own focus colour. Unlike `--ui-color-primary` (which
        deliberately stays indigo-600 in both themes so its white text keeps

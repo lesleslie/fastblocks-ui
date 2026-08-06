@@ -179,22 +179,79 @@ test.describe('Derived token contrast', () => {
     expect(measured.danger).toBeLessThan(5);
   });
 
-  // KNOWN PRE-EXISTING GAP, not introduced by the token derivation work.
+  // WCAG 2.1 SC 1.4.11 (non-text contrast, 3:1).
   //
-  // Measured against white surface: --ui-color-border is 1.47:1 and
-  // --ui-color-border-strong is 2.60:1, both below WCAG 2.1 SC 1.4.11's 3:1 for
-  // non-text contrast. That matters because .ui-input / .ui-select /
-  // .ui-textarea use --ui-color-border as the only visual boundary of the
-  // control, which is exactly what 1.4.11 covers.
+  // This matters because a text input's background is `--ui-color-surface` --
+  // the SAME token as the page -- so its 1px border is the only thing that
+  // distinguishes the control from blank page. That is exactly the "visual
+  // information required to identify user interface components" the SC covers,
+  // and axe does not check border-vs-background contrast, so 36 passing axe
+  // assertions were stepping over it.
   //
-  // Left failing-but-visible rather than silently threshold-lowered: raising
-  // these tokens is a palette decision affecting every component's appearance,
-  // so it needs a deliberate choice rather than a quiet edit here.
-  test.fixme('non-text contrast: control borders meet 3:1', async ({ page }) => {
-    const failures = await page.evaluate(MEASURE, {
-      grid: ['oklch(51.1% 0.262 276.966)'],
-      pair: { name: 'border on surface', fg: '--ui-color-border', bg: '--ui-color-surface', min: 3 },
+  // Scoped to a dedicated --ui-color-border-control token rather than raising
+  // the shared --ui-color-border: cards, tables, dialogs and navbars are
+  // decorative boundaries whose contents identify them, so darkening those
+  // would change the library's whole appearance for no conformance gain.
+  for (const theme of ['light', 'dark']) {
+    test(`control borders meet 3:1 in the ${theme} theme`, async ({ page }) => {
+      const ratio = await page.evaluate((mode) => {
+        document.documentElement.setAttribute('data-theme', mode);
+        const probe = document.getElementById('probe');
+        const ctx = document.getElementById('raster').getContext('2d', { willReadFrequently: true });
+        const toSrgb = (token) => {
+          probe.style.color = `var(${token})`;
+          ctx.clearRect(0, 0, 1, 1);
+          ctx.fillStyle = getComputedStyle(probe).color;
+          ctx.fillRect(0, 0, 1, 1);
+          const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+          return [r, g, b];
+        };
+        const lum = ([r, g, b]) => {
+          const f = (v) => {
+            const s = v / 255;
+            return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+          };
+          return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+        };
+        // An UNDEFINED custom property does not fail loudly: `color:
+        // var(--missing)` is invalid at computed-value time, so `color` simply
+        // inherits (black), and black-on-white sails past a >= 3 assertion.
+        // Prove the token exists before trusting any ratio measured from it.
+        const declared = getComputedStyle(document.documentElement)
+          .getPropertyValue('--ui-color-border-control')
+          .trim();
+        const [x, y] = [lum(toSrgb('--ui-color-border-control')), lum(toSrgb('--ui-color-surface'))];
+        return { declared, ratio: (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) };
+      }, theme);
+      expect(ratio.declared, `--ui-color-border-control is not defined in the ${theme} theme`).not.toBe('');
+      expect(ratio.ratio, `${theme}: ${ratio.ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(3);
     });
-    expect(failures).toEqual([]);
+  }
+
+  // The invalid-state border swaps to --ui-color-danger, which must clear the
+  // same bar or the error state is less identifiable than the resting state.
+  test('the invalid-state border also meets 3:1', async ({ page }) => {
+    const ratio = await page.evaluate(() => {
+      const probe = document.getElementById('probe');
+      const ctx = document.getElementById('raster').getContext('2d', { willReadFrequently: true });
+      const toSrgb = (token) => {
+        probe.style.color = `var(${token})`;
+        ctx.clearRect(0, 0, 1, 1);
+        ctx.fillStyle = getComputedStyle(probe).color;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        return [r, g, b];
+      };
+      const lum = ([r, g, b]) => {
+        const f = (v) => {
+          const s = v / 255;
+          return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+        };
+        return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+      };
+      const [x, y] = [lum(toSrgb('--ui-color-danger')), lum(toSrgb('--ui-color-surface'))];
+      return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+    });
+    expect(ratio, `${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(3);
   });
 });
