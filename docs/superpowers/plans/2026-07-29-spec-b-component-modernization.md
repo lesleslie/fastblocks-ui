@@ -1333,7 +1333,19 @@ Pairs awaiting Task 11's derivation are marked fixme, thresholds unchanged."
 
 ---
 
-### Task 11: B3 — derive the token scales
+### Task 11: B3 — derive the token scales  DONE (`940da30`)
+
+> **The spec's `oklch(from ... clamp(0, (0.62 - l) * 1000, 1) 0 0)` pivot does
+> not work.** It bottoms out at 6/185 at every threshold, because oklch `l` is
+> perceptual lightness and WCAG uses relative luminance. Compute true luminance
+> with `pow()` instead, and clamp channels to [0,255] first -- out-of-gamut
+> colours give negative channels and `pow()` of a negative is invalid.
+>
+> **Both themes must derive**, or a consumer override desynchronises them.
+>
+> **Do not `git checkout` a spec file mid-tuning** -- it silently restored
+> `test.fixme`s, and a `${var:-default}` shell fallback then reported skipped
+> tests as passes. Commit gate changes before scanning parameters.
 
 **Files:**
 - Modify: `fastblocks_ui/static/css/tokens.css`
@@ -1345,14 +1357,14 @@ Pairs awaiting Task 11's derivation are marked fixme, thresholds unchanged."
 - Consumes: the harness from Task 10
 - Produces: `--ui-color-{primary,info,success,warning,danger}-{subtle,strong,contrast}` as derived values
 
-- [ ] **Step 1: Remove one fixme and watch it fail**
+- [x] **Step 1: Remove one fixme and watch it fail**
 
 Delete the `test.fixme` from the `--ui-color-primary-contrast on --ui-color-primary` test.
 
 Run: `npx playwright test tests/e2e/token-contrast.spec.js --project=chromium -g "primary-contrast"`
 Expected: FAIL, listing brand colours whose contrast falls below 4.5:1
 
-- [ ] **Step 2: Derive the foreground**
+- [x] **Step 2: Derive the foreground**
 
 In `tokens.css`, replace `--ui-color-primary-contrast: #ffffff;` with:
 
@@ -1365,13 +1377,13 @@ In `tokens.css`, replace `--ui-color-primary-contrast: #ffffff;` with:
     --ui-color-primary-contrast: oklch(from var(--ui-color-primary) clamp(0, (0.62 - l) * 1000, 1) 0 0);
 ```
 
-- [ ] **Step 3: Run and tune the pivot empirically**
+- [x] **Step 3: Run and tune the pivot empirically**
 
 Run: `npx playwright test tests/e2e/token-contrast.spec.js --project=chromium -g "primary-contrast"`
 
 If failures remain, adjust `0.62` and re-run. **Do not lower the 4.5 threshold.** Record the final pivot and why in a comment.
 
-- [ ] **Step 4: Derive the backgrounds, one at a time**
+- [x] **Step 4: Derive the backgrounds, one at a time**
 
 Remove the next fixme, then replace:
 
@@ -1382,22 +1394,22 @@ Remove the next fixme, then replace:
 
 Run the harness after each change and tune the percentages — 12% and 80% are the roadmap's placeholders, not measured values.
 
-- [ ] **Step 5: Repeat for info, success, warning, danger**
+- [x] **Step 5: Repeat for info, success, warning, danger**
 
 Apply the same three derivations to each. `warning` is the risk case: its shipped `-contrast` is `#000000`, so confirm the pivot picks black for a light yellow.
 
-- [ ] **Step 6: Preserve the provenance comments**
+- [x] **Step 6: Preserve the provenance comments**
 
 `tokens.css`'s existing comment block records the Tailwind v4 shade each value maps to and the measured contrast pairs. Keep it, retargeted to describe the **default inputs** rather than the derived outputs. Do not delete it.
 
-- [ ] **Step 7: Rebuild and run the full matrix in all three engines**
+- [x] **Step 7: Rebuild and run the full matrix in all three engines**
 
 Run: `python tools/build_css.py && npx playwright test tests/e2e/token-contrast.spec.js`
 Expected: all pairs pass, all engines, no fixmes remaining
 
 Run: `uv run pytest tests/ -q && npm run validate && npx playwright test`
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A
