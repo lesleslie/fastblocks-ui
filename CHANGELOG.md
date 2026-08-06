@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-08-06
+
+### Internal
+
+- Propagate the 0.8.0 bump; gitignore pyscn reports
+
 ## [0.8.0] - 2026-08-06
 
 ### Added
@@ -51,8 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - drawer: Reset the UA popover box model so the panel lands on the right edge
 - e2e: Wait for content-visibility layout to settle before clicking
 - Expose nav_list's active item to assistive tech
-- helpers: Close style-spelling gap and pin _safe_css_length boundaries
-- helpers: Dedupe _render_attrs against a helper's own positional defaults
+- helpers: Close style-spelling gap and pin \_safe_css_length boundaries
+- helpers: Dedupe \_render_attrs against a helper's own positional defaults
 - helpers: Detect a caller's aria-label under any spelling
 - js: Direct :popover-open feature detect, self-inclusive drawer discovery
 - layout: Hide only the shell's own burger above the breakpoint
@@ -66,7 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 
 - Correct the aria-expanded claim in spec and plan
-- css: Explain why .ui-nav-list__item carries no rule of its own
+- css: Explain why .ui-nav-list\_\_item carries no rule of its own
 - Document ui-shell, ui-drawer, ui-burger, and ui-nav-list
 - helpers: Document and test the aria_label=None opt-out
 - Implementation plan for full-bleed demo layout
