@@ -49,6 +49,7 @@ from .helpers import (
     text_input,
     tile,
     title,
+    tooltip,
     validation_summary,
 )
 from .helpers import (
@@ -113,6 +114,7 @@ __all__ = [
     "text_input",
     "tile",
     "title",
+    "tooltip",
     "validation_summary",
 ]
 

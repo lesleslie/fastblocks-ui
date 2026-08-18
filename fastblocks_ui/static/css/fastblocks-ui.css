@@ -1311,6 +1311,32 @@
     translate: 0 -7px;
     rotate: -45deg;
   }
+
+  /* Floating UI (Decision 18: opt-in modifiers in :where() so consumer
+     transforms win specificity battles) */
+  :where(.ui-tooltip) {
+    position: fixed;
+    inset: auto;
+    /* Per spec §1.1: tooltip uses popover="hint" for placement. The
+       browser handles positioning; we provide only the visual style. */
+    padding: var(--ui-space-2) var(--ui-space-3);
+    background: var(--ui-color-surface-raised);
+    color: var(--ui-color-text);
+    border: 1px solid var(--ui-color-border);
+    border-radius: var(--ui-radius-md);
+    font-size: var(--ui-font-size-sm, 0.875rem);
+    box-shadow: 0 4px 12px color-mix(in oklab, var(--ui-color-text) 10%, transparent);
+    max-width: 240px;
+    /* Popover hint defaults — no manual animation needed. The popover
+       API handles open/close. */
+  }
+  /* Position modifiers: popover="hint" anchors to the trigger by
+     default. Consumers can opt-in to a specific position via the
+     `position` argument, which sets one of these classes. */
+  :where(.ui-tooltip.top)    { /* default — popover hint anchors to top */ }
+  :where(.ui-tooltip.right)  { /* popover hint anchors to right */ }
+  :where(.ui-tooltip.bottom) { /* popover hint anchors to bottom */ }
+  :where(.ui-tooltip.left)   { /* popover hint anchors to left */ }
 }
 
 /* FastBlocks UI Layout System

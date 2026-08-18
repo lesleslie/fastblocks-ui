@@ -51,6 +51,7 @@ __all__ = [
     "tabs",
     "tile",
     "title",
+    "tooltip",
     "validation_summary",
 ]
 
@@ -1560,6 +1561,39 @@ def table(
         f"<tbody>{body_html}</tbody>"
         f"</table></div>"
     )
+
+
+def tooltip(
+    text: object,
+    *,
+    id: str,
+    position: Literal["top", "right", "bottom", "left"] = "top",
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    """Render a tooltip body element. The trigger is a separate element
+    the consumer composes with `aria-describedby="<id>"` (matches the
+    split-responsibility model of burger/drawer/dropdown).
+
+    Uses `popover="hint"` for native positioning + dismiss. The CSS
+    class is `ui-tooltip` with a position modifier (`top`, `right`,
+    `bottom`, `left`) for placement.
+
+    Tooltips on touch devices show on `:focus-visible` only — there is
+    no hover. The `aria-describedby` content is read by the screen
+    reader on focus land, which is the accessibility fallback for
+    touch users.
+
+    Trigger requirement (spec §1.1): the trigger MUST be a natively
+    focusable element (<button>, <a>, <input>, etc.) or carry
+    `tabindex="0"`. Without this, screen reader users get no
+    description because `aria-describedby` is read on focus.
+    """
+    classes = _flatten_classes(["ui-tooltip", position], class_)
+    attrs.setdefault("id", id)
+    attrs["popover"] = "hint"
+    attrs["role"] = "tooltip"
+    return _safe(f'<span class="{classes}"{_render_attrs(attrs)}>{text}</span>')
 
 
 def pagination(
