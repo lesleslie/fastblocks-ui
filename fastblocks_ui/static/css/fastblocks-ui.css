@@ -1461,6 +1461,77 @@
     background: var(--ui-color-danger);
     color: var(--ui-color-on-danger, var(--ui-color-surface));
   }
+
+  /* Avatar (spec §1.6) — single component + group overlap stack.
+     `--ui-avatar-size` is local to this rule (size variants set it
+     on each modifier); the `--ui-radius-md`, /` pair uses
+     fallbacks because some token names referenced here (notably
+     `--ui-radius-full`) do not exist in tokens.css and Path A
+     (fallback) was chosen over Path B (adding the tokens).
+     Mirrors the `.ui-tooltip` / `.ui-popover` / `.ui-toast`
+     `:where()`-wrap posture above. */
+  :where(.ui-avatar) {
+    position: relative;
+    display: inline-block;
+    width: var(--ui-avatar-size, 32px);
+    height: var(--ui-avatar-size, 32px);
+    border-radius: 50%;
+    overflow: hidden;
+    vertical-align: middle;
+  }
+  :where(.ui-avatar.is-square)  { border-radius: 0; }
+  :where(.ui-avatar.is-rounded) { border-radius: var(--ui-radius-md, 4px); }
+
+  :where(.ui-avatar img),
+  :where(.ui-avatar [role="img"]) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ui-color-surface-muted);
+    color: var(--ui-color-text);
+    font-size: calc(var(--ui-avatar-size, 32px) * 0.4);
+    font-weight: 600;
+  }
+
+  /* Size variants */
+  :where(.ui-avatar.is-xs) { --ui-avatar-size: 24px; }
+  :where(.ui-avatar.is-sm) { --ui-avatar-size: 32px; }
+  :where(.ui-avatar.is-md) { --ui-avatar-size: 40px; }
+  :where(.ui-avatar.is-lg) { --ui-avatar-size: 56px; }
+  :where(.ui-avatar.is-xl) { --ui-avatar-size: 80px; }
+
+  /* Status dot */
+  :where(.ui-avatar__status) {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 25%;
+    height: 25%;
+    border-radius: 50%;
+    border: 2px solid var(--ui-color-surface);
+    background: var(--ui-color-success); /* default */
+  }
+  :where(.ui-avatar__status[data-status="online"])  { background: var(--ui-color-success); }
+  :where(.ui-avatar__status[data-status="busy"])    { background: var(--ui-color-danger); }
+  :where(.ui-avatar__status[data-status="away"])    { background: var(--ui-color-warning); }
+  :where(.ui-avatar__status[data-status="offline"]) { background: var(--ui-color-text-muted); }
+
+  /* Group: overlap stacking */
+  :where(.ui-avatar-group) {
+    display: inline-flex;
+    align-items: center;
+  }
+  :where(.ui-avatar-group .ui-avatar-stack-item:not(:first-child)) {
+    margin-inline-start: calc(var(--ui-avatar-size, 32px) * -0.25);
+  }
+  :where(.ui-avatar__overflow) {
+    background: var(--ui-color-surface-muted);
+    color: var(--ui-color-text-muted);
+    font-size: calc(var(--ui-avatar-size, 32px) * 0.35);
+  }
 }
 
 /* Command palette (split out per spec §1.4: JS-coupled CSS warrants

@@ -21,6 +21,8 @@ __all__ = [
     "Size",
     "Variant",
     "alert",
+    "avatar",
+    "avatar_group",
     "breadcrumb",
     "burger",
     "button",
@@ -1822,3 +1824,102 @@ def context_menu(
         for item in items
     )
     return _safe(f'<ul{attr_html} hidden>{item_html}</ul>')
+
+
+def avatar(
+    src: object,
+    *,
+    alt: str,
+    name: str | None = None,
+    shape: Literal["circle", "square", "rounded"] = "circle",
+    size: Literal["xs", "sm", "md", "lg", "xl"] = "md",
+    status: Literal["online", "busy", "away", "offline"] | None = None,
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    """Render a single avatar.
+
+    Accessibility (spec §1.6):
+    - ``<img>`` with alt text (the user's name for user avatars;
+      ``alt=""`` for decorative avatars).
+    - Initials fallback uses ``role="img" aria-label="<full name>"``
+      (NOT empty aria-label — axe flags that).
+    - Status dot is ``aria-hidden="true"`` (visual only).
+
+    Glass-readiness: NOT added to ``--_ui-glass-components`` by
+    default (per Decision 7a). Consumers opt-in per instance via
+    ``class_="is-glass"`` if they want the translucent identity-ring
+    pattern.
+
+    XSS defense-in-depth (Task 7 lesson, mirroring Tasks 4/5/6):
+    every caller-supplied value interpolated into the f-string below
+    passes through ``escape(..., quote=True)`` first, so a malicious
+    ``src`` like ``x" onerror="alert(1)`` cannot splice a live event
+    handler into the rendered tag, and a malicious ``alt`` like
+    ``"><script>...</script>`` cannot close the tag and inject
+    script. ``status`` is ``Literal``-constrained at the type level
+    and ``overflow`` is an int, but both are escaped anyway for
+    consistency.
+    """
+    classes = _flatten_classes(["ui-avatar", f"is-{shape}", f"is-{size}"], class_)
+    attrs.setdefault("data-shape", shape)
+    attrs.setdefault("data-size", size)
+    if status is not None:
+        attrs["data-status"] = status
+    status_html = (
+        f'<span class="ui-avatar__status" data-status="{escape(str(status), quote=True)}" aria-hidden="true"></span>'
+        if status is not None
+        else ""
+    )
+    img = (
+        f'<img src="{escape(str(src), quote=True)}" alt="{escape(str(alt), quote=True)}" />'
+        if src
+        else (
+            f'<span role="img" aria-label="{escape(str(name or alt), quote=True)}">'
+            f'{escape(str((name or alt))[:2].upper(), quote=True)}'
+            f'</span>'
+        )
+    )
+    return _safe(f'<div class="{escape(classes, quote=True)}"{_render_attrs(attrs)}>{img}{status_html}</div>')
+
+
+def avatar_group(
+    avatars: list,
+    *,
+    max: int = 4,
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    """Render an avatar group with overlap stacking and overflow chip.
+
+    Per spec §1.6:
+    - Up to ``max`` avatars shown (default 4); 5th+ shown as ``"+N"``.
+    - The ``+N`` element carries ``aria-label="N more users"`` (or
+      ``"1 more user"`` for N=1). NOT the literal text ``"+3"`` that
+      screen readers would otherwise read.
+    - Stacking via negative ``margin-inline-start`` on each avatar
+      except the first.
+
+    XSS defense-in-depth (Task 7 lesson, mirroring Tasks 4/5/6):
+    ``aria_label`` is interpolated into an f-string, so it must pass
+    through ``escape(..., quote=True)`` to keep a caller-supplied
+    value from closing the attribute and injecting markup. ``overflow``
+    is an int (Literal-typed by arithmetic on ``len(avatars) - max``),
+    but it is still escaped for consistency.
+    """
+    classes = _flatten_classes(["ui-avatar-group"], class_)
+    overflow = len(avatars) - max
+    visible = avatars[:max]
+    overflow_html = ""
+    if overflow > 0:
+        aria_label = "1 more user" if overflow == 1 else f"{overflow} more users"
+        overflow_html = (
+            f'<div class="ui-avatar ui-avatar__overflow" '
+            f'role="img" aria-label="{escape(str(aria_label), quote=True)}">'
+            f'+{escape(str(overflow), quote=True)}</div>'
+        )
+    avatar_html = "".join(
+        f'<div class="ui-avatar-stack-item">{_render_fragment(avatar)}</div>'
+        for avatar in visible
+    )
+    return _safe(f'<div class="{escape(classes, quote=True)}"{_render_attrs(attrs)}>{avatar_html}{overflow_html}</div>')

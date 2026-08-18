@@ -22,6 +22,72 @@
       ]
     },
     {
+      "class_name": "ui-avatar",
+      "codegen": true,
+      "description": "Identity indicator with image / initials / placeholder; supports stacking groups.",
+      "helper": "avatar",
+      "name": "avatar",
+      "params": [
+        {
+          "kind": "positional_or_keyword",
+          "name": "src",
+          "required": true,
+          "type": "object"
+        },
+        {
+          "kind": "keyword_only",
+          "name": "alt",
+          "required": true,
+          "type": "str"
+        },
+        {
+          "default": null,
+          "kind": "keyword_only",
+          "name": "name",
+          "type": "str | None"
+        },
+        {
+          "default": "circle",
+          "kind": "keyword_only",
+          "name": "shape",
+          "type": "Literal['circle', 'square', 'rounded']"
+        },
+        {
+          "default": "md",
+          "kind": "keyword_only",
+          "name": "size",
+          "type": "Literal['xs', 'sm', 'md', 'lg', 'xl']"
+        },
+        {
+          "default": null,
+          "kind": "keyword_only",
+          "name": "status",
+          "type": "Literal['online', 'busy', 'away', 'offline'] | None"
+        }
+      ]
+    },
+    {
+      "class_name": "ui-avatar-group",
+      "codegen": true,
+      "description": "Stacked avatar group with overlap and overflow chip for the +N tail.",
+      "helper": "avatar_group",
+      "name": "avatar_group",
+      "params": [
+        {
+          "kind": "positional_or_keyword",
+          "name": "avatars",
+          "required": true,
+          "type": "list"
+        },
+        {
+          "default": 4,
+          "kind": "keyword_only",
+          "name": "max",
+          "type": "int"
+        }
+      ]
+    },
+    {
       "class_name": "ui-breadcrumb",
       "codegen": false,
       "description": "Navigation trail with links and current page.",
