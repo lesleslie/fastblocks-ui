@@ -199,6 +199,42 @@
        wraps, so it keeps contrast even against a filled button; the outer layer
        carries the focus colour at full opacity. */
     --ui-focus-ring: 0 0 0 2px var(--ui-color-surface), 0 0 0 4px var(--ui-color-focus);
+
+    /* Motion primitives (Decision 19: shared across motion + 3D + components) */
+    --ui-motion-duration-fast: 150ms;
+    --ui-motion-duration-base: 200ms;
+    --ui-motion-duration-slow: 400ms;
+    --ui-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ui-motion-easing-emphasized: cubic-bezier(0.3, 0, 0, 1);
+
+    /* Z-index scale (Decision 21 + spec §2.3): pinned -1 default for
+       backdrops so stacking (aurora + noise + glass) doesn't produce
+       conflicting z-index values. */
+    --ui-z-backdrop: -1;
+
+    /* Aurora gradient (3 stops, theme-aware, tunable per-instance) */
+    --ui-aurora-stop-1: color-mix(in oklab, var(--ui-color-primary) 40%, transparent);
+    --ui-aurora-stop-2: color-mix(in oklab, var(--ui-color-info) 35%, transparent);
+    --ui-aurora-stop-3: color-mix(in oklab, var(--ui-color-success) 30%, transparent);
+
+    /* Noise / grain overlay */
+    --ui-noise-opacity: 0.04;
+    --ui-noise-scale: 1;
+
+    /* Geometric patterns (size + opacity) */
+    --ui-pattern-size: 16px;
+    --ui-pattern-opacity: 0.06;
+
+    /* Cursor-follow spotlight (JS writes to --ui-spotlight-x/y; consumers
+       override --ui-spotlight-color / --ui-spotlight-opacity per-instance) */
+    --ui-spotlight-x: 50%;
+    --ui-spotlight-y: 50%;
+    --ui-spotlight-color: var(--ui-color-primary);
+    --ui-spotlight-opacity: 0.15;
+
+    /* Tilt on hover (JS writes to --ui-tilt-x/y) */
+    --ui-tilt-x: 0deg;
+    --ui-tilt-y: 0deg;
   }
 }
 

@@ -295,3 +295,52 @@ describe('CSS Variable Bridge Layer', () => {
     });
   });
 });
+
+describe('Motion + Effect Tokens', () => {
+  const tokens = [
+    '--ui-motion-duration-fast',
+    '--ui-motion-duration-base',
+    '--ui-motion-duration-slow',
+    '--ui-motion-easing-standard',
+    '--ui-motion-easing-emphasized',
+    '--ui-z-backdrop',
+    '--ui-aurora-stop-1',
+    '--ui-aurora-stop-2',
+    '--ui-aurora-stop-3',
+    '--ui-noise-opacity',
+    '--ui-noise-scale',
+    '--ui-pattern-size',
+    '--ui-pattern-opacity',
+    '--ui-spotlight-x',
+    '--ui-spotlight-y',
+    '--ui-spotlight-color',
+    '--ui-spotlight-opacity',
+    '--ui-tilt-x',
+    '--ui-tilt-y',
+  ];
+  for (const t of tokens) {
+    it(`should define ${t}`, () => {
+      expect(getCSSVariable(t)).toBeTruthy();
+    });
+  }
+
+  it('--ui-aurora-stop-1 derives from --ui-color-primary via color-mix', () => {
+    const v = getCSSVariable('--ui-aurora-stop-1');
+    expect(v).toContain('color-mix');
+    expect(v).toContain('--ui-color-primary');
+  });
+
+  it('--ui-noise-opacity is in [0, 0.5] range (subtle)', () => {
+    const v = getCSSVariable('--ui-noise-opacity');
+    expect(v).toMatch(/^0?\.\d+$/);
+    const n = parseFloat(v);
+    expect(n).toBeGreaterThanOrEqual(0);
+    expect(n).toBeLessThanOrEqual(0.5);
+  });
+
+  it('--ui-motion-duration-fast is parse < = 200ms (snappy)', () => {
+    const v = getCSSVariable('--ui-motion-duration-fast');
+    expect(v).toMatch(/\d+ms/);
+    expect(parseInt(v)).toBeLessThanOrEqual(200);
+  });
+});

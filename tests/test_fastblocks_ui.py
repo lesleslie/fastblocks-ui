@@ -436,6 +436,15 @@ class TestDemoBuild(unittest.TestCase):
             content = handle.read()
         self.assertIn("prefers-reduced-motion: reduce", content)
         self.assertIn("forced-colors: active", content)
+        # Expand UI vocabulary (Task 1):
+        self.assertIn("--ui-motion-duration-fast", content)
+        self.assertIn("--ui-motion-easing-standard", content)
+        self.assertIn("--ui-z-backdrop", content)
+        self.assertIn("--ui-aurora-stop-1", content)
+        self.assertIn("--ui-noise-opacity", content)
+        self.assertIn("--ui-pattern-size", content)
+        self.assertIn("--ui-spotlight-color", content)
+        self.assertIn("--ui-tilt-x", content)
 
     def test_bundle_includes_os_dark_mode_default(self):
         # Generated from the single [data-theme="dark"] source; gated to
