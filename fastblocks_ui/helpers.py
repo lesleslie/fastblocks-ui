@@ -30,6 +30,7 @@ __all__ = [
     "columns",
     "command",
     "container",
+    "context_menu",
     "dialog",
     "drawer",
     "dropdown",
@@ -1780,3 +1781,44 @@ def command(
         f'<ul id="{id}-results" role="listbox" data-command-results></ul>'
         f'</div>'
     )
+
+
+def context_menu(
+    items: list,
+    *,
+    id: str,
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    """Render a context menu ``<ul role="menu">`` with menuitems.
+
+    Accessibility (per APG menu pattern, spec §1.5):
+    - Container: ``role="menu"``.
+    - Items: ``role="menuitem"``, optional ``aria-disabled``.
+    - Tab moves focus OUT of the menu (per APG, no menubar pattern).
+    - No submenus in v1.
+
+    Consumer-side: the trigger element MUST carry
+    ``aria-haspopup="menu"`` for screen readers to announce the
+    context menu as available. The shipped ``context-menu.js``
+    module attaches the right-click + Shift-F10 + keyboard nav
+    behaviour to ``[data-context-menu-target]`` elements that
+    point at this menu via the ``#<id>`` selector.
+    """
+    classes = _flatten_classes(["ui-context-menu"], class_)
+    attr_html = _render_attrs(attrs, class_=classes, id=id, role="menu")
+    item_html = "".join(
+        # ``escape(item["label"])`` is defense-in-depth (Tasks 4/5
+        # lesson): the menuitem is rendered into the markup via an
+        # f-string, which bypasses ``_render_fragment``'s automatic
+        # ``__html__`` short-circuit. Explicit ``escape()`` ensures
+        # a malicious ``<script>`` payload in a caller-supplied
+        # label is rendered as the literal text ``&lt;script&gt;``
+        # rather than parsed as an HTML tag by the browser. The
+        # ``action`` attribute is already escaped; ``quote=True`` is
+        # safe in both attribute and text positions.
+        f'<li role="menuitem" tabindex="-1" data-action="{escape(item.get("action", ""), quote=True)}">'
+        f'{escape(str(item.get("label", "")), quote=True)}</li>'
+        for item in items
+    )
+    return _safe(f'<ul{attr_html} hidden>{item_html}</ul>')

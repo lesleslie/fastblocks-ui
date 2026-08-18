@@ -537,6 +537,26 @@ class TestBundleSizeBudget(unittest.TestCase):
             f"Trim JS or revisit the budget deliberately.",
         )
 
+    # Per-component JS budget for the context-menu module (task 6 brief).
+    # Same rationale as the toast / command budgets: shipped
+    # independently, should be small enough to inline or load on demand
+    # without bloating pages that don't use context menus.
+    CONTEXT_MENU_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 6 brief.
+
+    def test_context_menu_js_is_within_gzip_budget(self):
+        context_menu_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_js_path()), "context-menu.js"
+        )
+        content = Path(context_menu_path).read_bytes()
+        gzipped = gzip.compress(content, compresslevel=9)
+        self.assertLessEqual(
+            len(gzipped),
+            self.CONTEXT_MENU_JS_BUDGET_BYTES,
+            f"context-menu.js gzips to {len(gzipped)} bytes, over the "
+            f"{self.CONTEXT_MENU_JS_BUDGET_BYTES}-byte budget (task 6 "
+            f"brief). Trim JS or revisit the budget deliberately.",
+        )
+
 
 class TestLogicalPropertiesDriftGate(unittest.TestCase):
     """WS-7: grep-based drift gate (matching this project's existing

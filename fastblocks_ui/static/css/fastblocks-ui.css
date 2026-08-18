@@ -1417,6 +1417,50 @@
   @media (prefers-reduced-motion: reduce) {
     :where(.ui-toast) { animation: none; }
   }
+
+  /* Context menu (spec §1.5): right-click + Shift-F10 + APG-correct
+     keyboard nav. The :where() wrap is intentional (Decision 18) —
+     zero-specificity selectors so consumer transforms win specificity
+     battles, mirroring the .ui-tooltip / .ui-popover / .ui-toast
+     pattern above. The comment below mentions Popover API + CSS
+     Anchor for positioning; in practice the JS module sets the
+     position via `position: fixed` + `clientX/Y` on the contextmenu
+     event (see context-menu.js). The CSS Anchor fallback can be
+     added in a follow-up without changing the JS API. */
+  :where(.ui-context-menu) {
+    position: fixed;
+    padding: var(--ui-space-1) 0;
+    background: var(--ui-color-surface-raised);
+    border: 1px solid var(--ui-color-border);
+    border-radius: var(--ui-radius-md);
+    box-shadow: 0 8px 24px color-mix(in oklab, var(--ui-color-text) 12%, transparent);
+    min-width: 180px;
+    z-index: 150;
+  }
+  :where(.ui-context-menu [role="menuitem"]) {
+    padding: var(--ui-space-2) var(--ui-space-4);
+    cursor: pointer;
+    color: var(--ui-color-text);
+    user-select: none;
+  }
+  :where(.ui-context-menu [role="menuitem"]:hover),
+  :where(.ui-context-menu [role="menuitem"]:focus) {
+    background: var(--ui-color-primary);
+    color: var(--ui-color-on-primary, var(--ui-color-surface));
+    outline: 0;
+  }
+  /* Destructive variant — red text on default, inverts on hover/focus.
+     Path B amendment: both the base class AND the modifier go inside
+     :where() so the resulting specificity is zero (matches the
+     .ui-tooltip / .ui-popover / .ui-toast pattern above). */
+  :where(.ui-context-menu .is-destructive) {
+    color: var(--ui-color-danger);
+  }
+  :where(.ui-context-menu .is-destructive:hover),
+  :where(.ui-context-menu .is-destructive:focus) {
+    background: var(--ui-color-danger);
+    color: var(--ui-color-on-danger, var(--ui-color-surface));
+  }
 }
 
 /* Command palette (split out per spec §1.4: JS-coupled CSS warrants

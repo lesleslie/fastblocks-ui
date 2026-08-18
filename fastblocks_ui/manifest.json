@@ -295,6 +295,33 @@
       ]
     },
     {
+      "class_name": "ui-context-menu",
+      "codegen": false,
+      "description": "Right-click context menu with APG-correct keyboard nav (Arrow keys, Home/End, Enter, Escape, Tab-out).",
+      "helper": "context_menu",
+      "name": "context-menu",
+      "params": [
+        {
+          "kind": "positional_or_keyword",
+          "name": "items",
+          "required": true,
+          "type": "list"
+        },
+        {
+          "kind": "keyword_only",
+          "name": "id",
+          "required": true,
+          "type": "str"
+        },
+        {
+          "default": null,
+          "kind": "keyword_only",
+          "name": "class_",
+          "type": "object"
+        }
+      ]
+    },
+    {
       "class_name": "ui-dialog",
       "codegen": true,
       "description": "Native dialog styling and enhancement hooks.",

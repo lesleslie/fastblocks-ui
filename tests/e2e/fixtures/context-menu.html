@@ -1,0 +1,20 @@
+<!doctype id="context-menu-fixture">
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Context menu fixture</title>
+    <link rel="stylesheet" href="../../../fastblocks_ui/static/css/fastblocks-ui.css" />
+    <script type="module" src="../../../fastblocks_ui/static/js/context-menu.js"></script>
+  </head>
+  <body>
+    <div id="file-tree" tabindex="0" data-context-menu-target data-context-menu-id="#file-menu" aria-haspopup="menu">
+      Right-click on the file tree
+    </div>
+
+    <ul id="file-menu" role="menu" hidden>
+      <li role="menuitem" tabindex="-1" data-action="rename">Rename</li>
+      <li role="menuitem" tabindex="-1" data-action="duplicate">Duplicate</li>
+      <li role="menuitem" tabindex="-1" data-action="delete" class="is-destructive">Delete</li>
+    </ul>
+  </body>
+</html>
