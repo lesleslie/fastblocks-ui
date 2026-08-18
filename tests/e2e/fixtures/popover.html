@@ -1,0 +1,27 @@
+<!doctype id="popover-fixture">
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Popover fixture</title>
+    <link rel="stylesheet" href="../../../fastblocks_ui/static/css/fastblocks-ui.css" />
+  </head>
+  <body>
+    <button id="open-profile" popovertarget="profile-pop">Open profile</button>
+    <div id="profile-pop" popover="auto" class="ui-popover bottom">
+      <h3>Profile</h3>
+      <p>Edit your display name and avatar.</p>
+    </div>
+
+    <button id="open-settings" popovertarget="settings-pop" aria-expanded="false">Settings</button>
+    <div id="settings-pop" popover="auto" class="ui-popover bottom">
+      <p>Account preferences.</p>
+    </div>
+
+    <!-- aria-expanded wiring lives in popover-aria.js (Task 11 will hook
+         it into htmx:afterSwap). Include the script from the start so
+         the aria-expanded test in the spec passes; this also avoids
+         the off-by-one in the brief's Step 8 (which would otherwise
+         ship the script tag after the test gate already ran). -->
+    <script type="module" src="../../../fastblocks_ui/static/js/popover-aria.js"></script>
+  </body>
+</html>

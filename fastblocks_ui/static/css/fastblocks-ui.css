@@ -1337,6 +1337,29 @@
   :where(.ui-tooltip.right)  { /* popover hint anchors to right */ }
   :where(.ui-tooltip.bottom) { /* popover hint anchors to bottom */ }
   :where(.ui-tooltip.left)   { /* popover hint anchors to left */ }
+
+  /* Popover (spec §1.2): popover="auto" handles positioning +
+     top-layer + outside-click dismiss. We provide only the visual
+     styling. The :where() wrap preserves Decision 18's specificity
+     zero so consumer transforms win specificity battles; mirrors
+     the .ui-tooltip pattern above (Path B amendment to brief's
+     `:where(.ui-popover).top` literal which left `.top` outside
+     the wrap). */
+  :where(.ui-popover) {
+    padding: var(--ui-space-4);
+    background: var(--ui-color-surface-raised);
+    color: var(--ui-color-text);
+    border: 1px solid var(--ui-color-border);
+    border-radius: var(--ui-radius-lg);
+    box-shadow: 0 8px 24px color-mix(in oklab, var(--ui-color-text) 12%, transparent);
+    max-width: 360px;
+  }
+  /* Placeholders for per-side styling (e.g. arrow indicators). The
+     popover API handles positioning; we don't override it. */
+  :where(.ui-popover.top)    { /* popover auto anchors to top */ }
+  :where(.ui-popover.right)  { /* popover auto anchors to right */ }
+  :where(.ui-popover.bottom) { /* popover auto anchors to bottom */ }
+  :where(.ui-popover.left)   { /* popover auto anchors to left */ }
 }
 
 /* FastBlocks UI Layout System

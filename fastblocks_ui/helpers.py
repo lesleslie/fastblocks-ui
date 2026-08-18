@@ -1596,6 +1596,37 @@ def tooltip(
     return _safe(f'<span class="{classes}"{_render_attrs(attrs)}>{text}</span>')
 
 
+def popover(
+    content: object,
+    *,
+    id: str,
+    label: object = None,
+    position: Literal["top", "right", "bottom", "left"] = "bottom",
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    """Render a popover panel element. The trigger is a separate
+    element with `popovertarget="<id>"` (matches the split-
+    responsibility model of :func:`tooltip` / :func:`drawer` /
+    :func:`dropdown`).
+
+    Uses `popover="auto"` for native positioning, outside-click
+    dismiss, and focus restoration.
+
+    Accessibility: the consumer's popover trigger carries
+    ``aria-expanded="true|false"``. The shipped ``popover-aria.js``
+    module wires this attribute to the popover's ``toggle`` event --
+    the Popover API does NOT toggle ``aria-expanded`` automatically
+    (Decision 3a fix from the initial draft's factual error).
+    """
+    classes = _flatten_classes(["ui-popover", position], class_)
+    attrs.setdefault("id", id)
+    attrs["popover"] = "auto"
+    if label is not None:
+        attrs["aria-label"] = label
+    return _safe(f'<div class="{classes}"{_render_attrs(attrs)}>{content}</div>')
+
+
 def pagination(
     current: int,
     total: int,
