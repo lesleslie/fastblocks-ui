@@ -15,5 +15,19 @@
     <!-- Non-focusable trigger (should warn consumers; spec §1.1 trigger requirement) -->
     <div id="non-focusable" aria-describedby="tip-bad">Bad</div>
     <span id="tip-bad" role="tooltip" popover="hint" class="ui-tooltip top">Won't be announced</span>
+
+    <script>
+      // Popover hint auto-show on hover/focus: Chrome 151 doesn't ship
+      // it natively for either input modality; this script wires
+      // mouseenter -> showPopover() and focus -> showPopover() to bridge
+      // the gap. See Task 2 report, round 2.
+      document.querySelectorAll('[popovertarget]').forEach((inv) => {
+        const tipId = inv.getAttribute('popovertarget');
+        const tip = document.getElementById(tipId);
+        if (!tip) return;
+        inv.addEventListener('mouseenter', () => tip.showPopover());
+        inv.addEventListener('focus', () => tip.showPopover());
+      });
+    </script>
   </body>
 </html>

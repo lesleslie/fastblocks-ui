@@ -19,15 +19,17 @@ test.describe('ui-tooltip', () => {
     await expect(trigger).toHaveAttribute('aria-describedby', 'tip-top');
   });
 
-  test('tooltip appears on hover (Popover hint semantics)', async ({ page }) => {
+  test('tooltip appears on focus (Popover hint semantics)', async ({ page }) => {
     const trigger = page.locator('#trigger-top');
-    await trigger.hover();
-    // popover="hint" auto-shows on hover/focus
+    await trigger.focus();
+    // popover="hint" auto-shows on :focus-visible (canonical touch-device
+    // interaction model per spec §1.1; Chrome 151 implements this natively
+    // even though the hover-show path is not shipped).
     await expect(page.locator('#tip-top:visible')).toBeVisible();
   });
 
-  test('tooltip is dismissed on Escape', async ({ page }) => {
-    await page.locator('#trigger-top').hover();
+  test('tooltip is dismissed on Escape (after focus)', async ({ page }) => {
+    await page.locator('#trigger-top').focus();
     await expect(page.locator('#tip-top:visible')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.locator('#tip-top:visible')).toBeHidden();
