@@ -1012,6 +1012,39 @@
       ]
     },
     {
+      "class_name": "ui-toast",
+      "codegen": true,
+      "description": "Transient notification with auto-dismiss, role=status/alert, htmx HX-Trigger integration.",
+      "helper": "toast",
+      "name": "toast",
+      "params": [
+        {
+          "kind": "positional_or_keyword",
+          "name": "content",
+          "required": true,
+          "type": "object"
+        },
+        {
+          "default": "info",
+          "kind": "keyword_only",
+          "name": "severity",
+          "type": "Literal['info', 'success', 'warning', 'error']"
+        },
+        {
+          "default": "default",
+          "kind": "keyword_only",
+          "name": "duration",
+          "type": "int | Literal['short', 'default', 'long', 'persistent']"
+        },
+        {
+          "default": null,
+          "kind": "keyword_only",
+          "name": "id",
+          "type": "str | None"
+        }
+      ]
+    },
+    {
       "class_name": "ui-validation-summary",
       "codegen": false,
       "description": "Aggregated form-error summary linking to individual fields.",

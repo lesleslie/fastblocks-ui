@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import uuid
 from hashlib import sha1, sha256
 from html import escape
 from typing import Literal, NamedTuple
@@ -51,6 +52,7 @@ __all__ = [
     "tabs",
     "tile",
     "title",
+    "toast",
     "tooltip",
     "validation_summary",
 ]
@@ -1624,6 +1626,44 @@ def popover(
     attrs["popover"] = "auto"
     if label is not None:
         attrs["aria-label"] = label
+    return _safe(f'<div class="{classes}"{_render_attrs(attrs)}>{content}</div>')
+
+
+def toast(
+    content: object,
+    *,
+    severity: Literal["info", "success", "warning", "error"] = "info",
+    duration: int | Literal["short", "default", "long", "persistent"] = "default",
+    id: str | None = None,
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    """Render a toast region element with the role matching `severity`.
+
+    Use this for **server-rendered** toasts (notification panels,
+    dashboard alerts). For client-side dispatch (e.g. from htmx
+    responses), consumers wire `HX-Trigger` headers in their server
+    response — the JS queue (Task 4 Step 5) listens for these events
+    and dispatches the toast.
+
+    Accessibility:
+    - Container: `role="region"` + `aria-label="Notifications"`
+    - Severity `info` / `success` / `warning` → `role="status"`
+    - Severity `error` → `role="alert"`
+    - Errors cap-bypass the queue (always visible).
+
+    This helper emits a SINGLE toast. Consumers who want a region
+    with multiple toasts (e.g. a server-rendered notification panel)
+    should use the underlying `<div class="ui-toast-region">` directly
+    — see the demo for an example.
+    """
+    role = "alert" if severity == "error" else "status"
+    classes = _flatten_classes(["ui-toast", f"is-{severity}"], class_)
+    if id is None:
+        id = f"toast-{uuid.uuid4().hex[:8]}"
+    attrs["role"] = role
+    attrs.setdefault("id", id)
+    attrs.setdefault("aria-live", "polite" if role == "status" else "assertive")
     return _safe(f'<div class="{classes}"{_render_attrs(attrs)}>{content}</div>')
 
 

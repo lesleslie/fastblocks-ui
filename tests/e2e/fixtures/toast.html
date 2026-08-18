@@ -1,0 +1,45 @@
+<!doctype id="toast-fixture">
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Toast fixture</title>
+    <link rel="stylesheet" href="../../../fastblocks_ui/static/css/fastblocks-ui.css" />
+    <!-- htmx is required so the HX-Trigger spec test can fire
+         htmx:afterRequest events (Path A fix for the brief defect:
+         a raw XMLHttpRequest does not emit htmx:afterRequest, so
+         the test as-written could never pass against the JS module).
+         Served from unpkg; the test environment has unrestricted
+         outbound access (matches how the JS docs ship a CDN). -->
+    <script
+      src="https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js"
+      integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2"
+      crossorigin="anonymous"
+    ></script>
+    <script type="module" src="../../../fastblocks_ui/static/js/toast-queue.js"></script>
+  </head>
+  <body>
+    <!-- Client-side dispatch via JS API. The inline wiring is
+         fixture-only — the libraray's JS API is `import { toast }`.
+         Tests that exercise the JS API directly (e.g. the FIFO
+         eviction test) import the module from the page context. -->
+    <button id="show-success">Show success toast</button>
+    <button id="show-error">Show error toast</button>
+
+    <script>
+      // Fixture wiring: bind the buttons to the module's exported
+      // `toast()` API. The module is type=module so it loads async;
+      // we hook the buttons after the module resolves.
+      (async () => {
+        const mod = await import('./../../../fastblocks_ui/static/js/toast-queue.js');
+        document.getElementById('show-success').addEventListener('click', () => {
+          mod.toast('success', { severity: 'success' });
+        });
+        document.getElementById('show-error').addEventListener('click', () => {
+          mod.toast('error', { severity: 'error' });
+        });
+      })();
+    </script>
+
+    <!-- Toast region (singleton per page, appended by JS) -->
+  </body>
+</html>

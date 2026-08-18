@@ -889,4 +889,61 @@
   :where(.ui-popover.right)  { /* popover auto anchors to right */ }
   :where(.ui-popover.bottom) { /* popover auto anchors to bottom */ }
   :where(.ui-popover.left)   { /* popover auto anchors to left */ }
+
+  /* Toast region (singleton per page; appended by toast-queue.js
+     if not present in SSR markup). The :where() wrap is intentional
+     (Decision 18) — it surfaces the region/severity selectors at
+     specificity zero so consumer transforms win specificity battles.
+     Mirrors the .ui-tooltip / .ui-popover pattern above; the
+     severity modifiers below follow the same Path B amendment
+     (the brief's literal CSS put `.is-info` outside `:where()`,
+     which defeats the zero-specificity intent). */
+  :where(.ui-toast-region) {
+    position: fixed;
+    bottom: var(--ui-space-6);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-2);
+    z-index: 100;
+    pointer-events: none; /* region itself doesn't intercept; children do */
+    max-width: calc(100vw - var(--ui-space-8));
+  }
+  :where(.ui-toast) {
+    pointer-events: auto;
+    padding: var(--ui-space-3) var(--ui-space-4);
+    background: var(--ui-color-surface-raised);
+    color: var(--ui-color-text);
+    border: 1px solid var(--ui-color-border);
+    border-left-width: 4px;
+    border-radius: var(--ui-radius-md);
+    box-shadow: 0 4px 16px color-mix(in oklab, var(--ui-color-text) 12%, transparent);
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-3);
+    /* In/out animation */
+    animation: ui-toast-in var(--ui-motion-duration-base) var(--ui-motion-easing-emphasized),
+               ui-toast-out var(--ui-motion-duration-base) var(--ui-motion-easing-emphasized) forwards;
+    animation-delay: 0s, calc(var(--ui-toast-duration, 5000ms) - 200ms);
+  }
+  /* Severity modifiers — Path B amendment: both the base class AND
+     the modifier go inside :where() so the resulting specificity is
+     zero. Matches .ui-tooltip.{position} / .ui-popover.{position}. */
+  :where(.ui-toast.is-info)    { border-left-color: var(--ui-color-info); }
+  :where(.ui-toast.is-success) { border-left-color: var(--ui-color-success); }
+  :where(.ui-toast.is-warning) { border-left-color: var(--ui-color-warning); }
+  :where(.ui-toast.is-error)   { border-left-color: var(--ui-color-danger); }
+
+  @keyframes ui-toast-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes ui-toast-out {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-8px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where(.ui-toast) { animation: none; }
+  }
 }

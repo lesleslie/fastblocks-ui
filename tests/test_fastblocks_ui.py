@@ -497,6 +497,26 @@ class TestBundleSizeBudget(unittest.TestCase):
             "budget deliberately.",
         )
 
+    # These per-component JS budgets are tighter than the generic
+    # JS_BUDGET_BYTES because the toast module is independently shipped and
+    # should be small enough to inline or load on demand without bloating
+    # pages that don't use it.
+    TOAST_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 4 brief.
+
+    def test_toast_queue_js_is_within_gzip_budget(self):
+        toast_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_js_path()), "toast-queue.js"
+        )
+        content = Path(toast_path).read_bytes()
+        gzipped = gzip.compress(content, compresslevel=9)
+        self.assertLessEqual(
+            len(gzipped),
+            self.TOAST_JS_BUDGET_BYTES,
+            f"toast-queue.js gzips to {len(gzipped)} bytes, over the "
+            f"{self.TOAST_JS_BUDGET_BYTES}-byte budget (task 4 brief). "
+            f"Trim JS or revisit the budget deliberately.",
+        )
+
 
 class TestLogicalPropertiesDriftGate(unittest.TestCase):
     """WS-7: grep-based drift gate (matching this project's existing
