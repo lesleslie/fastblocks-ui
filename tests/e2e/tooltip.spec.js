@@ -19,13 +19,23 @@ test.describe('ui-tooltip', () => {
     await expect(trigger).toHaveAttribute('aria-describedby', 'tip-top');
   });
 
-  test('tooltip appears on focus (Popover hint semantics)', async ({ page }) => {
+  test('tooltip shows on hover AND focus (Popover hint semantics)', async ({ page }) => {
     const trigger = page.locator('#trigger-top');
-    await trigger.focus();
-    // popover="hint" auto-shows on :focus-visible (canonical touch-device
-    // interaction model per spec §1.1; Chrome 151 implements this natively
-    // even though the hover-show path is not shipped).
+    // hover path: the fixture's polyfill <script> wires mouseenter ->
+    // showPopover() on each [popovertarget] invoker because Chrome 151 does
+    // not yet ship the spec's hover-show behavior for popover="hint".
+    // Dispatch mouseenter directly so Playwright's pointer-aware mouse move
+    // does not collide with the popover opening on the trigger.
+    await trigger.dispatchEvent('mouseenter');
     await expect(page.locator('#tip-top:visible')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#tip-top:visible')).toBeHidden();
+    // focus path: same polyfill <script> wires focus -> showPopover().
+    // This is the canonical touch-device interaction model (spec §1.1).
+    await trigger.focus();
+    await expect(page.locator('#tip-top:visible')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#tip-top:visible')).toBeHidden();
   });
 
   test('tooltip is dismissed on Escape (after focus)', async ({ page }) => {
