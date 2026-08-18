@@ -223,6 +223,45 @@
       ]
     },
     {
+      "class_name": "ui-command",
+      "codegen": true,
+      "description": "Command palette with async result loading, / primary and mod+k secondary keybindings.",
+      "helper": "command",
+      "name": "command",
+      "params": [
+        {
+          "kind": "keyword_only",
+          "name": "id",
+          "required": true,
+          "type": "str"
+        },
+        {
+          "default": "slash,mod+k",
+          "kind": "keyword_only",
+          "name": "keybinding",
+          "type": "str"
+        },
+        {
+          "default": "Type a command...",
+          "kind": "keyword_only",
+          "name": "placeholder",
+          "type": "str"
+        },
+        {
+          "default": null,
+          "kind": "keyword_only",
+          "name": "recent",
+          "type": "list | None"
+        },
+        {
+          "default": null,
+          "kind": "keyword_only",
+          "name": "groups",
+          "type": "list | None"
+        }
+      ]
+    },
+    {
       "class_name": "ui-container",
       "codegen": false,
       "description": "Centered max-width container for page content.",

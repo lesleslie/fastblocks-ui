@@ -1,0 +1,28 @@
+<!doctype id="command-fixture">
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Command palette fixture</title>
+    <link rel="stylesheet" href="../../../fastblocks_ui/static/css/fastblocks-ui.css" />
+    <script type="module" src="../../../fastblocks_ui/static/js/command-palette.js"></script>
+  </head>
+  <body>
+    <button id="open-cmd" data-command-trigger>Open command palette</button>
+
+    <script type="module">
+      import { open_command_palette } from "../../../fastblocks_ui/static/js/command-palette.js";
+      document.getElementById("open-cmd").addEventListener("click", () => {
+        open_command_palette({
+          trigger: document.getElementById("open-cmd"),
+          keybinding: "slash,mod+k",
+          load_results: async (query) => {
+            return [
+              { id: "1", label: "Save document", description: "Save current doc" },
+              { id: "2", label: "Search", description: "Find anything" },
+            ].filter(r => r.label.toLowerCase().includes(query.toLowerCase()));
+          },
+        });
+      });
+    </script>
+  </body>
+</html>

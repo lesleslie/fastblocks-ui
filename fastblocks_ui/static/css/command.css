@@ -1,0 +1,46 @@
+/* Command palette (split out per spec §1.4: JS-coupled CSS warrants
+   its own file when JS module writes CSS custom properties) */
+@layer components {
+  :where(.ui-command[hidden]),
+  :where([data-command-input][hidden]),
+  :where([data-command-results][hidden]) {
+    display: none !important;
+  }
+  :where(.ui-command) {
+    position: fixed;
+    top: 10vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(640px, calc(100vw - var(--ui-space-8)));
+    background: var(--ui-color-surface-raised);
+    border: 1px solid var(--ui-color-border);
+    border-radius: var(--ui-radius-lg);
+    box-shadow: 0 12px 32px color-mix(in oklab, var(--ui-color-text) 16%, transparent);
+    padding: var(--ui-space-3);
+    z-index: 200;
+  }
+  :where([data-command-input]) {
+    width: 100%;
+    padding: var(--ui-space-2) var(--ui-space-3);
+    border: 0;
+    background: transparent;
+    color: var(--ui-color-text);
+    font-size: var(--ui-font-size-lg);
+  }
+  :where([data-command-results]) {
+    list-style: none;
+    margin: var(--ui-space-2) 0 0;
+    padding: 0;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  :where([data-command-results] li) {
+    padding: var(--ui-space-2) var(--ui-space-3);
+    border-radius: var(--ui-radius-sm);
+    cursor: pointer;
+  }
+  :where([data-command-results] li[aria-selected="true"]) {
+    background: var(--ui-color-primary);
+    color: var(--ui-color-on-primary, var(--ui-color-surface));
+  }
+}

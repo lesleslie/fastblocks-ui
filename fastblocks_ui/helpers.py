@@ -28,6 +28,7 @@ __all__ = [
     "checkbox",
     "column",
     "columns",
+    "command",
     "container",
     "dialog",
     "drawer",
@@ -1744,3 +1745,38 @@ def pagination(
 
     parts.append("</nav>")
     return _safe("".join(parts))
+
+
+def command(
+    *,
+    id: str,
+    keybinding: str = "slash,mod+k",
+    placeholder: str = "Type a command...",
+    recent: list | None = None,
+    groups: list | None = None,
+    class_: object = None,
+    **attrs: object,
+) -> SafeHTML:
+    """Render a server-side command palette trigger + panel skeleton.
+
+    The actual search logic is consumer-supplied via the JS API
+    `open_command_palette({ ..., load_results: async (query) => ... })`.
+    The helper emits the search input + results list scaffold; the
+    consumer's JS wires the load_results callback.
+
+    Accessibility:
+    - Input: `role="combobox"`, `aria-expanded="true"`, `aria-controls`
+    - Results: `role="listbox"`, `aria-activedescendant`
+    - Items: `role="option"`, `aria-selected="false|true"`
+    """
+    classes = _flatten_classes(["ui-command"], class_)
+    attrs.setdefault("id", id)
+    attrs.setdefault("data-command-keybinding", keybinding)
+    return _safe(
+        f'<div class="{classes}"{_render_attrs(attrs)}>'
+        f'<input type="text" role="combobox" aria-expanded="true" '
+        f'aria-controls="{id}-results" placeholder="{escape(placeholder, quote=True)}" '
+        f'data-command-input />'
+        f'<ul id="{id}-results" role="listbox" data-command-results></ul>'
+        f'</div>'
+    )

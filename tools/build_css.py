@@ -55,6 +55,7 @@ MODULES = (
     "base.css",
     "utilities.css",
     "components.css",
+    "command.css",
     "layout.css",
 )
 

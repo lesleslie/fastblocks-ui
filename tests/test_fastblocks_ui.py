@@ -517,6 +517,26 @@ class TestBundleSizeBudget(unittest.TestCase):
             f"Trim JS or revisit the budget deliberately.",
         )
 
+    # Per-component JS budget for the command-palette module (task 5 brief).
+    # Same rationale as the toast budget: shipped independently, should be
+    # small enough to inline or load on demand without bloating pages that
+    # don't use it.
+    COMMAND_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 5 brief.
+
+    def test_command_palette_js_is_within_gzip_budget(self):
+        command_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_js_path()), "command-palette.js"
+        )
+        content = Path(command_path).read_bytes()
+        gzipped = gzip.compress(content, compresslevel=9)
+        self.assertLessEqual(
+            len(gzipped),
+            self.COMMAND_JS_BUDGET_BYTES,
+            f"command-palette.js gzips to {len(gzipped)} bytes, over the "
+            f"{self.COMMAND_JS_BUDGET_BYTES}-byte budget (task 5 brief). "
+            f"Trim JS or revisit the budget deliberately.",
+        )
+
 
 class TestLogicalPropertiesDriftGate(unittest.TestCase):
     """WS-7: grep-based drift gate (matching this project's existing
