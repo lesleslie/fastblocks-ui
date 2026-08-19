@@ -56,6 +56,7 @@ MODULES = (
     "utilities.css",
     "components.css",
     "command.css",
+    "effects.css",
     "layout.css",
 )
 

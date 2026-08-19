@@ -445,6 +445,12 @@ class TestDemoBuild(unittest.TestCase):
         self.assertIn("--ui-pattern-size", content)
         self.assertIn("--ui-spotlight-color", content)
         self.assertIn("--ui-tilt-x", content)
+        # Expand UI vocabulary (Tasks 8, 9): effects.css selectors
+        self.assertIn(".has-fullbleed", content)
+        self.assertIn(".has-aurora", content)
+        self.assertIn(".has-noise", content)
+        self.assertIn(".has-pattern-dots", content)
+        self.assertIn("--_ui-backdrop-base", content)
 
     def test_bundle_includes_os_dark_mode_default(self):
         # Generated from the single [data-theme="dark"] source; gated to
