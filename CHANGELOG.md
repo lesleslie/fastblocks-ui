@@ -5,6 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-08-19
+
+### Added
+
+- 3d: Add <model-viewer> wrapper (.ui-model-viewer + lazy @google/model-viewer)
+- 3d: Add Spline embed (.ui-spline + lazy @splinetool/viewer)
+- Add motion + effect primitive tokens
+- components: Add ui-avatar with stacking group
+- components: Add ui-command palette
+- components: Add ui-context-menu
+- components: Add ui-popover with aria-expanded wiring
+- components: Add ui-toast with queue + htmx integration
+- components: Add ui-tooltip with popover=hint
+- demo: Add 6 new components + backdrop + motion + 3D showcases
+- docs+tests: Add effects cookbook + axe/perf/bundle gates
+- effects: Add 3D/media integrations (mesh-gradient, video-bg, lottie)
+- effects: Add backdrop primitives (fullbleed, aurora, noise, patterns)
+- effects: Add motion primitives (spotlight, reveal, tilt, theme, page)
+- Wire init(root) re-scan on htmx:afterSwap
+
+### Fixed
+
+- docs: Resolve two lychee-detected link rot items
+- lint: Drop redundant str() around already-typed str args (FURB123)
+- plan-regression: Address 3 reviewer-missed violations from plan
+- Re-embed manifest in demo/demo.html after sync_manifest_params
+- Re-embed rebuilt CSS bundle + regenerate demo index
+- Replace addStyleTag tautology with addInitScript matchMedia shim + hoist lottie IO
+- Sync manifest params + add 6 new components to docs/components.md
+- tooltip: Add popovertarget invoker to fixture triggers
+- tooltip: Wire focus-show via JS shim; swap hover tests to focus
+- version: Propagate 0.8.1 bump to package.json (match pyproject.toml)
+
+### Documentation
+
+- Implementation plan for opt-in glassmorphism surface
+- plan: Expand UI vocabulary — 6 components, backdrops, motion, 3D/media across 3 scopes
+- plan: Fix issues found by independent review
+- roadmap: Bump CSS bundle budget reference to 40 KB (Task 8 effects.css)
+- spec+plan: Apply glassmorphism review fixes; refresh uv.lock
+- spec: Design opt-in glassmorphism surface treatment
+
+### Testing
+
+- Align backdrop-contrast with consumer contract (text on surface card over decorative ::before)
+- bundle: Bump CSS_BUDGET_BYTES to 40 KB to fit Task 8 effects.css
+- htmx: Fix vacuous toast-state-survives test (dispatch on document.body)
+- media: Document reducedData Chromium limitation; verify CSS pattern statically
+- motion: Replace idempotency-test tautology with addEventListener counter
+- tooltip: Unify hover+focus paths in single test; reconcile manifest comment
+
+### Internal
+
+- gitignore: Ignore test coverage JSON snapshots + untrack 4 old ones
+- lychee: Exclude root-relative fixture paths from link check
+
 ## [0.8.1] - 2026-08-06
 
 ### Internal

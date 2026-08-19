@@ -24,16 +24,16 @@ components, the gaps cluster into three categories:
    toasts/notifications, command palettes, context menus, and avatars
    constantly; none exist yet. These are the "obvious glass surfaces"
    identified during the glass review (per-component review, August
-   2026) and the surfaces modern design systems most often apply glass,
+   2026\) and the surfaces modern design systems most often apply glass,
    noise, and motion to.
 
-2. **No backdrop or motion vocabulary.** There is no full-bleed hero,
+1. **No backdrop or motion vocabulary.** There is no full-bleed hero,
    no aurora / mesh gradient, no noise / grain overlay, no geometric
    pattern. There is no cursor-follow glow, no scroll-driven reveal,
    no tilt on hover, no page transition. The library ships static,
    flat surfaces that look correct but don't *feel* premium.
 
-3. **No 3D / WebGL / media integration.** Three.js, Spline, Lottie, and
+1. **No 3D / WebGL / media integration.** Three.js, Spline, Lottie, and
    `<model-viewer>` are not exposed as first-class primitives. Consumers
    who want them currently hand-roll the integrations.
 
@@ -80,8 +80,7 @@ not as a follow-up.
    effect. Requires a single `pointermove` listener (1-line JS opt-in
    on the consumer's end, or progressive enhancement via CSS-only
    `:hover` for consumers who opt out).
-1. **Scroll-driven reveals** — IntersectionObserver-based `translate +
-   opacity` reveal as content enters the viewport. No scroll-tied blur
+1. **Scroll-driven reveals** — IntersectionObserver-based `translate + opacity` reveal as content enters the viewport. No scroll-tied blur
    (which the glass spec forbids — scroll-tied blur would re-introduce
    motion-related vestibular concerns).
 1. **Tilt on hover** — 3D CSS `transform: rotateX/rotateY` driven by
@@ -219,8 +218,7 @@ not as a follow-up.
 - **A unified "effect" primitive that wraps all backdrops.** Rejected.
   Each backdrop (aurora, noise, geometric, mesh) is visually distinct
   and benefits from its own CSS class. A unified primitive would be a
-  configuration soup (`<div class="ui-effect ui-effect--aurora
-  ui-effect--animated">`) instead of a clean selector set.
+  configuration soup (`<div class="ui-effect ui-effect--aurora ui-effect--animated">`) instead of a clean selector set.
 - **`@starting-style` for theme transitions.** Considered — it's
   the CSS-native way to animate in styles on first paint. Rejected
   for theme transitions because the JS-controlled flag pattern is
@@ -247,7 +245,7 @@ etc. are reused. No new color tokens. No `--ui-*` tokens are
 introduced for backdrops — backdrops consume color tokens directly
 (`--ui-aurora-stop-1: oklch(from var(--ui-color-primary) ...)`).
 
----
+______________________________________________________________________
 
 ## Scope 1: Six new components
 
@@ -319,6 +317,7 @@ absolute positioning computed from the trigger's bounding rect via
 `getBoundingClientRect()`.
 
 **Accessibility contract:**
+
 - Trigger gets `aria-describedby="<tooltip-id>"`.
 - Tooltip element gets `role="tooltip"`.
 - Tooltip is **not** focusable (it's a *description* of the trigger,
@@ -334,6 +333,7 @@ absolute positioning computed from the trigger's bounding rect via
   descriptions.
 
 **Helper signature** (matches existing `dialog()` / `drawer()`):
+
 ```python
 def tooltip(text: object, *, id: str, position: Literal["top", "right", "bottom", "left"] = "top",
             class_: object = None, **attrs: object) -> SafeHTML:
@@ -341,10 +341,13 @@ def tooltip(text: object, *, id: str, position: Literal["top", "right", "bottom"
 ```
 
 Emits **only** the tooltip body. Consumer adds the trigger separately:
+
 ```python
 button(label="Save", id="save-btn") + tooltip("Save your changes", id="save-tip", position="top")
 ```
+
 which renders to:
+
 ```html
 <button id="save-btn" aria-describedby="save-tip">Save your changes</button>
 <span role="tooltip" id="save-tip" popover="hint" class="ui-tooltip top">Save your changes</span>
@@ -368,6 +371,7 @@ focus restoration. CSS Anchor (`position-anchor`) sets the popover's
 position relative to the trigger.
 
 **Accessibility contract:**
+
 - Trigger gets `popovertarget="<popover-id>"` and **`aria-expanded="true|false"`**
   — **toggled by the consumer's listener on the popover's `toggle`
   event**, *not* by the Popover API itself. (Factual correction
@@ -392,6 +396,7 @@ position relative to the trigger.
   reduced-motion matches.
 
 **Helper signature:**
+
 ```python
 def popover(content: object, *, id: str, label: object = None,
             position: Literal["top", "right", "bottom", "left"] = "bottom",
@@ -401,6 +406,7 @@ def popover(content: object, *, id: str, label: object = None,
 
 Emits **only** the popover panel. Consumer adds the trigger
 separately:
+
 ```python
 button(label="Open", popovertarget="my-popover") + popover("Content here", id="my-popover")
 ```
@@ -428,6 +434,7 @@ edge. Toast items animate in via `translateY` + `opacity`, out via
 entirely (instant in/out).
 
 **Accessibility contract:**
+
 - Container has `role="region"` + **`aria-label="Notifications"`**
   (pinned, not "or similar" — `aria-label="Notifications"` is the
   contract for the `region` landmark; live-region announcement comes
@@ -451,6 +458,7 @@ auto-dismiss), position (`top` / `bottom` × `start` / `center` /
 **State management** ships in **two** paths:
 
 1. **Python helper** (SSR / static regions / htmx integration):
+
 ```python
 def toast(content: object, *, severity: Literal["info", "success", "warning", "error"] = "info",
           duration: int | Literal["short", "default", "long", "persistent"] = "default",
@@ -460,6 +468,7 @@ def toast(content: object, *, severity: Literal["info", "success", "warning", "e
 
 This renders the toast region with `role="status"` / `role="alert"`
 markup. Consumers wire it into server responses for htmx:
+
 ```python
 @htmy.route("/api/save", methods=["POST"])
 def save(request):
@@ -469,11 +478,13 @@ def save(request):
         "hx_trigger": json.dumps({"toast": {"content": "Saved!", "severity": "success"}}),
     }
 ```
+
 The JS module listens for the `htmx:configRequest` /
 `htmx:afterRequest` event, reads the `HX-Trigger` header, and
 dispatches the toast client-side.
 
 2. **JS API** (client-side dispatch):
+
 ```js
 import { toast } from "@fastblocks-ui/toast";
 toast("Hello", { severity: "success" });
@@ -494,17 +505,16 @@ configurable to add or remove).
 Opens a modal-ish floating panel anchored to the top of the
 viewport. Shows a search input + a list of results. Filters as the
 user types. Closes on Escape, outside-click, or selection. Async
-result loading: the consumer passes a `load_results(query: str) ->
-Promise<Result[]>` callback; the panel shows a loading state while
+result loading: the consumer passes a `load_results(query: str) -> Promise<Result[]>` callback; the panel shows a loading state while
 the promise is pending.
 
 **Positioning:** uses `popover="auto"` with `position-anchor: --viewport-top`
 (a CSS Anchor pointing at the viewport top via a `position-anchor`
-name). Or — more commonly — the panel is `position: fixed; top: 10vh;
-left: 50%; transform: translateX(-50%)` with the modal backdrop
+name). Or — more commonly — the panel is `position: fixed; top: 10vh; left: 50%; transform: translateX(-50%)` with the modal backdrop
 applied separately.
 
 **Accessibility contract:**
+
 - Input has `role="combobox"`, `aria-expanded="true"`, `aria-controls="<list-id>"`.
 - Result list has `role="listbox"`, `aria-activedescendant="<focused-id>"`.
 - Each result has `role="option"`, `aria-selected="false|true"`.
@@ -525,8 +535,7 @@ applied separately.
 results (consumer-supplied groups), placeholder text, empty-state
 message.
 
-**State management:** the JS module exports `open_command_palette({
-trigger, load_results, recent, groups, keybinding })`. Result
+**State management:** the JS module exports `open_command_palette({ trigger, load_results, recent, groups, keybinding })`. Result
 matching is **not** shipped — consumers wire `fuse.js`, `fuzzysort`,
 server-side search, or whatever they prefer. The module **throws
 at first invocation** if `load_results` is missing (fail-loud,
@@ -547,6 +556,7 @@ manual positioning math.
 
 **Accessibility contract** (per ARIA Authoring Practices Guide menu
 pattern):
+
 - Menu has `role="menu"`.
 - **Every trigger** that can right-click to a context menu carries
   `aria-haspopup="menu"`. Without this attribute, screen readers
@@ -583,6 +593,7 @@ CSS variable; consumer sets it per-instance via inline `style=""` or
 sizing utility classes).
 
 **Accessibility contract:**
+
 - The `<img>` has `alt="<consumer-provided text>"` — for a user
   avatar, the alt text is the user's name; for a decorative avatar
   (e.g. "anonymous" placeholder), `alt=""`.
@@ -597,12 +608,14 @@ sizing utility classes).
   surfaces status text elsewhere if needed).
 
 **Variants:**
+
 - Shape: `circle` (default), `square`, `rounded` (4px).
 - Size: `xs` 24px / `sm` 32px / `md` 40px / `lg` 56px / `xl` 80px.
   All via `--ui-avatar-size` CSS variable.
 - Status dot: `online` / `busy` / `away` / `offline`.
 
 **Helper signatures** (matches existing helpers):
+
 ```python
 def avatar(src: object, *, alt: str, name: str | None = None,
            shape: Literal["circle", "square", "rounded"] = "circle",
@@ -631,7 +644,8 @@ glass spec explicitly excludes ordinary interactive / dense surfaces.
 Consumers opt-in per instance via `class_="is-glass"` on the
 avatar element when they want the translucent identity-ring
 pattern (Instagram-story-rings aesthetic).
-  All via `--ui-avatar-size` CSS variable.
+All via `--ui-avatar-size` CSS variable.
+
 - Status dot: `online` / `busy` / `away` / `offline`.
 - Group: `<div class="ui-avatar-group">` wraps multiple avatars with
   negative `margin-inline-start: -8px` (overlap). Up to 4 visible;
@@ -643,7 +657,7 @@ pattern (think Instagram story rings); the spec defers the *visual*
 use of glass on avatars to consumers via `--ui-glass-strength` /
 `--ui-glass-highlight` token overrides per instance.
 
----
+______________________________________________________________________
 
 ## Scope 2: Backdrop systems and motion / feedback primitives
 
@@ -1099,7 +1113,7 @@ router's DOM-update in `transition()`. This is the documented pattern
 for using view transitions with htmx, Turbo, fetch + DOM swap, or any
 custom router.
 
----
+______________________________________________________________________
 
 ## Scope 3: 3D / WebGL / media integrations
 
@@ -1207,6 +1221,7 @@ opt-in pages. The `ui-model-viewer` wrapper class adds the
 fastblocks-style sizing defaults (default 100% × 400px, configurable).
 
 Fallback strategy:
+
 - `<noscript>` shows the `<img>` poster.
 - Browsers without WebGL show the poster and a "WebGL required" message.
 - `prefers-reduced-motion: reduce` disables `auto-rotate`.
@@ -1303,7 +1318,7 @@ foreground content. The companion plan's docs/effects.md entry
 explicitly warns against misusing `has-video-bg` for non-
 decorative content.
 
----
+______________________________________________________________________
 
 ## Cross-cutting browser support
 
@@ -1390,8 +1405,7 @@ JS-coupled feature ships without it.
 ### SSR contract: server-rendered markup is the source of truth
 
 - **Toast**: a server response triggers a toast via the `HX-Trigger`
-  response header. The response is `HX-Trigger: {"toast":
-  {"content": "Saved!", "severity": "success"}}` and the JS module
+  response header. The response is `HX-Trigger: {"toast": {"content": "Saved!", "severity": "success"}}` and the JS module
   listens for `HX-Trigger` events (or the equivalent `htmx:trigger`
   / `htmx:configRequest` event) and dispatches the toast. The Python
   `toast(content, severity=, duration=)` helper is for templating a
@@ -1420,12 +1434,12 @@ When htmx swaps a region, the JS modules must:
    out `[data-reveal]` nodes; remove `pointermove` listeners attached
    to swapped-out `[data-tilt]` / `has-spotlight` nodes; reset toast
    queue if the queue container was swapped.
-2. **Re-attach** for nodes added by the swap. Each module exposes an
+1. **Re-attach** for nodes added by the swap. Each module exposes an
    `init(root: ParentNode = document)` function that the consumer
    calls in `htmx:afterSwap` (or htmy's equivalent). The init
    function is idempotent — calling it twice does not double-attach
    listeners.
-3. **Preserve state across swaps** where the spec says so: the toast
+1. **Preserve state across swaps** where the spec says so: the toast
    queue survives a swap of unrelated regions (queue state lives on
    `<body>`, not on the swapped region). Scroll-reveals reset their
    observer and re-observe the new DOM. Spotlight/tilt do not
@@ -1461,8 +1475,7 @@ def save(request):
   page transitions, enhancers) includes:
   - An `init(root: ParentNode = document)` function in the module's
     public API
-  - An idempotency assertion in the test surface (`init(root);
-    init(root); assert(listeners.length === expected)`)
+  - An idempotency assertion in the test surface (`init(root); init(root); assert(listeners.length === expected)`)
   - A teardown test for swapped-out nodes
   - A `htmx:afterSwap` integration example in the demo (`demo.html`
     has an `htmx:afterSwap` handler that calls each module's init)
@@ -1516,7 +1529,7 @@ def save(request):
 | Lottie / Spline / Three.js library churn | All three are pinned to specific versions in `package.json`; upgrades are a deliberate decision in their own PR |
 | New components overlap with existing ones (e.g. `ui-dropdown` vs `ui-popover`) | The plan's testing matrix explicitly tests the boundary: a dropdown inside a popover should render correctly, and vice-versa |
 | Glass composition assumed for new components before the glass spec is shipped | **No longer applies** — per Decision 7a, none of the six new components auto-appends to `--_ui-glass-components`. Consumers opt-in per instance via `class_="is-glass"`. The glass plan's `--_ui-glass-components` list stays as-is |
-| Motion on `data-theme` toggle is jarring if a consumer has many surfaces animating | The motion uses 200 ms ease, fast enough to read as a switch; consumers can opt out via a `[data-theme-instant]` attribute on `<html>`. **Selector list narrowed** to button + .ui-* components only — text elements (`p, h1-h6, a`) excluded to avoid contrast-flicker |
+| Motion on `data-theme` toggle is jarring if a consumer has many surfaces animating | The motion uses 200 ms ease, fast enough to read as a switch; consumers can opt out via a `[data-theme-instant]` attribute on `<html>`. **Selector list narrowed** to button + .ui-\* components only — text elements (`p, h1-h6, a`) excluded to avoid contrast-flicker |
 | htmx swap leaves JS-coupled components in a broken state | The companion plan's htmx integration task requires every JS module to expose `init(root)` (idempotent) and `teardown(root)`; consumers wire them into `htmx:afterSwap`. MutationObserver catches dynamic `[data-reveal]` additions. htmx integration tests assert no duplicate listeners, no stale state |
 | Toast queue overflow silently drops notifications | Spec defines explicit policy: `severity="error"` cap-bypasses (errors are always visible); non-error toasts follow FIFO with the cap (default 5). The companion plan adds a unit test asserting the policy |
 | Command palette Cmd-K collides with browser shortcuts | `/` is the primary keybinding; Cmd-K is the secondary and **must** `event.preventDefault()` on the keydown. Both are configurable via `data-command-key`. The companion plan tests that opening via `/` works on chromium / firefox / webkit and on non-Latin layouts |

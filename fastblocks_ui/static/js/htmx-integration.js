@@ -39,7 +39,7 @@ const KNOWN_MODULES = [
 async function reinit(root) {
   for (const mod of KNOWN_MODULES) {
     if (!root.querySelector(mod.selector)) continue;
-    // Lazy-import once per module; subsequent calls re-use the cached
+    // Lazy-import once per module; subsequent calls reuse the cached
     // module but ALWAYS call init(root) so newly-swapped-in opt-in
     // elements get bound. The original draft had `if (mod.mod.__loaded)
     // continue;` here, which short-circuited the init() call on every

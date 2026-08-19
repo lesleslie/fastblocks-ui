@@ -271,7 +271,7 @@ the rule sees "85% surface" without doing the arithmetic against the
 | Feature | Chrome/Edge | Safari | Firefox | Fallback |
 |---|---|---|---|---|
 | `backdrop-filter` (unprefixed) | ✅ | ✅ 18+ | ✅ 103+ | `@supports not` → solid surface |
-| `backdrop-filter` (`-webkit-` prefix) | n/a | ✅ 9+ | n/a | extends coverage to Safari <18 |
+| `backdrop-filter` (`-webkit-` prefix) | n/a | ✅ 9+ | n/a | extends coverage to Safari \<18 |
 | `prefers-reduced-transparency` | ❌ | ✅ | ❌ | solid surface (same as forced-colors path) |
 | `forced-colors` | ✅ | ✅ | ✅ | solid surface, blur/transparency disabled |
 | `color-mix()` | ✅ | ✅ | ✅ | already a hard dependency elsewhere in tokens.css |
@@ -296,8 +296,7 @@ works today.
 
 ## Docs updates
 
-- `docs/components.md`: add a single `is-glass` bullet under `## State
-  Modifiers` (with a "Surface Modifiers" sub-section), following the
+- `docs/components.md`: add a single `is-glass` bullet under `## State Modifiers` (with a "Surface Modifiers" sub-section), following the
   existing bullet-list convention used for `is-primary`, `is-info`, etc.
   Do not inline `.is-glass` notes into the five eligible-component rows —
   that would invent a new docs convention that no other modifier follows.
@@ -352,7 +351,7 @@ tokens, hover rule, and `prefers-reduced-motion` block are present in the
 built bundle.
 
 **pytest** (`tests/test_demo_parity.py`): extend to cover the new glass
- demo markup (both the single-card example and the three-card showcase).
+demo markup (both the single-card example and the three-card showcase).
 
 **vitest** (`tests/js/css-variables.test.js`): extend the token-existence
 test to cover all eight glass tokens (`--ui-glass-strength`, `--ui-glass-blur`,
@@ -383,6 +382,7 @@ filter can degrade focus visibility in implementation-dependent ways,
 which the current test suite does not cover.
 
 **Playwright e2e** (`tests/e2e/glass-surface.spec.js`):
+
 - `forced-colors: active` emulation renders a solid, non-blurred surface
   for **all five eligible components** plus the scoped-attribute variants
   — the existing test only exercises `#card-glass` and would miss a

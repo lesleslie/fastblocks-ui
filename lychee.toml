@@ -5,10 +5,16 @@
 # (`tests/e2e/`) and the demo HTML serve path (`demo/`). lychee tries
 # to resolve `/foo.png` against scheme `file://`, which fails. Excluding
 # these paths tells lychee they're deliberate, not link rot.
+#
+# NOTE: lychee v0.24.2 ``exclude_path`` accepts **regular expressions**
+# matched against file paths — NOT glob patterns. The previous glob-style
+# entries (``tests/e2e/fixtures/**/*.html``) silently matched nothing,
+# so every root-relative `<a href="/foo">` in test fixtures surfaced as
+# a "Cannot resolve root-relative link" error.
 
 exclude_path = [
-    "tests/e2e/fixtures/**/*.html",
-    "demo/**/*.html",
+    "(^|/)tests/e2e/fixtures/",
+    "(^|/)demo/",
 ]
 
 # Suppress false positives on the e2e `.spec.js` files (their `<a>` /
@@ -27,4 +33,4 @@ timeout = 10
 # Don't fail on HTTP errors that are normal in CI (rate limits, etc.).
 # Keep exit code on actual broken `file://` paths we explicitly ship.
 max_redirects = 5
-retry_limit = 1
+max_retries = 1

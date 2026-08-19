@@ -33,17 +33,20 @@ This plan is one of three companion documents for fastblocks-ui's "elevate the d
 - Every demo change must be followed by `python scripts/build_demo.py` (regenerate `demo/index.html`) before running pytest parity tests.
 - Follow existing repo conventions exactly: 2-space indentation inside `@layer` blocks, `--ui-*` token namespace, `class_=object = None, **attrs: object` helper shape, modifier classes colocated with their component CSS (in `components.css` for new components, in `effects.css` for backdrop/motion primitives).
 
----
+______________________________________________________________________
 
 ### Task 1: Shared motion + component tokens
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/tokens.css` (insert motion tokens + component tokens after `--ui-glass-*` block from the glass plan)
 - Modify: `tests/js/css-variables.test.js` (add 17 new token-existence assertions)
 - Modify: `tests/test_fastblocks_ui.py::TestDemoBuild::test_bundle_includes_accessibility_media_queries` (extend with new token strings)
 
 **Interfaces:**
+
 - Produces: motion tokens `--ui-motion-duration-fast/base/slow`, `--ui-motion-easing-standard/emphasized`, and 14 component tokens (`--ui-z-backdrop`, `--ui-aurora-stop-1/2/3`, `--ui-noise-opacity`, `--ui-noise-scale`, `--ui-pattern-size`, `--ui-pattern-opacity`, `--ui-spotlight-x`, `--ui-spotlight-y`, `--ui-spotlight-color`, `--ui-spotlight-opacity`, `--ui-tilt-x`, `--ui-tilt-y`).
+
 - Tasks 2–7 consume component tokens; Tasks 8–10 consume backdrop/motion tokens.
 
 - [ ] **Step 1: Write the failing vitest token-existence check**
@@ -183,6 +186,7 @@ In `tests/test_fastblocks_ui.py`, extend `test_bundle_includes_accessibility_med
 npx vitest run tests/js/css-variables.test.js
 python -m pytest tests/test_fastblocks_ui.py::TestDemoBuild::test_bundle_includes_accessibility_media_queries -v
 ```
+
 Expected: PASS — 19 vitest token-existence + 3 derivation assertions = 22 total. pytest bundle-presence check extended with 8 new `assertIn` calls.
 
 - [ ] **Step 7: Commit**
@@ -193,11 +197,12 @@ git add fastblocks_ui/static/css/tokens.css fastblocks_ui/static/css/fastblocks-
 git commit -m "feat(tokens): add motion + effect primitive tokens"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: `ui-tooltip`
 
 **Files:**
+
 - Modify: `fastblocks_ui/helpers.py` (add `tooltip()` Python helper per spec §1.1 signature)
 - Modify: `fastblocks_ui/static/css/components.css` (add `.ui-tooltip` rule colocated with other floating UI helpers, if any; if not, add a new "Floating UI" section)
 - Modify: `fastblocks_ui/__init__.py` (export `tooltip`)
@@ -206,7 +211,9 @@ git commit -m "feat(tokens): add motion + effect primitive tokens"
 - Create: `tests/e2e/fixtures/tooltip.html`
 
 **Interfaces:**
+
 - Consumes: `--ui-motion-duration-fast`, `--ui-motion-easing-standard` from Task 1.
+
 - Produces: `tooltip(text, *, id, position, class_=None, **attrs) -> SafeHTML` Python helper; `<span role="tooltip" popover="hint">` HTML output; `aria-describedby` linkage on the consumer's trigger.
 
 - [ ] **Step 1: Write the failing fixture + spec**
@@ -425,11 +432,12 @@ git add fastblocks_ui/helpers.py fastblocks_ui/__init__.py fastblocks_ui/manifes
 git commit -m "feat(components): add ui-tooltip with popover=hint"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: `ui-popover`
 
 **Files:**
+
 - Modify: `fastblocks_ui/helpers.py` (add `popover()` helper per spec §1.2)
 - Modify: `fastblocks_ui/static/css/components.css` (add `.ui-popover` rule)
 - Modify: `fastblocks_ui/__init__.py`, `fastblocks_ui/manifest.json` (export + manifest entry)
@@ -437,7 +445,9 @@ git commit -m "feat(components): add ui-tooltip with popover=hint"
 - Create: `fastblocks_ui/static/js/popover-aria.js` (handles `aria-expanded` toggle on `toggle` event — fixes Decision 3a)
 
 **Interfaces:**
+
 - Consumes: `--ui-motion-duration-fast` from Task 1.
+
 - Produces: `popover(content, *, id, label, position, class_=None, **attrs) -> SafeHTML` helper. JS module wires `aria-expanded` on the trigger.
 
 - [ ] **Step 1: Write the failing fixture + spec**
@@ -680,11 +690,12 @@ git add fastblocks_ui/helpers.py fastblocks_ui/__init__.py fastblocks_ui/manifes
 git commit -m "feat(components): add ui-popover with aria-expanded wiring"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: `ui-toast` (Python helper + JS queue + htmx integration)
 
 **Files:**
+
 - Modify: `fastblocks_ui/helpers.py` (add `toast()` Python helper per spec §1.3)
 - Modify: `fastblocks_ui/static/css/components.css` (add `.ui-toast` + `.ui-toast-region` rules)
 - Modify: `fastblocks_ui/__init__.py`, `fastblocks_ui/manifest.json` (export + manifest entry)
@@ -693,7 +704,9 @@ git commit -m "feat(components): add ui-popover with aria-expanded wiring"
 - Modify: `tests/test_fastblocks_ui.py` (extend `TestBundleSizeBudget` to assert toast-queue.js ≤ 4 KB gzip)
 
 **Interfaces:**
+
 - Consumes: `--ui-motion-duration-fast/base`, `--ui-motion-easing-standard` from Task 1.
+
 - Produces: `toast(content, *, severity, duration, id=None, class_=None, **attrs)` Python helper (SSR-rendered region). `toast(content, options)` JS API (`import { toast } from "@fastblocks-ui/toast"`). Htmx integration listens for `htmx:afterRequest` and reads `HX-Trigger` response header.
 
 - [ ] **Step 1: Write the failing fixture + spec**
@@ -1083,11 +1096,12 @@ git add fastblocks_ui/helpers.py fastblocks_ui/__init__.py fastblocks_ui/manifes
 git commit -m "feat(components): add ui-toast with queue + htmx integration"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: `ui-command` (command palette)
 
 **Files:**
+
 - Modify: `fastblocks_ui/helpers.py` (add `command()` helper per spec §1.4)
 - Create: `fastblocks_ui/static/css/command.css` (JS-coupled CSS for the command palette; per spec split this out)
 - Modify: `fastblocks_ui/static/css/components.css` (add `@import` or entry in `tools/build_css.py::MODULES`)
@@ -1096,7 +1110,9 @@ git commit -m "feat(components): add ui-toast with queue + htmx integration"
 - Create: `tests/e2e/command.spec.js`, `tests/e2e/fixtures/command.html`
 
 **Interfaces:**
+
 - Consumes: `--ui-motion-duration-fast/base`, `--ui-motion-easing-standard` from Task 1.
+
 - Produces: `command(*, id, keybinding, placeholder, class_=None, **attrs)` Python helper. JS API: `open_command_palette({trigger, load_results, recent, groups, keybinding})`. Throws if `load_results` is missing.
 
 - [ ] **Step 1: Write the failing fixture + spec**
@@ -1473,11 +1489,12 @@ git add fastblocks_ui/helpers.py fastblocks_ui/__init__.py fastblocks_ui/manifes
 git commit -m "feat(components): add ui-command palette"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: `ui-context-menu`
 
 **Files:**
+
 - Modify: `fastblocks_ui/helpers.py` (add `context_menu()` helper per spec §1.5)
 - Modify: `fastblocks_ui/static/css/components.css` (add `.ui-context-menu` rule)
 - Modify: `fastblocks_ui/__init__.py`, `fastblocks_ui/manifest.json`
@@ -1485,7 +1502,9 @@ git commit -m "feat(components): add ui-command palette"
 - Create: `tests/e2e/context-menu.spec.js`, `tests/e2e/fixtures/context-menu.html`
 
 **Interfaces:**
+
 - Consumes: `--ui-motion-duration-fast` from Task 1.
+
 - Produces: `context_menu(items, *, id, class_=None, **attrs)` Python helper emitting `<ul role="menu">` with menuitems. JS module attaches to `[data-context-menu-target]` elements.
 
 - [ ] **Step 1: Write the failing fixture + spec**
@@ -1776,18 +1795,21 @@ git add fastblocks_ui/helpers.py fastblocks_ui/__init__.py fastblocks_ui/manifes
 git commit -m "feat(components): add ui-context-menu"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: `ui-avatar`
 
 **Files:**
+
 - Modify: `fastblocks_ui/helpers.py` (add `avatar()` and `avatar_group()` helpers per spec §1.6)
 - Modify: `fastblocks_ui/static/css/components.css` (add `.ui-avatar` + `.ui-avatar-group` rules)
 - Modify: `fastblocks_ui/__init__.py`, `fastblocks_ui/manifest.json`
 - Create: `tests/e2e/avatar.spec.js`, `tests/e2e/fixtures/avatar.html`
 
 **Interfaces:**
+
 - Consumes: existing tokens (`--ui-color-*`, `--ui-radius-full` if it exists, else `--ui-radius-md`).
+
 - Produces: `avatar(src, *, alt, name=None, shape, size, status=None, ...)` and `avatar_group(avatars, *, max=4, ...)` Python helpers. The group helper computes the `+N` overflow internally with proper `aria-label="N more users"`.
 
 - [ ] **Step 1: Write the failing fixture + spec**
@@ -2061,18 +2083,21 @@ git add fastblocks_ui/helpers.py fastblocks_ui/__init__.py fastblocks_ui/manifes
 git commit -m "feat(components): add ui-avatar with stacking group"
 ```
 
----
+______________________________________________________________________
 
 ### Task 8: Backdrop effects (full-bleed, aurora, noise, patterns)
 
 **Files:**
+
 - Create: `fastblocks_ui/static/css/effects.css` (new file for backdrops + motion; per spec Decision 21)
 - Modify: `tools/build_css.py` (add `effects.css` to `MODULES` after `components.css`)
 - Modify: `tests/test_fastblocks_ui.py::TestBundleSizeBudget` (extend assertions for backdrops)
 - Create: `tests/e2e/backdrop-effects.spec.js`, `tests/e2e/fixtures/backdrop-effects.html`
 
 **Interfaces:**
+
 - Consumes: `--ui-z-backdrop`, `--ui-aurora-stop-1/2/3`, `--ui-noise-opacity/scale`, `--ui-pattern-size/opacity`, `--ui-motion-duration-slow`, `--ui-motion-easing-emphasized` from Task 1.
+
 - Produces: `.has-fullbleed`, `.has-aurora`, `.has-noise`, `.has-pattern-dots`, `.has-pattern-grid`, `.has-pattern-lines`, `.has-pattern-diagonal` rules in `effects.css`. `--_ui-backdrop-base` shared selector list (Decision 21).
 
 - [ ] **Step 1: Write the failing bundle-presence check**
@@ -2305,10 +2330,12 @@ Expected: PASS — all 5 tests.
 - [ ] **Step 8: Run bundle check + size test**
 
 Run:
+
 ```bash
 python tools/build_css.py --check
 python -m pytest tests/test_fastblocks_ui.py::TestBundleSizeBudget -v
 ```
+
 Expected: PASS. The new `effects.css` is ~80 lines, adds ~600 bytes uncompressed to the bundle. Total bundle stays under 30 KB gzip.
 
 - [ ] **Step 9: Commit**
@@ -2320,11 +2347,12 @@ git add fastblocks_ui/static/css/effects.css fastblocks_ui/static/css/fastblocks
 git commit -m "feat(effects): add backdrop primitives (fullbleed, aurora, noise, patterns)"
 ```
 
----
+______________________________________________________________________
 
 ### Task 9: Motion primitives (spotlight, scroll-reveal, tilt, theme transitions, page transitions)
 
 **Files:**
+
 - Create: `fastblocks_ui/static/js/spotlight.js`
 - Create: `fastblocks_ui/static/js/scroll-reveal.js`
 - Create: `fastblocks_ui/static/js/tilt.js`
@@ -2335,6 +2363,7 @@ git commit -m "feat(effects): add backdrop primitives (fullbleed, aurora, noise,
 - Modify: `tests/test_fastblocks_ui.py::TestBundleSizeBudget` (assert each JS module ≤ 4 KB gzip)
 
 **Interfaces:**
+
 - Each module exports `init(root = document)` (idempotent, re-scans for new opt-in elements) and `teardown(root = document)`. Per Decision 20, each module returns early when opt-in count is zero. Per Decision 19, JS writes only to `--ui-*` CSS custom properties.
 
 - [ ] **Step 1: Write the failing fixture + spec**
@@ -2813,6 +2842,7 @@ python tools/build_css.py
 python -m pytest tests/test_fastblocks_ui.py::TestBundleSizeBudget -v
 npx playwright test tests/e2e/motion-effects.spec.js --project=chromium
 ```
+
 Expected: PASS. Bundle size: each new JS module ≤ 4 KB gzip, total JS ≤ 15 KB. Spec: all 11 tests.
 
 - [ ] **Step 9: Commit**
@@ -2826,11 +2856,12 @@ git add fastblocks_ui/static/css/effects.css fastblocks_ui/static/css/fastblocks
 git commit -m "feat(effects): add motion primitives (spotlight, reveal, tilt, theme, page)"
 ```
 
----
+______________________________________________________________________
 
 ### Task 10: 3D / WebGL / media integrations
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/effects.css` (add `.has-mesh-gradient`, `.has-video-bg`, `.has-lottie` rules)
 - Create: `fastblocks_ui/static/js/mesh-gradient.js` (Three.js mesh-gradient loader)
 - Create: `fastblocks_ui/static/js/video-bg.js` (video bg prefers-reduced-data handler)
@@ -2839,7 +2870,9 @@ git commit -m "feat(effects): add motion primitives (spotlight, reveal, tilt, th
 - Modify: `tests/test_fastblocks_ui.py::TestBundleSizeBudget` (note: 3D libs are dynamically imported; no impact on core JS budget)
 
 **Interfaces:**
+
 - Consumes: existing tokens (`--ui-color-*`, `--ui-z-backdrop`).
+
 - Produces: `.has-mesh-gradient`, `.has-video-bg`, `.has-lottie` CSS rules. Three lazy-loadable JS modules — each dynamically imports its third-party dependency only when an opt-in element is in the DOM.
 
 - [ ] **Step 1: Add CSS for 3D/media in `effects.css`**
@@ -3179,18 +3212,21 @@ git add fastblocks_ui/static/css/effects.css fastblocks_ui/static/css/fastblocks
 git commit -m "feat(effects): add 3D/media integrations (mesh-gradient, video-bg, lottie)"
 ```
 
----
+______________________________________________________________________
 
 ### Task 11: htmx integration contract
 
 **Files:**
+
 - Create: `fastblocks_ui/static/js/htmx-integration.js` (single entry point that wires every motion/feedback module's `init(root)` into `htmx:afterSwap`)
 - Modify: `fastblocks_ui/static/css/effects.css` (no changes; integration is JS-only)
 - Modify: `tests/e2e/htmx-integration.spec.js` (new file)
 - Create: `tests/e2e/fixtures/htmx-integration.html` (fixture that simulates `htmx:afterSwap` via dispatched events)
 
 **Interfaces:**
+
 - Each motion/feedback module from Tasks 8–10 exports `init(root)` (already shipped). This task creates the orchestrator that calls them all after a swap.
+
 - Consumers wire `htmx-integration.js` into their htmx boot: `import "@fastblocks-ui/htmx-integration";` (the module self-registers a `htmx:afterSwap` listener that calls every other module's `init(document)`).
 
 - [ ] **Step 1: Write the failing fixture + spec**
@@ -3398,7 +3434,7 @@ const KNOWN_MODULES = [
 async function reinit(root) {
   for (const mod of KNOWN_MODULES) {
     if (!root.querySelector(mod.selector)) continue;
-    // Lazy-import once per module; subsequent calls re-use the cached
+    // Lazy-import once per module; subsequent calls reuse the cached
     // module but ALWAYS call init(root) so newly-swapped-in opt-in
     // elements get bound. The original draft had `if (mod.mod.__loaded)
     // continue;` here, which short-circuited the init() call on every
@@ -3451,6 +3487,7 @@ export function init(root = document) { reinit(root); }
 python tools/build_css.py
 npx playwright test tests/e2e/htmx-integration.spec.js --project=chromium
 ```
+
 Expected: PASS — all 5 tests.
 
 - [ ] **Step 5: Verify bundle size**
@@ -3466,11 +3503,12 @@ git add fastblocks_ui/static/js/htmx-integration.js \
 git commit -m "feat(htmx): wire init(root) re-scan on htmx:afterSwap"
 ```
 
----
+______________________________________________________________________
 
 ### Task 12: Tests + docs (`docs/effects.md`, axe rules, Lighthouse, bundle gates)
 
 **Files:**
+
 - Create: `docs/effects.md` (new cookbook for backdrops + motion + 3D)
 - Create: `tests/e2e/backdrop-contrast.spec.js` (SC 4.5:1 over backdrops in both themes)
 - Modify: `tests/e2e/accessibility.spec.js` (extend to emulated reduced-motion, reduced-transparency, forced-colors; add axe rules enumerated per spec)
@@ -3480,11 +3518,12 @@ git commit -m "feat(htmx): wire init(root) re-scan on htmx:afterSwap"
 - Modify: `AGENTS.md` (note new effect cookbook in the docs workflow)
 
 **Interfaces:**
+
 - Produces: `docs/effects.md` cookbook with 14-row index + per-effect recipes. New Playwright axe-rule coverage. New Lighthouse performance test. Bundle-size test that walks `static/js/`.
 
 - [ ] **Step 1: Create `docs/effects.md`**
 
-```markdown
+````markdown
 # Effects Cookbook
 
 This cookbook covers fastblocks-ui's 14+ opt-in visual effects:
@@ -3542,7 +3581,7 @@ class Hero(Component):
         )[
             html.h1("Welcome"),
         ]
-```
+````
 
 The `class_="has-aurora"` is the opt-in — no JS call needed; the
 `aurora` module (Task 8) discovers it via the htmx orchestrator or
@@ -3563,7 +3602,8 @@ class SkeletonCard(Component):
 The `has-shimmer` effect (Task 8 — out of v1 scope, listed for
 context) would be defined identically: a CSS rule keyed on
 `.has-shimmer` plus a JS module that opts in via the same orchestrator.
-```
+
+````
 
 (For brevity, the per-effect recipe bodies are not expanded in this
 plan. The implementer writes one section per effect, mirroring the
@@ -3610,7 +3650,7 @@ Visual effects are documented in [`effects.md`](effects.md). Includes
 backdrop systems (full-bleed, aurora, noise, patterns), motion
 primitives (spotlight, scroll-reveal, tilt, theme transitions, page
 transitions), and 3D / media integrations.
-```
+````
 
 In `README.md`, find the Features or Customization section. Append
 (if not present):
@@ -3668,11 +3708,13 @@ test.describe('Backdrop contrast (WCAG AA, 4.5:1)', () => {
 - [ ] **Step 4: Extend `tests/e2e/accessibility.spec.js`**
 
 The existing spec runs axe at 4 widths in default media state. Per the spec's Cross-cutting testing strategy, extend it to also run under:
+
 - `prefers-reduced-motion: reduce` emulation
 - `prefers-reduced-transparency: reduce` emulation
 - `forced-colors: active` emulation
 
 Plus add specific axe-rule assertions for the new components:
+
 - `aria-required-children` (menu → menuitem, listbox → option)
 - `aria-required-parent` (listbox → combobox)
 - `role-img-alt` (avatar initials fallback with empty aria-label)
@@ -3745,12 +3787,14 @@ class TestBundleSizeBudget:
 - [ ] **Step 7: Run all the new tests**
 
 Run:
+
 ```bash
 npx playwright test tests/e2e/backdrop-contrast.spec.js --project=chromium
 npx playwright test tests/e2e/accessibility.spec.js --project=accessibility
 npx playwright test tests/e2e/perf-budget.spec.js --project=chromium
 python -m pytest tests/test_fastblocks_ui.py::TestBundleSizeBudget -v
 ```
+
 Expected: PASS for all. Backdrop contrast tests assert 4.5:1 minimum across all combinations.
 
 - [ ] **Step 8: Commit**
@@ -3762,7 +3806,7 @@ git add docs/effects.md docs/components.md README.md \
 git commit -m "feat(docs+tests): add effects cookbook + axe/perf/bundle gates"
 ```
 
----
+______________________________________________________________________
 
 ### Task 13a: Spline embed (`<spline-viewer>` wrapper)
 
@@ -3771,6 +3815,7 @@ The spec §3.1 promises a `.ui-spline` wrapper class with lazy
 the gap.
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/effects.css` (add `.ui-spline` to the
   backdrop-base selector list; add a wrapper-specific rule)
 - Create: `fastblocks_ui/static/js/spline-embed.js` (lazy load + opt-in)
@@ -3779,7 +3824,9 @@ the gap.
 - Modify: `manifest.json` (no entry — Spline is a backdrop-style effect, not a manifest component)
 
 **Interfaces:**
+
 - Consumer markup: `<div class="ui-spline" data-spline-url="https://prod.spline.design/..." aria-label="Interactive 3D model"></div>`
+
 - JS module: lazy-loads `@splinetool/viewer` via `window.__fastblocksUi3DLoader.spline || "@splinetool/viewer"`. No JS = the wrapper renders an empty container with the consumer's poster image.
 
 - [ ] **Step 1: Add `.ui-spline` to `effects.css`**
@@ -3899,6 +3946,7 @@ test.describe('ui-spline', () => {
 python tools/build_css.py
 npx playwright test tests/e2e/spline.spec.js --project=chromium
 ```
+
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -3910,7 +3958,7 @@ git add fastblocks_ui/static/css/effects.css fastblocks_ui/static/css/fastblocks
 git commit -m "feat(3d): add Spline embed (.ui-spline + lazy @splinetool/viewer)"
 ```
 
----
+______________________________________________________________________
 
 ### Task 13b: `<model-viewer>` wrapper
 
@@ -3919,13 +3967,16 @@ The spec §3.3 promises a `.ui-model-viewer` wrapper with lazy
 the gap.
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/effects.css` (add `.ui-model-viewer` rule)
 - Create: `fastblocks_ui/static/js/model-viewer-loader.js` (lazy load + opt-in)
 - Create: `tests/e2e/model-viewer.spec.js`, `tests/e2e/fixtures/model-viewer.html`
 - Modify: `fastblocks_ui/static/js/htmx-integration.js` (add to `KNOWN_MODULES`)
 
 **Interfaces:**
+
 - Consumer markup: `<model-viewer class="ui-model-viewer" src="/path/to/model.glb" poster="/poster.jpg" camera-controls aria-label="Product viewer"></model-viewer>`
+
 - The `<model-viewer>` web component is shipped via `@google/model-viewer` (Baseline "newly" web component). Dynamic import only when the element is in the DOM.
 
 - [ ] **Step 1: Add `.ui-model-viewer` to `effects.css`**
@@ -4045,6 +4096,7 @@ test.describe('ui-model-viewer', () => {
 python tools/build_css.py
 npx playwright test tests/e2e/model-viewer.spec.js --project=chromium
 ```
+
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -4056,11 +4108,12 @@ git add fastblocks_ui/static/css/effects.css fastblocks_ui/static/css/fastblocks
 git commit -m "feat(3d): add <model-viewer> wrapper (.ui-model-viewer + lazy @google/model-viewer)"
 ```
 
----
+______________________________________________________________________
 
 ### Task 14: Demo + final verification sweep
 
 **Files:**
+
 - Modify: `scripts/build_demo.py` (add `tooltip_demo()`, `popover_demo()`, `toast_demo()`, `command_demo()`, `context_menu_demo()`, `avatar_demo()`, `backdrop_effects_demo()`, `motion_effects_demo()`, `spline_demo()`, `model_viewer_demo()` to `build_categories()`)
 - Modify: `demo/index.html` (regenerated by `scripts/build_demo.py`)
 - Modify: `demo/demo.html` (hand-maintained mirror; byte-identical CSS sync per the glass plan's guard)
@@ -4068,7 +4121,9 @@ git commit -m "feat(3d): add <model-viewer> wrapper (.ui-model-viewer + lazy @go
 - Modify: `tests/test_demo_parity.py::test_every_manifest_component_has_a_demo_section` (verify the new components all get demo sections)
 
 **Interfaces:**
+
 - All six new component helpers (Tasks 2–7) + Spline (Task 13a) + model-viewer (Task 13b) + backdrop_effects_demo + motion_effects_demo are exposed via `build_demo.py`.
+
 - The hardcoded manifest count at `tests/test_demo_parity.py:487` updates from 32 to 38.
 
 - [ ] **Step 1: Write the failing demo parity tests**
@@ -4143,6 +4198,7 @@ expected_components = 38  # was 32 before Tasks 2-7
 Add `tooltip_demo()`, `popover_demo()`, `toast_demo()`, `command_demo()`, `context_menu_demo()`, `avatar_demo()`, `backdrop_effects_demo()`, `motion_effects_demo()` to `scripts/build_demo.py`, near the existing `card_demo()`, `dialog_demo()`, etc.
 
 Each demo function should:
+
 - Use the corresponding Python helper
 - Wrap it in the demo's standard layout (e.g. `.demo-panel`, `.ui-cluster`)
 - For JS-coupled components, include a `<script>` tag that wires the JS API (e.g. command palette's `open_command_palette(...)`)
@@ -4206,10 +4262,12 @@ Open `demo/index.html`, find the 8 new `<section id="...">...</section>` blocks,
 - [ ] **Step 7: Run all parity tests**
 
 Run:
+
 ```bash
 python -m pytest tests/test_demo_parity.py -v
 python scripts/build_demo.py --check
 ```
+
 Expected: PASS — all 8 new parity tests + the manifest count test + the sidebar link test + the `--check` drift gate.
 
 - [ ] **Step 8: Run the full verification sweep**
@@ -4264,7 +4322,6 @@ Expected: all pass. If any check fails, fix the underlying issue in an earlier c
 git add scripts/build_demo.py demo/index.html demo/demo.html tests/test_demo_parity.py
 git commit -m "feat(demo): add 6 new components + backdrop + motion + 3D showcases"
 ```
-
 
 - [ ] **Step 11: Spec line tally + plan signature**
 
