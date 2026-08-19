@@ -44,6 +44,33 @@ This page is generated from `fastblocks_ui/manifest.json`. Keep the manifest and
 | pagination | `ui-pagination` | `pagination()` | Pagination links with current page indicator. |
 | validation_summary | `ui-validation-summary` | `validation_summary()` | Aggregated form-error summary linking to individual fields. |
 
+## Floating UI
+
+| Component | CSS Class | Helper | Purpose |
+| --------- | -------- | ------ | ------- |
+| tooltip | `ui-tooltip` | `tooltip()` | Short text on hover/focus, ARIA-described, focus management via Popover API. |
+| popover | `ui-popover` | `popover()` | Click-triggered floating panel with rich content, dismissable via outside-click / Escape / focus-loss. |
+
+## Feedback
+
+| Component | CSS Class | Helper | Purpose |
+| --------- | -------- | ------ | ------- |
+| toast | `ui-toast` | `toast()` | Transient notification with auto-dismiss, role=status/alert, htmx HX-Trigger integration. |
+
+## Navigation
+
+| Component | CSS Class | Helper | Purpose |
+| --------- | -------- | ------ | ------- |
+| command | `ui-command` | `command()` | Command palette with async result loading, / primary and mod+k secondary keybindings. |
+| context-menu | `ui-context-menu` | `context_menu()` | Right-click context menu with APG-correct keyboard nav (Arrow keys, Home/End, Enter, Escape, Tab-out). |
+
+## Identity
+
+| Component | CSS Class | Helper | Purpose |
+| --------- | -------- | ------ | ------- |
+| avatar | `ui-avatar` | `avatar()` | Identity indicator with image / initials / placeholder; supports stacking groups. |
+| avatar_group | `ui-avatar-group` | `avatar_group()` | Stacked avatar group with overlap and overflow chip for the +N tail. |
+
 ## Effects
 
 Visual effects are documented in [`effects.md`](effects.md). Includes
