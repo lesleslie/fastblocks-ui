@@ -1872,7 +1872,7 @@ def avatar(
         else ""
     )
     img = (
-        f'<img src="{escape(str(src), quote=True)}" alt="{escape(str(alt), quote=True)}" />'
+        f'<img src="{escape(str(src), quote=True)}" alt="{escape(alt, quote=True)}" />'
         if src
         else (
             f'<span role="img" aria-label="{escape(str(name or alt), quote=True)}">'
@@ -1915,7 +1915,7 @@ def avatar_group(
         aria_label = "1 more user" if overflow == 1 else f"{overflow} more users"
         overflow_html = (
             f'<div class="ui-avatar ui-avatar__overflow" '
-            f'role="img" aria-label="{escape(str(aria_label), quote=True)}">'
+            f'role="img" aria-label="{escape(aria_label, quote=True)}">'
             f'+{escape(str(overflow), quote=True)}</div>'
         )
     avatar_html = "".join(
