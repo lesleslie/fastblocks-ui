@@ -563,6 +563,90 @@ class TestBundleSizeBudget(unittest.TestCase):
             f"brief). Trim JS or revisit the budget deliberately.",
         )
 
+    # Per-component JS budgets for the motion primitive modules (task 9 brief).
+    # Same rationale as the toast / command / context-menu budgets: shipped
+    # independently, should be small enough to inline or load on demand
+    # without bloating pages that don't use them.
+    SPOTLIGHT_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 9 brief.
+
+    def test_spotlight_js_is_within_gzip_budget(self):
+        spotlight_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_js_path()), "spotlight.js"
+        )
+        content = Path(spotlight_path).read_bytes()
+        gzipped = gzip.compress(content, compresslevel=9)
+        self.assertLessEqual(
+            len(gzipped),
+            self.SPOTLIGHT_JS_BUDGET_BYTES,
+            f"spotlight.js gzips to {len(gzipped)} bytes, over the "
+            f"{self.SPOTLIGHT_JS_BUDGET_BYTES}-byte budget (task 9 "
+            f"brief). Trim JS or revisit the budget deliberately.",
+        )
+
+    SCROLL_REVEAL_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 9 brief.
+
+    def test_scroll_reveal_js_is_within_gzip_budget(self):
+        scroll_reveal_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_js_path()), "scroll-reveal.js"
+        )
+        content = Path(scroll_reveal_path).read_bytes()
+        gzipped = gzip.compress(content, compresslevel=9)
+        self.assertLessEqual(
+            len(gzipped),
+            self.SCROLL_REVEAL_JS_BUDGET_BYTES,
+            f"scroll-reveal.js gzips to {len(gzipped)} bytes, over the "
+            f"{self.SCROLL_REVEAL_JS_BUDGET_BYTES}-byte budget (task 9 "
+            f"brief). Trim JS or revisit the budget deliberately.",
+        )
+
+    TILT_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 9 brief.
+
+    def test_tilt_js_is_within_gzip_budget(self):
+        tilt_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_js_path()), "tilt.js"
+        )
+        content = Path(tilt_path).read_bytes()
+        gzipped = gzip.compress(content, compresslevel=9)
+        self.assertLessEqual(
+            len(gzipped),
+            self.TILT_JS_BUDGET_BYTES,
+            f"tilt.js gzips to {len(gzipped)} bytes, over the "
+            f"{self.TILT_JS_BUDGET_BYTES}-byte budget (task 9 brief). "
+            f"Trim JS or revisit the budget deliberately.",
+        )
+
+    THEME_TRANSITIONS_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 9 brief.
+
+    def test_theme_transitions_js_is_within_gzip_budget(self):
+        theme_transitions_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_js_path()), "theme-transitions.js"
+        )
+        content = Path(theme_transitions_path).read_bytes()
+        gzipped = gzip.compress(content, compresslevel=9)
+        self.assertLessEqual(
+            len(gzipped),
+            self.THEME_TRANSITIONS_JS_BUDGET_BYTES,
+            f"theme-transitions.js gzips to {len(gzipped)} bytes, over the "
+            f"{self.THEME_TRANSITIONS_JS_BUDGET_BYTES}-byte budget (task 9 "
+            f"brief). Trim JS or revisit the budget deliberately.",
+        )
+
+    PAGE_TRANSITIONS_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 9 brief.
+
+    def test_page_transitions_js_is_within_gzip_budget(self):
+        page_transitions_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_js_path()), "page-transitions.js"
+        )
+        content = Path(page_transitions_path).read_bytes()
+        gzipped = gzip.compress(content, compresslevel=9)
+        self.assertLessEqual(
+            len(gzipped),
+            self.PAGE_TRANSITIONS_JS_BUDGET_BYTES,
+            f"page-transitions.js gzips to {len(gzipped)} bytes, over the "
+            f"{self.PAGE_TRANSITIONS_JS_BUDGET_BYTES}-byte budget (task 9 "
+            f"brief). Trim JS or revisit the budget deliberately.",
+        )
+
 
 class TestLogicalPropertiesDriftGate(unittest.TestCase):
     """WS-7: grep-based drift gate (matching this project's existing

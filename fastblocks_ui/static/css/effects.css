@@ -132,4 +132,85 @@
     opacity: var(--ui-pattern-opacity, 0.06);
     z-index: var(--ui-z-backdrop, -1);
   }
+
+/* Motion primitives (Task 9) ----------------------------------------- */
+
+/* Spotlight: per spec §2.5, JS sets data-spotlight-active="1" after
+   pointermove writes to --ui-spotlight-x/y. Default opacity 0 (fail-
+   closed) so consumers without JS see nothing. */
+:where(.has-spotlight)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle 200px at var(--ui-spotlight-x, 50%) var(--ui-spotlight-y, 50%),
+    var(--ui-spotlight-color, var(--ui-color-primary)),
+    transparent 70%
+  );
+  opacity: 0;
+  pointer-events: none;
+  z-index: var(--ui-z-backdrop, -1);
+  transition: opacity var(--ui-motion-duration-fast) var(--ui-motion-easing-standard);
+}
+:where(.has-spotlight[data-spotlight-active="1"])::before {
+  opacity: var(--ui-spotlight-opacity, 0.15);
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(.has-spotlight)::before { display: none; }
+}
+
+/* Tilt on hover: per spec §2.7, JS writes --ui-tilt-x/y. */
+:where([data-tilt]) {
+  transform: perspective(800px) rotateX(var(--ui-tilt-y, 0deg)) rotateY(var(--ui-tilt-x, 0deg));
+  transition: transform var(--ui-motion-duration-fast) var(--ui-motion-easing-standard);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  :where([data-tilt]) { transform: none; }
+}
+
+/* Scroll-driven reveals: gate the hidden state on .js capability
+   class (per spec §2.6 — the empty :not() rule at the end of the
+   initial draft was broken). */
+:where([data-reveal]) {
+  transition:
+    opacity var(--ui-motion-duration-slow) var(--ui-motion-easing-emphasized),
+    transform var(--ui-motion-duration-slow) var(--ui-motion-easing-emphasized);
+}
+.js :where([data-reveal]):not([data-revealed="true"]) {
+  opacity: 0;
+  transform: translateY(16px);
+}
+:where([data-reveal][data-revealed="true"]) {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :where([data-reveal]) { transition: none; }
+}
+
+/* Theme transitions: per Decision 13, narrowed selector list to
+   surface elements only (text elements excluded to avoid contrast
+   flicker). Triggered by [data-theme-changing] flag on :root during
+   the brief theme-switch window. */
+:root[data-theme-changing] :is(
+  button,
+  .ui-card, .ui-navbar, .ui-dialog, .ui-drawer, .ui-dropdown,
+  .ui-tooltip, .ui-popover, .ui-toast, .ui-avatar
+) {
+  transition:
+    background-color var(--ui-motion-duration-base) var(--ui-motion-easing-standard),
+    color var(--ui-motion-duration-base) var(--ui-motion-easing-standard),
+    border-color var(--ui-motion-duration-base) var(--ui-motion-easing-standard);
+}
+
+/* View Transitions API: bare selectors that apply on every page. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--ui-motion-duration-base);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none !important; }
 }
