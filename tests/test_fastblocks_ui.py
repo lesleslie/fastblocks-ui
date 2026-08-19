@@ -694,6 +694,26 @@ class TestBundleSizeBudget(unittest.TestCase):
             f"brief). Trim JS or revisit the budget deliberately.",
         )
 
+    # Per-component JS budget for the <model-viewer> wrapper (task 13b brief).
+    # Same rationale as the spline budget: shipped independently, should be
+    # small enough to inline or load on demand without bloating pages that
+    # don't use model-viewer.
+    MODEL_VIEWER_LOADER_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 13b brief.
+
+    def test_model_viewer_loader_js_is_within_gzip_budget(self):
+        model_viewer_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_js_path()), "model-viewer-loader.js"
+        )
+        content = Path(model_viewer_path).read_bytes()
+        gzipped = gzip.compress(content, compresslevel=9)
+        self.assertLessEqual(
+            len(gzipped),
+            self.MODEL_VIEWER_LOADER_JS_BUDGET_BYTES,
+            f"model-viewer-loader.js gzips to {len(gzipped)} bytes, over the "
+            f"{self.MODEL_VIEWER_LOADER_JS_BUDGET_BYTES}-byte budget (task 13b "
+            f"brief). Trim JS or revisit the budget deliberately.",
+        )
+
     def test_per_module_js_size_walks_static_js_dir(self):
         # Resolve the js dir relative to *this* test module, not the
         # runner's cwd. `python -m pytest` from the repo root and

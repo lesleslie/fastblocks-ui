@@ -33,6 +33,7 @@ const KNOWN_MODULES = [
   { name: "mesh-gradient", selector: ".has-mesh-gradient" },
   { name: "video-bg", selector: ".has-video-bg" },
   { name: "spline-embed", selector: ".ui-spline" },
+  { name: "model-viewer-loader", selector: ".ui-model-viewer" },
 ];
 
 async function reinit(root) {

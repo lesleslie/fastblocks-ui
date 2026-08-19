@@ -25,7 +25,7 @@
        .has-pattern-dots, .has-pattern-grid,
        .has-pattern-lines, .has-pattern-diagonal,
        .has-mesh-gradient, .has-video-bg, .has-spotlight,
-       .ui-spline) {
+       .ui-spline, .ui-model-viewer) {
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -273,4 +273,17 @@
   :where(.ui-spline canvas) {
     width: 100% !important;
     height: 100% !important;
+  }
+
+  /* <model-viewer> wrapper (Task 13b): the custom element is loaded
+     on demand via fastblocks_ui/static/js/model-viewer-loader.js. The
+     CSS only shapes the wrapper — the library owns the inner layout. */
+  :where(.ui-model-viewer) {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--ui-color-surface-muted);
+    display: block;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where(.ui-model-viewer) { /* auto-rotate is disabled via the auto-rotate attribute; CSS needs no special handling */ }
   }
