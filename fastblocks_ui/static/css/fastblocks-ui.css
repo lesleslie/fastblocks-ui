@@ -1441,7 +1441,11 @@
     padding: var(--ui-space-2) var(--ui-space-4);
     cursor: pointer;
     color: var(--ui-color-text);
-    user-select: none;
+  }
+  @supports (user-select: none) {
+    :where(.ui-context-menu [role="menuitem"]) {
+      user-select: none;
+    }
   }
   :where(.ui-context-menu [role="menuitem"]:hover),
   :where(.ui-context-menu [role="menuitem"]:focus) {
@@ -1506,8 +1510,8 @@
   /* Status dot */
   :where(.ui-avatar__status) {
     position: absolute;
-    bottom: 0;
-    right: 0;
+    inset-block-end: 0;
+    inset-inline-end: 0;
     width: 25%;
     height: 25%;
     border-radius: 50%;

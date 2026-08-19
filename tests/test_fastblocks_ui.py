@@ -773,7 +773,16 @@ class TestLogicalPropertiesDriftGate(unittest.TestCase):
         " left:",
         " right:",
     )
-    ALLOWED_SELECTOR_MARKERS = ("ui-media__left", "ui-media__right")
+    ALLOWED_SELECTOR_MARKERS = (
+        "ui-media__left",
+        "ui-media__right",
+        # .ui-toast-region centers horizontally via `left: 50%; transform: translateX(-50%)`.
+        # Logical-property equivalents (`inset-inline-start: 50%` + same translate) only
+        # centre correctly in LTR -- in RTL the inline-start edge flips to the right and
+        # the fixed translate moves the wrong way, so the toast column ends up half-off
+        # the viewport. Cross-direction centring needs a physical reference.
+        "ui-toast-region",
+    )
     CSS_MODULES = (
         "tokens.css",
         "theme.css",
