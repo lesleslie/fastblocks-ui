@@ -1798,6 +1798,52 @@
   ::view-transition-new(root) { animation: none !important; }
 }
 
+
+  /* Three.js mesh-gradient (Decision 18: was is-mesh-gradient) */
+  :where(.has-mesh-gradient) {
+    position: relative;
+    background: var(--ui-color-surface); /* fallback while loading */
+  }
+  :where(.has-mesh-gradient canvas) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: var(--ui-z-backdrop, -1);
+    pointer-events: none;
+  }
+
+  /* Video background (Decision 15: prefers-reduced-data collapses to poster) */
+  :where(.has-video-bg) {
+    position: relative;
+  }
+  :where(.has-video-bg video) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: var(--ui-z-backdrop, -1);
+  }
+  :where(.has-video-bg__overlay) {
+    position: absolute;
+    inset: 0;
+    background: var(--ui-video-overlay, oklch(from var(--ui-color-surface) 60% l c h));
+    pointer-events: none;
+  }
+  @media (prefers-reduced-data: reduce) {
+    :where(.has-video-bg video) { display: none; }
+  }
+
+  /* Lottie */
+  :where(.has-lottie) {
+    position: relative;
+  }
+  :where(.has-lottie svg) {
+    width: 100%;
+    height: 100%;
+  }
+
 /* FastBlocks UI Layout System
  * Ported from Bulma's battle-tested grid and layout utilities.
  * Uses semantic --ui-* tokens and ui-* class namespace.

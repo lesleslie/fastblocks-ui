@@ -1,0 +1,21 @@
+<!doctype id="media-fixture">
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Media fallbacks fixture</title>
+    <link rel="stylesheet" href="../../../fastblocks_ui/static/css/fastblocks-ui.css" />
+  </head>
+  <body>
+    <div class="has-video-bg" aria-hidden="true">
+      <video autoplay muted loop playsinline preload="metadata" poster="/posters/bg.jpg">
+        <source src="/bg.webm" type="video/webm" />
+      </video>
+      <div class="has-video-bg__overlay"></div>
+    </div>
+
+    <div class="has-lottie" data-lottie-url="/animations/loading.json" data-lottie-poster-url="/posters/loading.png"></div>
+
+    <div class="has-mesh-gradient" data-shader-url="/shaders/aurora.frag" data-frame-cap="30"></div>
+  </body>
+</html>
+
