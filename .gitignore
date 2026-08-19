@@ -38,6 +38,10 @@ Thumbs.db
 .tox/
 .coverage.*
 coverage.xml
+# Per-run coverage JSON snapshots archived under docs/archive/test-artifacts/.
+# They're regenerated every time pytest collects coverage with --cov-json,
+# so they're runtime artifacts, not source.
+docs/archive/test-artifacts/coverage__*.json
 *.log
 
 # JavaScript Testing
