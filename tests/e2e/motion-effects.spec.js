@@ -131,13 +131,21 @@ test.describe('motion effects', () => {
 
   test('init() is idempotent (htmx integration)', async ({ page }) => {
     const result = await page.evaluate(async () => {
+      // Wrap document.addEventListener BEFORE importing to count
+      // global listener registrations. spotlight.js registers 1
+      // pointermove listener at module-load; init() is a no-op.
+      let count = 0;
+      const orig = document.addEventListener.bind(document);
+      document.addEventListener = function (...args) {
+        count++;
+        return orig(...args);
+      };
       const mod = await import('/fastblocks_ui/static/js/spotlight.js');
+      const baseline = count;  // 1 listener (the global pointermove)
       mod.init();
-      mod.init(); // second call must not double-bind
-      const before = window.__spotlightListenerCount;
       mod.init();
-      const after = window.__spotlightListenerCount;
-      return after === before;
+      mod.init();
+      return count === baseline;  // init() must not add new listeners
     });
     expect(result).toBe(true);
   });
