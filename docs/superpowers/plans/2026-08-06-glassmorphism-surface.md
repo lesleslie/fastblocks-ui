@@ -19,18 +19,21 @@
 - Follow existing repo conventions exactly: 2-space indentation inside `@layer` blocks, `--ui-*` token namespace, modifier classes colocated with their component's CSS.
 - Before starting Task 1, confirm `tests/e2e/contrast-utils.js` exists and is ESM with `installProbe` already exported (run `grep -n "^export" tests/e2e/contrast-utils.js`). Task 1's first failing-test prediction (`SyntaxError: The requested module './contrast-utils.js' does not provide an export named 'compositeRatio'`) only fires if both hold; if the file is missing, is CommonJS, or `installProbe` is not yet exported, fix that first — the rest of Task 1 is calibrated against those preconditions.
 
----
+______________________________________________________________________
 
 ### Task 1: Glass design tokens
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/tokens.css` (insert before the closing `  }\n}` at the end of the file, directly after the existing `--ui-focus-ring` declaration)
 - Modify: `tests/e2e/contrast-utils.js` (add one new export)
 - Create: `tests/e2e/glass-contrast.spec.js`
 - Modify: `tests/js/css-variables.test.js` (add one `describe` block)
 
 **Interfaces:**
+
 - Produces: four custom properties on `:root` — `--ui-glass-blur`, `--ui-glass-saturate`, `--ui-glass-tint`, `--ui-glass-border`. Task 2 consumes all four by name.
+
 - Produces: `compositeRatio(page, { fg, bg, backdrop, theme })` exported from `tests/e2e/contrast-utils.js`, matching the calling convention of the existing `tokenRatio(page, fgToken, bgToken, theme)` in the same file. Returns a `Promise<number>` (the WCAG contrast ratio of `fg` against `bg` alpha-composited over the flat `backdrop` RGB triple).
 
 - [ ] **Step 1: Write the failing contrast-utils.js helper's consumer test**
@@ -222,10 +225,12 @@ Expected: exits 0, silently rewrites `fastblocks_ui/static/css/fastblocks-ui.css
 - [ ] **Step 9: Run all three checks again, confirm they pass**
 
 Run:
+
 ```bash
 npx vitest run tests/js/css-variables.test.js
 npx playwright test tests/e2e/glass-contrast.spec.js --project=chromium
 ```
+
 Expected: PASS on all — 8 vitest token-existence assertions + 2 derivation assertions + 1 theme-difference assertion = 11 vitest assertions, and 8 Playwright tests (2 foregrounds × 2 themes × 2 backdrops).
 
 - [ ] **Step 10: Commit**
@@ -236,17 +241,20 @@ git add fastblocks_ui/static/css/tokens.css fastblocks_ui/static/css/fastblocks-
 git commit -m "feat(tokens): add opt-in glassmorphism surface tokens"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: `.is-glass` / `data-surface="glass"` activation
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/components.css` (insert before the final closing `}` of `@layer components`, i.e. after the `.ui-burger__bar:nth-child(3)` rule at the end of the file)
 - Create: `tests/e2e/fixtures/glass-surface.html`
 - Create: `tests/e2e/glass-surface.spec.js`
 
 **Interfaces:**
+
 - Consumes: all eight glass tokens (`--ui-glass-strength`, `--ui-glass-blur`, `--ui-glass-blur-strong`, `--ui-glass-saturate`, `--ui-glass-tint`, `--ui-glass-border`, `--ui-glass-highlight`, `--ui-glass-shadow`) from Task 1.
+
 - Produces: the `--_ui-glass-components` custom property at the top of the glass rule block (single source of truth for the eligible-component selector list) plus the main `.is-glass` rule that references it. Task 3 appends its `@supports`/`@media` fallback blocks directly after this rule, also referencing `--_ui-glass-components`. Task 3 also extends `tests/e2e/glass-surface.spec.js` with `forced-colors` and focus-ring tests.
 
 - [ ] **Step 1: Write the failing fixture**
@@ -457,18 +465,21 @@ git add fastblocks_ui/static/css/components.css fastblocks_ui/static/css/fastblo
 git commit -m "feat(components): activate .is-glass and data-surface=\"glass\""
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Accessibility fallbacks (`forced-colors`, `prefers-reduced-transparency`, no-support)
 
 **Files:**
+
 - Modify: `fastblocks_ui/static/css/components.css` (append directly after the rule added in Task 2)
 - Modify: `tests/e2e/glass-surface.spec.js` (expand the `forced-colors` test to cover all five eligible components + scoped variants, assert background-image is `none` alongside alpha)
 - Create: `tests/e2e/glass-border-contrast.spec.js` (new SC 1.4.11 test for the glass border)
 - Modify: `tests/test_fastblocks_ui.py:434-438` (extend `test_bundle_includes_accessibility_media_queries` to also assert the new tokens, hover rule, and `prefers-reduced-motion` block)
 
 **Interfaces:**
+
 - Consumes: the selector list (now `var(--_ui-glass-components)`) and rule block from Task 2. Both fallback blocks below reuse `--_ui-glass-components` so the three rule blocks stay in sync with one edit.
+
 - Produces: nothing new consumed by later tasks — this task closes out the CSS implementation.
 
 - [ ] **Step 1: Expand the failing Playwright fallback tests**
@@ -580,10 +591,12 @@ In `tests/test_fastblocks_ui.py`, extend the existing `test_bundle_includes_acce
 - [ ] **Step 4: Run both, confirm they fail**
 
 Run:
+
 ```bash
 npx playwright test tests/e2e/glass-border-contrast.spec.js tests/e2e/glass-surface.spec.js --project=chromium
 python -m pytest tests/test_fastblocks_ui.py::TestDemoBuild::test_bundle_includes_accessibility_media_queries -v
 ```
+
 Expected: Playwright's forced-colors tests FAIL (`filter` is not `'none'` — Task 2's rule has no forced-colors guard yet). The border-contrast spec FAILs because `--ui-glass-border` reads as empty (no token yet). pytest FAILS on the new `assertIn` calls (strings absent from the bundle).
 
 - [ ] **Step 5: Add the two fallback blocks to `components.css`**
@@ -620,10 +633,12 @@ Run: `python tools/build_css.py`
 - [ ] **Step 7: Run all checks again, confirm they pass**
 
 Run:
+
 ```bash
 npx playwright test tests/e2e/glass-border-contrast.spec.js tests/e2e/glass-surface.spec.js --project=chromium
 python -m pytest tests/test_fastblocks_ui.py::TestDemoBuild::test_bundle_includes_accessibility_media_queries -v
 ```
+
 Expected: PASS on all — 6 forced-colors tests (one per eligible + scoped component), 4 border-contrast tests (2 themes × 2 backdrops), 11 bundle-presence assertions.
 
 - [ ] **Step 8: Verify the Baseline floor, bundle-size, and demo-mirror gates all pass**
@@ -633,6 +648,7 @@ Expected: PASS on all — 6 forced-colors tests (one per eligible + scoped compo
 The new `python tools/build_css.py --check` gate catches "I edited the source but forgot to rebuild" (this plan has been disciplined about rebuilding, but the gate makes it enforced for everyone). The `python scripts/build_demo.py --check` gate is the demo mirror — without it, `demo/demo.html`'s inlined style block can drift from the regenerated `demo/index.html` between this task's commit and Task 4's commit. Run it here so the boundary is enforced immediately after the bundle change, not deferred to Task 4.
 
 Run:
+
 ```bash
 npm install   # only if node_modules/web-features is missing
 npm run check:baseline
@@ -640,6 +656,7 @@ python -m pytest tests/test_fastblocks_ui.py::TestBundleSizeBudget -v
 python tools/build_css.py --check
 python scripts/build_demo.py --check
 ```
+
 Expected: all four exit 0. `backdrop-filter` (unprefixed) and `color-mix()` are real CSS properties/functions the checker resolves against BCD and checks against the `"newly"` floor — `color-mix()` already passes unexempted elsewhere in `tokens.css`, and `backdrop-filter` is Baseline "high" (widely available), so both pass on their own merits. `@supports not (...)`, `forced-colors`, and `prefers-reduced-transparency` are media/support-query *preludes*, which `scripts/check-baseline.mjs`'s scanner does not parse for compat keys at all (it scans declarations, not at-rule conditions) — they pass by never being evaluated, not because they clear the floor. Don't cite this run as evidence `prefers-reduced-transparency` is Baseline; the spec's own Accessibility contract already says its support is thin and treats it as defense in depth, not the primary guard. If `check:baseline` fails on something unexpected, do not silence it — read `.baseline-allowlist.json`'s header comment for the exemption format and add an entry only if the failure is a genuine partial-implementation gap, not a real correctness issue.
 
 - [ ] **Step 9: Commit**
@@ -651,18 +668,21 @@ git add fastblocks_ui/static/css/components.css fastblocks_ui/static/css/fastblo
 git commit -m "feat(components): add forced-colors / reduced-transparency fallback for .is-glass"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Demo example, showcase, and parity test
 
 **Files:**
+
 - Modify: `scripts/build_demo.py` (new `.demo-glass-backdrop` rule in `DEMO_CSS`, new `glass_demo()` and `glass_showcase()` functions, one new entry in `build_categories()`)
 - Modify: `demo/index.html` (regenerated, not hand-edited)
 - Modify: `demo/demo.html` (hand-added CSS rule, section, and sidebar link, kept in parity with `index.html`)
 - Modify: `tests/test_demo_parity.py` (new `test_glass_card` and `test_glass_showcase`)
 
 **Interfaces:**
+
 - Consumes: `.is-glass` (Task 2) and the existing `card()` helper (`fastblocks_ui/helpers.py:351`, unchanged signature). The showcase cards override `--ui-glass-blur` per-element via inline `style=""` to demonstrate the soft/regular/strong intensity range.
+
 - Produces: nothing consumed by later tasks.
 
 - [ ] **Step 1: Write the failing parity tests**
@@ -848,10 +868,12 @@ Do the same for the sidebar: copy the generated `<li class="ui-nav-list__item"><
 - [ ] **Step 8: Run the parity test and the full parity suite, confirm they pass**
 
 Run:
+
 ```bash
 python -m pytest tests/test_demo_parity.py -v
 python scripts/build_demo.py --check
 ```
+
 Expected: all pass, including `test_every_manifest_component_has_a_demo_section` and `test_sidebar_links_to_every_section` (unaffected — both `glass` and `glass-showcase` are non-manifest showcase entries, same pattern as the existing `palette` and `theme` entries), and the `--check` drift gate exits 0. `test_glass_card` and `test_glass_showcase` (covering 4 cards × per-element intensity) both pass.
 
 - [ ] **Step 9: Confirm the new demo content is axe-clean**
@@ -868,11 +890,12 @@ git add scripts/build_demo.py demo/demo.html demo/index.html tests/test_demo_par
 git commit -m "feat(demo): add glass surfaces example and intensity showcase"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Documentation and final verification
 
 **Files:**
+
 - Modify: `docs/components.md` (single bullet under `## State Modifiers`, not inline notes in the five eligible-component rows)
 - Modify: `docs/theming-recipes.md` (new "Glass Surfaces" recipe section, after "Dark Theme")
 - Modify: `docs/usage.md` (one-line `class_="is-glass"` example in the navbar usage section, alongside the existing `is-sticky` example)
@@ -880,7 +903,9 @@ git commit -m "feat(demo): add glass surfaces example and intensity showcase"
 - Modify: `CHANGELOG.md` (one-line entry under the upcoming version)
 
 **Interfaces:**
+
 - Consumes: nothing new — documents what Tasks 1-4 shipped.
+
 - Produces: nothing consumed by later tasks (last task in this plan).
 
 - [ ] **Step 1: Add `is-glass` as a single bullet under `## State Modifiers` in `docs/components.md`**
@@ -938,7 +963,7 @@ If the CHANGELOG uses a different format (sections, Keep-a-Changelog style), ada
 
 Insert a new section after the existing "## Dark Theme" section (which ends just before "## Accessible States"):
 
-```markdown
+````markdown
 ## Glass Surfaces
 
 Opt in to a translucent, blurred surface for card, dialog, drawer, navbar,
@@ -949,7 +974,7 @@ Per instance:
 
 ```html
 <div class="ui-card is-glass">...</div>
-```
+````
 
 For every eligible component under a container at once:
 
@@ -979,6 +1004,7 @@ dropdowns, command palettes. Anything that sits *over* content and benefits
 from showing through to what's behind.
 
 ❌ **Don't use glass for**:
+
 - **Dense card grids** — many blurred surfaces in close proximity visibly
   cost scroll performance, and the visual depth story collapses.
 - **Nested glass-on-glass** — the inner panel's backdrop filter blurs the
@@ -1027,8 +1053,9 @@ intensity without forking the modifier API:
 falling back to `--ui-color-surface-raised` (solid). The hover micro-
 interaction (1px lift + tint deepen) is suppressed under
 `prefers-reduced-motion: reduce`. Per-component usage is documented in
-[usage.md > navbar section](usage.md#navbar) (alongside `is-sticky`).
-```
+[usage.md > navbar section](docs/usage.md#navbar) (alongside `is-sticky`).
+
+````
 
 (Write the fenced code blocks above with plain triple-backtick fences, not the escaped `\` ` ` ` shown here — the backslashes are only to keep this plan's own Markdown from closing early.)
 
@@ -1049,7 +1076,7 @@ npx playwright test tests/e2e/accessibility.spec.js --project=accessibility
 npm run check:baseline
 python tools/build_css.py --check
 python scripts/build_demo.py --check
-```
+````
 
 Expected: everything exits 0. Running the three new Playwright specs (contrast, border-contrast, surface) across all three engines is the first real cross-browser check this plan does — `backdrop-filter`, `color-mix()`, and `:is()` are all well-supported, but this is the step that would catch an engine-specific surprise before merge. The accessibility sweep now also runs the new glass demo (card + showcase) under both default and emulated `forced-colors` / `prefers-reduced-transparency` states (Task 4 Step 9).
 

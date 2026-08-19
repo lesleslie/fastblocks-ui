@@ -200,7 +200,7 @@ lottie-web on the first matched element. Browser support: all evergreens.
 
 ## Integration with htmy
 
-Effects compose with [htmy](https://github.com/lesleslie/htmy)
+Effects compose with [htmy](https://github.com/lesleslie/fastblocks-htmy)
 async components. Two examples:
 
 **Backdrop effect on a server-rendered section** (e.g. hero with aurora):
