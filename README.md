@@ -15,6 +15,7 @@ FastBlocks UI is a modern HTML/CSS-first UI layer with a stable `ui-*` namespace
 - **Optional Enhancement JS**: Keeps behavior light and progressive-enhancement friendly
 - **Modern Styling**: Uses a Tailwind-inspired semantic token baseline with custom visuals
 - **Permissive License**: BSD-3-Clause for commercial and open-source use
+- **Visual effects**: backdrop systems (aurora, noise, patterns), motion primitives (spotlight, tilt, scroll-reveal), and 3D / media integrations. See [docs/effects.md](docs/effects.md) for the cookbook.
 
 ## Component Model
 

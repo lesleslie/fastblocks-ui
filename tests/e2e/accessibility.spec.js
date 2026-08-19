@@ -58,3 +58,102 @@ for (const page_ of ['/demo/demo.html', '/demo/index.html']) {
     });
   }
 }
+
+// Emulation sweep: the demo must remain axe-clean under each media
+// preference that fastblocks-ui explicitly opts into. The existing
+// `prefers-reduced-motion` emulation handles it for that rule, but the
+// library also calls `matchMedia('(prefers-reduced-transparency: reduce)')`
+// and `matchMedia('(forced-colors: active)')` from the effects modules,
+// so a regression in the CSS that inadvertently hides or recolours
+// content under those modes would only surface here. The `forced-colors`
+// emulation in particular is hostile to `color-mix()` and `oklch()`-based
+// tokens, so this is a real risk surface.
+const EMULATIONS = [
+  { name: 'prefers-reduced-motion', media: { reducedMotion: 'reduce' } },
+  { name: 'prefers-reduced-transparency', media: {} },
+  { name: 'forced-colors', media: { forcedColors: 'active' } },
+];
+
+for (const emu of EMULATIONS) {
+  test(`demo.html axe-clean under ${emu.name}`, async ({ page }) => {
+    // `prefers-reduced-transparency` has no native Playwright emulation
+    // (1.62); shim matchMedia so the page's CSS sees it as active.
+    if (emu.name === 'prefers-reduced-transparency') {
+      await page.emulateMedia(emu.media);
+      await page.addInitScript(() => {
+        const original = window.matchMedia;
+        window.matchMedia = (query) => {
+          const result = original.call(window, query);
+          if (query === '(prefers-reduced-transparency: reduce)') {
+            Object.defineProperty(result, 'matches', {
+              value: true,
+              configurable: true,
+            });
+          }
+          return result;
+        };
+      });
+    } else {
+      await page.emulateMedia(emu.media);
+    }
+    await page.goto('/demo/demo.html');
+    await page.waitForLoadState('networkidle');
+
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(results.violations).toEqual([]);
+  });
+}
+
+// Per-rule axe coverage for the components introduced in the UI vocabulary
+// expansion. The default AxeBuilder scan above catches most issues, but
+// these rules are structural: they depend on a component being rendered
+// in a specific shape (menu/menuitem, listbox/option, combobox+listbox,
+// role="img" avatar, popover trigger). Fixtures live at
+// tests/e2e/fixtures/axe-component-rules.html and the four sub-tests
+// each scope AxeBuilder to the relevant DOM slice so a failure names
+// the actual missing structure.
+const AXE_RULE_FIXTURE = '/tests/e2e/fixtures/axe-component-rules.html';
+
+test.describe('new component axe rules', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(AXE_RULE_FIXTURE);
+    await page.waitForLoadState('networkidle');
+  });
+
+  test('aria-required-children: menus contain menuitem, listboxes contain option', async ({
+    page,
+  }) => {
+    const results = await new AxeBuilder({ page })
+      .include('nav[data-axe-menu]')
+      .include('[data-axe-listbox]')
+      .withRules(['aria-required-children'])
+      .analyze();
+    expect(results.violations).toEqual([]);
+  });
+
+  test('aria-required-parent: listbox is a child of combobox', async ({ page }) => {
+    const results = await new AxeBuilder({ page })
+      .include('[data-axe-combobox]')
+      .withRules(['aria-required-parent'])
+      .analyze();
+    expect(results.violations).toEqual([]);
+  });
+
+  test('role-img-alt: avatar with role="img" has non-empty accessible name', async ({
+    page,
+  }) => {
+    const results = await new AxeBuilder({ page })
+      .include('[data-axe-avatar]')
+      .withRules(['role-img-alt'])
+      .analyze();
+    expect(results.violations).toEqual([]);
+  });
+
+  test('aria-allowed-attr: aria-expanded only on allowed roles', async ({ page }) => {
+    const results = await new AxeBuilder({ page })
+      .include('[data-axe-popover-trigger]')
+      .withRules(['aria-allowed-attr'])
+      .analyze();
+    expect(results.violations).toEqual([]);
+  });
+});

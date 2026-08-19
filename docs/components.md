@@ -44,6 +44,13 @@ This page is generated from `fastblocks_ui/manifest.json`. Keep the manifest and
 | pagination | `ui-pagination` | `pagination()` | Pagination links with current page indicator. |
 | validation_summary | `ui-validation-summary` | `validation_summary()` | Aggregated form-error summary linking to individual fields. |
 
+## Effects
+
+Visual effects are documented in [`effects.md`](effects.md). Includes
+backdrop systems (full-bleed, aurora, noise, patterns), motion
+primitives (spotlight, scroll-reveal, tilt, theme transitions, page
+transitions), and 3D / media integrations.
+
 ## Utilities
 
 Single-purpose classes in `@layer utilities`, so they always win over component

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>New component axe rules fixture</title>
+    <link rel="stylesheet" href="../../../fastblocks_ui/static/css/fastblocks-ui.css" />
+  </head>
+  <body>
+    <!-- Fixture markup for the 4 new axe-rule tests. Each test scopes
+         AxeBuilder to one of these slices so a failure names the actual
+         missing structure. The markup is intentionally minimal: just
+         enough to exercise the rule, not the full component. -->
+
+    <!-- aria-required-children: nav with role="menu" must have menuitem
+         children; listbox must have option children. -->
+    <nav data-axe-menu role="menu" aria-label="Primary">
+      <a href="/profile" role="menuitem">Profile</a>
+      <a href="/settings" role="menuitem">Settings</a>
+    </nav>
+    <div data-axe-listbox role="listbox" aria-label="Options">
+      <div role="option">One</div>
+      <div role="option">Two</div>
+    </div>
+
+    <!-- aria-required-parent: a listbox must be a child of a combobox. -->
+    <div data-axe-combobox role="combobox" aria-label="Country">
+      <div role="listbox">
+        <div role="option">US</div>
+        <div role="option">CA</div>
+      </div>
+    </div>
+
+    <!-- role-img-alt: span with role="img" + aria-label="<full name>". -->
+    <span data-axe-avatar role="img" aria-label="Alice Johnson">AJ</span>
+
+    <!-- aria-allowed-attr: aria-expanded on a button (default popover
+         trigger role). -->
+    <button data-axe-popover-trigger aria-expanded="false" aria-controls="menu">Open</button>
+  </body>
+</html>

@@ -13,5 +13,10 @@
          property, not a colour. -->
     <div id="probe"></div>
     <canvas id="raster" width="1" height="1"></canvas>
+    <!-- Backdrop fixtures: the contrast spec adds has-* elements via
+         page.evaluate(); the CSS bundle must be loaded so the custom
+         properties resolve. -->
+    <section id="aurora-host" class="has-aurora"></section>
+    <section id="surface-host"></section>
   </body>
 </html>

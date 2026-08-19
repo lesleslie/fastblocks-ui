@@ -13,6 +13,7 @@
 - Use the package CLI to copy or stage assets when validating install behavior.
 - Run lint, format, and test commands through the configured project tooling before landing changes.
 - Verify generated CSS and JS bundles after touching theme or asset code.
+- When adding or revising an opt-in visual effect (backdrop, motion, 3D/media), update the per-effect cookbook in `docs/effects.md` alongside the code change. The cookbook is the single source of truth for the consumer-facing surface; the test in `tests/e2e/backdrop-contrast.spec.js` and the per-component bundle tests in `tests/test_fastblocks_ui.py::TestBundleSizeBudget` guard the contract.
 
 ## Coding Style & Naming Conventions
 

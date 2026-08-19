@@ -115,6 +115,23 @@ export async function installProbe(page) {
         document.documentElement.setAttribute('data-theme', mode);
         return previous;
       },
+
+      /**
+       * Composite a CSS-colour over a backdrop RGB tuple, returning the
+       * sRGB bytes of the result. `bg` is rasterised as a CSS colour so
+       * oklch()/color-mix()/relative colour syntax all resolve uniformly.
+       */
+      compositeOver(cssColour, backdropRgb) {
+        const [r, g, b, a] = rasterise(cssColour);
+        const alpha = a / 255;
+        const comp = (top, bottom) =>
+          Math.round(top * alpha + bottom * (1 - alpha));
+        return [
+          comp(r, backdropRgb[0]),
+          comp(g, backdropRgb[1]),
+          comp(b, backdropRgb[2]),
+        ];
+      },
     };
   });
 }
@@ -180,5 +197,31 @@ export function describeFailures(failures, total, min) {
       .slice(0, 10)
       .map((f) => `  ${f.brand} -> ${f.ratio}:1`)
       .join('\n')
+  );
+}
+
+/**
+ * Contrast ratio between a foreground token and a background token,
+ * computed against the composited background a user actually sees.
+ *
+ * `bg` is alpha-composited over `backdrop` (an `[r, g, b]` 0-255 tuple)
+ * before the ratio is calculated, so an alpha'd surface over a colored
+ * backdrop is measured against the colour the user sees, not the
+ * colour the source code names. Mirrors the canvas probe's oklch/
+ * color-mix path so the same expression used in the stylesheet is
+ * what gets measured.
+ */
+export function compositeRatio(page, { fg, bg, backdrop, theme }) {
+  return page.evaluate(
+    ([fgToken, bgToken, bgRgb, mode]) => {
+      const c = window.__uiContrast;
+      if (mode) {
+        c.setTheme(mode);
+      }
+      const fgRgb = c.readToken(fgToken);
+      const composite = c.compositeOver(c.readToken(bgToken), bgRgb);
+      return c.ratio(fgRgb, composite);
+    },
+    [fg, bg, backdrop, theme ?? null],
   );
 }

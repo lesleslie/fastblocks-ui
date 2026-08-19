@@ -667,6 +667,44 @@ class TestBundleSizeBudget(unittest.TestCase):
             f"brief). Trim JS or revisit the budget deliberately.",
         )
 
+    # Generic per-module JS budget (task 12 brief). Catches future modules
+    # that don't yet have a dedicated assertion: enhance.js, fastblocks-ui.js,
+    # manifest.js, lottie-loader.js, mesh-gradient.js, popover-aria.js,
+    # video-bg.js. The per-module assertions above are tighter and stay;
+    # this walker is the regression guard for the rest.
+    PER_MODULE_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 12 brief.
+
+    def test_per_module_js_size_walks_static_js_dir(self):
+        # Resolve the js dir relative to *this* test module, not the
+        # runner's cwd. `python -m pytest` from the repo root and
+        # `cd tests && pytest` are both supported entry points; the
+        # 2-step up from the test file lands on the repo root.
+        js_dir = (
+            Path(__file__).resolve().parent.parent
+            / "fastblocks_ui"
+            / "static"
+            / "js"
+        )
+        self.assertTrue(
+            js_dir.is_dir(),
+            f"static/js/ directory not found at {js_dir}",
+        )
+        offenders = []
+        for js_file in sorted(js_dir.glob("*.js")):
+            content = js_file.read_bytes()
+            gzipped = gzip.compress(content, compresslevel=9)
+            if len(gzipped) > self.PER_MODULE_JS_BUDGET_BYTES:
+                offenders.append(
+                    f"{js_file.name} = {len(gzipped)} bytes gzip "
+                    f"(budget {self.PER_MODULE_JS_BUDGET_BYTES})"
+                )
+        self.assertEqual(
+            offenders,
+            [],
+            "static/js/ has modules over the per-module budget:\n"
+            + "\n".join(offenders),
+        )
+
 
 class TestLogicalPropertiesDriftGate(unittest.TestCase):
     """WS-7: grep-based drift gate (matching this project's existing
