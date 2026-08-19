@@ -359,7 +359,7 @@ ______________________________________________________________________
   JS layer read the same values (breakpoints, etc.).
 - **[rev] Asset versioning/cache-busting** helper (content-hash or `?v=` from package
   version) — `copy-assets` currently ships unhashed filenames.
-- **[rev] Concrete CSS bundle-size budget** as a CI gate — e.g. **≤ 30 KB min+gzip**,
+- **[rev] Concrete CSS bundle-size budget** as a CI gate — e.g. **≤ 40 KB min+gzip**,
   not just "a budget."
 - Keep Python floor decision documented as intent (§1.2) in the README.
 
