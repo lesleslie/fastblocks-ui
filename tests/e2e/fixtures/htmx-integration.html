@@ -1,0 +1,23 @@
+<!doctype id="htmx-fixture">
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>htmx integration fixture</title>
+    <link rel="stylesheet" href="../../../fastblocks_ui/static/css/fastblocks-ui.css" />
+  </head>
+  <body>
+    <div id="region">
+      <div data-reveal id="initial">Initial content (already revealed)</div>
+      <script type="module">
+        // Path-fixed deviations from brief: Playwright dev server serves the
+        // repo root, so the bare `/static/js/...` and `@fastblocks-ui/...`
+        // specifiers from the brief wouldn't resolve. Use the repo-relative
+        // `/fastblocks_ui/static/js/...` paths that match the rest of the
+        // fixtures (see tests/e2e/fixtures/command.html, toast.html).
+        import { init as init_reveal } from "/fastblocks_ui/static/js/scroll-reveal.js";
+        import "/fastblocks_ui/static/js/htmx-integration.js";
+        init_reveal();
+      </script>
+    </div>
+  </body>
+</html>

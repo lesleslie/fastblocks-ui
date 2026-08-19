@@ -647,6 +647,26 @@ class TestBundleSizeBudget(unittest.TestCase):
             f"brief). Trim JS or revisit the budget deliberately.",
         )
 
+    # Per-component JS budget for the htmx integration orchestrator (task 11
+    # brief). Same rationale as the toast / command / context-menu /
+    # motion-effect budgets: shipped independently, should be small enough
+    # to inline or load on demand without bloating pages that don't use it.
+    HTMX_INTEGRATION_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 11 brief.
+
+    def test_htmx_integration_js_is_within_gzip_budget(self):
+        htmx_integration_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_js_path()), "htmx-integration.js"
+        )
+        content = Path(htmx_integration_path).read_bytes()
+        gzipped = gzip.compress(content, compresslevel=9)
+        self.assertLessEqual(
+            len(gzipped),
+            self.HTMX_INTEGRATION_JS_BUDGET_BYTES,
+            f"htmx-integration.js gzips to {len(gzipped)} bytes, over the "
+            f"{self.HTMX_INTEGRATION_JS_BUDGET_BYTES}-byte budget (task 11 "
+            f"brief). Trim JS or revisit the budget deliberately.",
+        )
+
 
 class TestLogicalPropertiesDriftGate(unittest.TestCase):
     """WS-7: grep-based drift gate (matching this project's existing
