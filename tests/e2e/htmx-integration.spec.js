@@ -88,10 +88,19 @@ test.describe('htmx integration', () => {
   });
 
   test('toast queue state survives a swap of unrelated regions', async ({ page }) => {
-    await page.evaluate(() => {
-      const mod = window.__toastQueue || null;
-      // Dispatch a toast via the public API
-      document.dispatchEvent(new CustomEvent('htmx:afterRequest', {
+    // Dispatch on document.body (not document) — toast-queue.js listens
+    // for htmx:afterRequest on document.body. Events fired on document
+    // do not bubble down to body, so the toast would never be created
+    // otherwise. Then verify the count survives an unrelated swap.
+    //
+    // The fixture doesn't import toast-queue.js (per the brief's
+    // htmx-integration comment: "Consumers wire these directly via
+    // `import '@fastblocks-ui/toast-queue'`"), so its htmx:afterRequest
+    // listener isn't registered at fixture load. Import it dynamically
+    // here so the listener is in place before we dispatch.
+    await page.evaluate(async () => {
+      await import('/fastblocks_ui/static/js/toast-queue.js');
+      document.body.dispatchEvent(new CustomEvent('htmx:afterRequest', {
         detail: {
           xhr: {
             getResponseHeader: (h) => h === 'HX-Trigger'
@@ -101,17 +110,20 @@ test.describe('htmx integration', () => {
         },
       }));
     });
-    await page.waitForTimeout(50);
+    await page.waitForTimeout(100);
     const toastBefore = await page.locator('.ui-toast').count();
-    // Swap a region (unrelated to toast)
+    expect(toastBefore).toBe(1);  // proves the toast was actually created
+
+    // Swap an unrelated region
     await page.evaluate(() => {
       const region = document.createElement('div');
       region.innerHTML = '<p>Unrelated content</p>';
       document.getElementById('region').appendChild(region);
       document.dispatchEvent(new CustomEvent('htmx:afterSwap', { detail: { elt: region } }));
     });
+    await page.waitForTimeout(100);
     const toastAfter = await page.locator('.ui-toast').count();
-    expect(toastAfter).toBe(toastBefore);
+    expect(toastAfter).toBe(toastBefore);  // orchestrator did NOT remove the toast
   });
 
   test('popover aria-expanded bindings re-attach on swap', async ({ page }) => {
