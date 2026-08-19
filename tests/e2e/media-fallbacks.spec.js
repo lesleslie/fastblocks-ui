@@ -13,12 +13,29 @@ test.describe('media fallbacks', () => {
   });
 
   test('video bg: hides under prefers-reduced-data', async ({ page }) => {
-    // Playwright 1.62 accepts the reducedData option but does not
-    // propagate it to Chromium's CSS media query engine. Inject the
-    // equivalent media-rule in the page as the compatibility fallback.
+    // Shim matchMedia so the CSS media engine evaluates the @media
+    // query under the simulated preference. addStyleTag was a
+    // tautology (bypassed the @media entirely).
+    await page.addInitScript(() => {
+      const orig = window.matchMedia?.bind(window);
+      window.matchMedia = (q) => {
+        if (q.includes('prefers-reduced-data')) {
+          return {
+            matches: true,
+            media: q,
+            addEventListener() {},
+            removeEventListener() {},
+            addListener() {},
+            removeListener() {},
+            dispatchEvent() { return false; },
+            onchange: null,
+          };
+        }
+        return orig ? orig(q) : { matches: false, media: q };
+      };
+    });
     await page.emulateMedia({ reducedData: 'reduce' });
     await page.goto(PAGE);
-    await page.addStyleTag({ content: '.has-video-bg video { display: none; }' });
     const display = await page.locator('.has-video-bg video').evaluate((el) =>
       getComputedStyle(el).display
     );

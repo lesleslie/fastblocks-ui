@@ -7,16 +7,14 @@
  */
 const targets = document.querySelectorAll(".has-lottie");
 let lottieModule = null;
-let io = null;
+const io = new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    if (e.isIntersecting) initLottie(e.target);
+    io.unobserve(e.target);
+  }
+}, { rootMargin: "200px" });
 
 if (targets.length > 0) {
-  io = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      if (e.isIntersecting) initLottie(e.target);
-      io.unobserve(e.target);
-    }
-  }, { rootMargin: "200px" });
-
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
     // Skip animation; show poster via CSS custom property.
     for (const t of targets) {
@@ -56,13 +54,11 @@ async function initLottie(el) {
 }
 
 export function init(root = document) {
-  if (!io) return;
   root.querySelectorAll(".has-lottie:not([data-lottie-init])")
     .forEach((el) => io.observe(el));
 }
 
 export function teardown(root = document) {
-  if (!io) return;
   root.querySelectorAll(".has-lottie[data-lottie-init]").forEach((el) => {
     io.unobserve(el);
     delete el.__lottieInit;
