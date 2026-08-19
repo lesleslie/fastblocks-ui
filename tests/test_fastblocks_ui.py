@@ -674,6 +674,26 @@ class TestBundleSizeBudget(unittest.TestCase):
     # this walker is the regression guard for the rest.
     PER_MODULE_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 12 brief.
 
+    # Per-component JS budget for the spline-embed module (task 13a brief).
+    # Same rationale as the toast / command / context-menu / htmx-integration
+    # budgets: shipped independently, should be small enough to inline or load
+    # on demand without bloating pages that don't use Spline embeds.
+    SPLINE_EMBED_JS_BUDGET_BYTES = 4 * 1024  # ~4KB gzip, per task 13a brief.
+
+    def test_spline_embed_js_is_within_gzip_budget(self):
+        spline_path = os.path.join(
+            os.path.dirname(fastblocks_ui.get_js_path()), "spline-embed.js"
+        )
+        content = Path(spline_path).read_bytes()
+        gzipped = gzip.compress(content, compresslevel=9)
+        self.assertLessEqual(
+            len(gzipped),
+            self.SPLINE_EMBED_JS_BUDGET_BYTES,
+            f"spline-embed.js gzips to {len(gzipped)} bytes, over the "
+            f"{self.SPLINE_EMBED_JS_BUDGET_BYTES}-byte budget (task 13a "
+            f"brief). Trim JS or revisit the budget deliberately.",
+        )
+
     def test_per_module_js_size_walks_static_js_dir(self):
         # Resolve the js dir relative to *this* test module, not the
         # runner's cwd. `python -m pytest` from the repo root and

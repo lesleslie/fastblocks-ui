@@ -1607,7 +1607,8 @@
 :where(.has-fullbleed, .has-aurora, .has-noise,
        .has-pattern-dots, .has-pattern-grid,
        .has-pattern-lines, .has-pattern-diagonal,
-       .has-mesh-gradient, .has-video-bg, .has-spotlight) {
+       .has-mesh-gradient, .has-video-bg, .has-spotlight,
+       .ui-spline) {
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -1842,6 +1843,19 @@
   :where(.has-lottie svg) {
     width: 100%;
     height: 100%;
+  }
+
+  /* Spline embed (Task 13a): .ui-spline wrapper hosts a lazy-loaded
+     @splinetool/viewer canvas. Consumers opt in via data-spline-url. */
+  :where(.ui-spline) {
+    position: relative;
+    aspect-ratio: 16 / 9; /* sensible default; consumers override */
+    background: var(--ui-color-surface-muted);
+    overflow: hidden;
+  }
+  :where(.ui-spline canvas) {
+    width: 100% !important;
+    height: 100% !important;
   }
 
 /* FastBlocks UI Layout System

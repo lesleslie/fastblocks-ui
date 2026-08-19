@@ -32,6 +32,7 @@ const KNOWN_MODULES = [
   { name: "lottie-loader", selector: ".has-lottie" },
   { name: "mesh-gradient", selector: ".has-mesh-gradient" },
   { name: "video-bg", selector: ".has-video-bg" },
+  { name: "spline-embed", selector: ".ui-spline" },
 ];
 
 async function reinit(root) {
