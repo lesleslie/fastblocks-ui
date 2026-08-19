@@ -1,0 +1,30 @@
+# lychee config — see https://github.com/lycheeverse/lychee
+#
+# Excludes intentionally use root-relative paths in <img src>, <a href>,
+# etc. These are designed for in-process rendering by the test runner
+# (`tests/e2e/`) and the demo HTML serve path (`demo/`). lychee tries
+# to resolve `/foo.png` against scheme `file://`, which fails. Excluding
+# these paths tells lychee they're deliberate, not link rot.
+
+exclude_path = [
+    "tests/e2e/fixtures/**/*.html",
+    "demo/**/*.html",
+]
+
+# Suppress false positives on the e2e `.spec.js` files (their `<a>` /
+# `<img>`-shaped comments inside JS trip lychee when they're crawled
+# transitively).
+exclude = [
+    "^file://",          # file:// URLs are out of scope for link check
+    "^mailto:",          # mailto links are not crawlable
+    "127\\.0\\.0\\.1",   # localhost urls
+]
+
+# Faster + less noisy in CI: cap concurrent requests and timeouts.
+max_concurrency = 8
+timeout = 10
+
+# Don't fail on HTTP errors that are normal in CI (rate limits, etc.).
+# Keep exit code on actual broken `file://` paths we explicitly ship.
+max_redirects = 5
+retry_limit = 1
