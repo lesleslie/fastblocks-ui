@@ -21,6 +21,8 @@ from pathlib import Path
 from fastblocks_ui import (
     COMPONENT_MANIFEST,
     alert,
+    avatar,
+    avatar_group,
     breadcrumb,
     burger,
     button,
@@ -28,8 +30,10 @@ from fastblocks_ui import (
     checkbox,
     column,
     columns,
+    command,
     compose,
     container,
+    context_menu,
     dialog,
     dropdown,
     field,
@@ -41,6 +45,7 @@ from fastblocks_ui import (
     nav_list,
     navbar,
     pagination,
+    popover,
     progress,
     section,
     shell,
@@ -49,6 +54,8 @@ from fastblocks_ui import (
     tabs,
     tile,
     title,
+    toast,
+    tooltip,
     validation_summary,
 )
 from fastblocks_ui import input as ui_input
@@ -100,6 +107,8 @@ class TestDemoParity(unittest.TestCase):
     """Each test asserts real helper output for demo/demo.html's documented inputs
     appears verbatim in the file -- see the HTML comments in demo/demo.html directly
     above each fragment for the exact call being mirrored here."""
+
+    demo_html = DEMO_HTML
 
     def assertFragmentInDemo(self, fragment: str) -> None:  # noqa: N802
         self.assertIn(
@@ -485,7 +494,7 @@ class TestDemoParity(unittest.TestCase):
         verbatim (see scripts/build_demo.py's build_categories())."""
         names = [c["name"] for c in COMPONENT_MANIFEST["components"]]
         self.assertEqual(
-            len(names), 32, "expected manifest to still have 32 components"
+            len(names), 39, "expected manifest to still have 39 components"
         )
         missing = [
             name
@@ -724,6 +733,60 @@ class TestDemoParity(unittest.TestCase):
             )
         )
         self.assertFragmentInDemo(html)
+
+    def test_tooltip(self) -> None:
+        html = str(tooltip(text="Save your changes", id="save-tip", position="top"))
+        self.assertFragmentInDemo(html)
+
+    def test_popover(self) -> None:
+        html = str(popover("Profile content", id="profile-pop", position="bottom"))
+        self.assertFragmentInDemo(html)
+
+    def test_toast(self) -> None:
+        # Pin the id: `toast()` defaults to a fresh uuid when id is None,
+        # which would never match the rendered demo's id. The brief's verbatim
+        # shape (no id) is impossible to make pass in a unit test, so the demo
+        # pins ids to make the parity fixture stable.
+        html = str(toast("Saved!", severity="success", id="demo-toast-success"))
+        self.assertFragmentInDemo(html)
+
+    def test_command(self) -> None:
+        html = str(command(id="cmd-palette", placeholder="Type a command..."))
+        self.assertFragmentInDemo(html)
+
+    def test_context_menu(self) -> None:
+        html = str(context_menu(
+            items=[{"label": "Rename", "action": "rename"}, {"label": "Delete", "action": "delete"}],
+            id="file-menu",
+        ))
+        self.assertFragmentInDemo(html)
+
+    def test_avatar(self) -> None:
+        html = str(avatar(src="/avatars/alice.png", alt="Alice Johnson"))
+        self.assertFragmentInDemo(html)
+
+    def test_avatar_group(self) -> None:
+        html = str(avatar_group([
+            str(avatar(src="/a.png", alt="Alice")),
+            str(avatar(src="/b.png", alt="Bob")),
+            str(avatar(src="/c.png", alt="Carol")),
+            str(avatar(src="/d.png", alt="Dan")),
+            str(avatar(src="/e.png", alt="Eve")),
+        ], max=3))
+        self.assertFragmentInDemo(html)
+
+    def test_backdrop_effects(self) -> None:
+        # The backdrop helpers are CSS classes, not Python helpers.
+        # This test asserts that the demo renders a backdrop section
+        # with the right classes.
+        self.assertIn('class="has-aurora', self.demo_html)
+        self.assertIn('class="has-noise', self.demo_html)
+        self.assertIn('class="has-pattern-dots', self.demo_html)
+
+    def test_motion_effects(self) -> None:
+        self.assertIn('data-tilt', self.demo_html)
+        self.assertIn('data-reveal', self.demo_html)
+        self.assertIn('class="has-spotlight', self.demo_html)
 
     def test_container_query_narrow_panel(self) -> None:
         self.assertFragmentInDemo(

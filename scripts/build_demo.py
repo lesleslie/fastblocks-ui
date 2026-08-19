@@ -32,6 +32,8 @@ from pathlib import Path
 from fastblocks_ui import (
     COMPONENT_MANIFEST,
     alert,
+    avatar,
+    avatar_group,
     breadcrumb,
     burger,
     button,
@@ -39,8 +41,10 @@ from fastblocks_ui import (
     checkbox,
     column,
     columns,
+    command,
     compose,
     container,
+    context_menu,
     dialog,
     drawer,
     dropdown,
@@ -53,6 +57,7 @@ from fastblocks_ui import (
     nav_list,
     navbar,
     pagination,
+    popover,
     progress,
     section,
     shell,
@@ -61,6 +66,8 @@ from fastblocks_ui import (
     tabs,
     tile,
     title,
+    toast,
+    tooltip,
     validation_summary,
 )
 from fastblocks_ui import input as ui_input
@@ -944,6 +951,180 @@ def manifest_demo() -> SafeHTML:
 
 
 # ---------------------------------------------------------------------------
+# Floating UI & Feedback (Tasks 2-5)
+# ---------------------------------------------------------------------------
+def tooltip_demo() -> SafeHTML:
+    """Tooltip rendered through the Popover API (hint mode).
+
+    The helper emits the tooltip body; the trigger is a separate element the
+    consumer composes with `aria-describedby="<id>"` (matches the
+    split-responsibility model of burger/drawer/dropdown).
+    """
+    return _safe(
+        '<div class="ui-cluster">'
+        + button(
+            "Hover or focus me",
+            type="button",
+            aria_describedby="save-tip",
+        )
+        + tooltip(text="Save your changes", id="save-tip", position="top")
+        + "</div>"
+    )
+
+
+def popover_demo() -> SafeHTML:
+    """Click-triggered popover with rich content.
+
+    The trigger is a separate element with `popovertarget="<id>"`.
+    """
+    return _safe(
+        '<div class="ui-cluster">'
+        + button("View profile", type="button", popovertarget="profile-pop")
+        + popover("Profile content", id="profile-pop", position="bottom")
+        + "</div>"
+    )
+
+
+def toast_demo() -> SafeHTML:
+    """Server-rendered / live-dispatched toast container.
+
+    Helpers emit a single toast; consumers wrap them in `.ui-toast-region` for
+    a multi-toast queue (the JS queue listens for htmx HX-Trigger).
+
+    Each toast id is pinned so the demo parity test can match the helper
+    output verbatim -- `toast()` defaults to a fresh uuid, which would never
+    reproduce between the test call and the demo render.
+    """
+    examples = compose(
+        toast("Saved!", severity="success", id="demo-toast-success"),
+        toast("Heads up — check your input.", severity="warning", id="demo-toast-warning"),
+        toast("Something went wrong.", severity="error", id="demo-toast-error"),
+        separator="",
+    )
+    return _safe(
+        '<div class="ui-toast-region" role="region" aria-label="Notifications">'
+        + str(examples)
+        + "</div>"
+    )
+
+
+def command_demo() -> SafeHTML:
+    """Command palette with combobox/listbox scaffold.
+
+    The actual search logic is consumer-supplied via the JS API
+    `open_command_palette({ ..., load_results: async (query) => ... })`.
+    """
+    return command(
+        id="cmd-palette",
+        placeholder="Type a command...",
+    )
+
+
+def context_menu_demo() -> SafeHTML:
+    """Right-click context menu with APG-correct keyboard nav."""
+    return _safe(
+        '<div class="demo-panel">'
+        + str(
+            context_menu(
+                items=[
+                    {"label": "Rename", "action": "rename"},
+                    {"label": "Delete", "action": "delete"},
+                ],
+                id="file-menu",
+            )
+        )
+        + '<p class="ui-muted">Right-click any element with '
+        '<code>data-context-menu-target="#file-menu"</code> to open this menu. '
+        "Arrow keys navigate, Home/End jump to the ends, Enter activates, "
+        "Escape dismisses, Tab moves focus out.</p>"
+        + "</div>"
+    )
+
+
+def avatar_demo() -> SafeHTML:
+    """Single avatar demonstration."""
+    return _safe(
+        '<div class="ui-cluster">'
+        + str(avatar(src="/avatars/alice.png", alt="Alice Johnson"))
+        + "</div>"
+    )
+
+
+def avatar_group_demo() -> SafeHTML:
+    """Avatar group with stacking + +N overflow."""
+    return avatar_group(
+        [
+            str(avatar(src="/a.png", alt="Alice")),
+            str(avatar(src="/b.png", alt="Bob")),
+            str(avatar(src="/c.png", alt="Carol")),
+            str(avatar(src="/d.png", alt="Dan")),
+            str(avatar(src="/e.png", alt="Eve")),
+        ],
+        max=3,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Effects (Task 6 + Tasks 13a/13b)
+# ---------------------------------------------------------------------------
+def backdrop_effects_demo() -> SafeHTML:
+    """Backdrop CSS primitives -- opt-in via `has-*` classes."""
+    return _safe(
+        '<div class="ui-stack" style="display:grid;gap:var(--ui-space-3);">'
+        '<div class="has-aurora" style="padding:var(--ui-space-4);'
+        'border-radius:var(--ui-radius-md);min-height:6rem;">'
+        '<strong>has-aurora</strong> '
+        '<span class="ui-muted">Aurora gradient backdrop.</span></div>'
+        '<div class="has-noise" style="padding:var(--ui-space-4);'
+        'border-radius:var(--ui-radius-md);min-height:6rem;">'
+        '<strong>has-noise</strong> '
+        '<span class="ui-muted">Noise overlay.</span></div>'
+        '<div class="has-pattern-dots" style="padding:var(--ui-space-4);'
+        'border-radius:var(--ui-radius-md);min-height:6rem;">'
+        '<strong>has-pattern-dots</strong> '
+        '<span class="ui-muted">Geometric dot pattern.</span></div>'
+        "</div>"
+    )
+
+
+def motion_effects_demo() -> SafeHTML:
+    """Motion primitives -- opt-in via `has-*` and `[data-*]` attributes."""
+    return _safe(
+        '<div class="ui-stack">'
+        '<div data-tilt data-reveal class="has-spotlight" '
+        'style="padding:var(--ui-space-4);border-radius:var(--ui-radius-md);'
+        'background:var(--ui-color-surface-raised);">'
+        "<strong>data-tilt</strong> + <strong>data-reveal</strong> + "
+        "<strong>has-spotlight</strong> "
+        '<span class="ui-muted">Hover to spotlight, scroll to reveal.</span></div>'
+        "</div>"
+    )
+
+
+def spline_demo() -> SafeHTML:
+    """Spline embed -- lazy-loaded via `@splinetool/viewer`."""
+    return _safe(
+        '<div class="ui-spline" data-spline-url="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode" '
+        'style="width:100%;height:20rem;border-radius:var(--ui-radius-md);'
+        'background:var(--ui-color-surface-muted);"></div>'
+        '<p class="ui-muted">Lazy-loads <code>@splinetool/viewer</code> on '
+        "<code>IntersectionObserver</code> entry.</p>"
+    )
+
+
+def model_viewer_demo() -> SafeHTML:
+    """3D model-viewer watermark -- lazy-loaded via `@google/model-viewer`."""
+    return _safe(
+        '<div class="ui-model-viewer" data-model-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" '
+        'data-model-alt="Astronaut" '
+        'style="width:100%;height:20rem;border-radius:var(--ui-radius-md);'
+        'background:var(--ui-color-surface-muted);"></div>'
+        '<p class="ui-muted">Lazy-loads <code>@google/model-viewer</code> on '
+        "<code>IntersectionObserver</code> entry.</p>"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Category registry: single source of truth for both the sidebar TOC and the
 # main-content section order. Anchor ids match manifest component `name`s
 # verbatim wherever a section documents exactly one manifest component, so
@@ -1156,6 +1337,24 @@ def build_categories() -> list[
             ],
         ),
         (
+            "floating-ui",
+            "Floating UI",
+            [
+                (
+                    "tooltip",
+                    "Tooltip",
+                    "Short text on hover/focus, ARIA-described, focus management via Popover API.",
+                    tooltip_demo(),
+                ),
+                (
+                    "popover",
+                    "Popover",
+                    "Click-triggered floating panel with rich content, dismissable via outside-click / Escape.",
+                    popover_demo(),
+                ),
+            ],
+        ),
+        (
             "navigation",
             "Navigation",
             [
@@ -1219,6 +1418,18 @@ def build_categories() -> list[
                     "Keyboard-accessible tablist; state stays server-owned, "
                     "switching is progressive enhancement.",
                     tabs_demo(),
+                ),
+                (
+                    "command",
+                    "Command palette",
+                    "Keyboard-triggered (/) with async result loading and ARIA-correct combobox/listbox pattern.",
+                    command_demo(),
+                ),
+                (
+                    "context-menu",
+                    "Context menu",
+                    "Right-click menu with APG-correct keyboard nav (Arrow keys, Home/End, Enter, Escape).",
+                    context_menu_demo(),
                 ),
             ],
         ),
@@ -1287,6 +1498,30 @@ def build_categories() -> list[
                     "Native <dialog>, opened and closed by command/commandfor with no JavaScript.",
                     dialog_demo(),
                 ),
+                (
+                    "toast",
+                    "Toast notifications",
+                    "Transient notifications with role=status/alert and auto-dismiss. Triggered by JS API or htmx HX-Trigger header.",
+                    toast_demo(),
+                ),
+            ],
+        ),
+        (
+            "identity",
+            "Identity",
+            [
+                (
+                    "avatar",
+                    "Avatar",
+                    "Identity indicator with image, initials, status dot.",
+                    avatar_demo(),
+                ),
+                (
+                    "avatar_group",
+                    "Avatar group",
+                    "Stacked avatar group with overlap and +N overflow chip.",
+                    avatar_group_demo(),
+                ),
             ],
         ),
         (
@@ -1304,6 +1539,36 @@ def build_categories() -> list[
                     "Table",
                     "Styled table with optional striping, hover, and borders.",
                     table_demo(),
+                ),
+            ],
+        ),
+        (
+            "effects",
+            "Effects",
+            [
+                (
+                    "backdrop-effects",
+                    "Backdrop effects",
+                    "Full-bleed hero, aurora gradient, noise overlay, geometric patterns -- opt-in via has-* classes.",
+                    backdrop_effects_demo(),
+                ),
+                (
+                    "motion-effects",
+                    "Motion primitives",
+                    "Spotlight glow on hover, scroll-driven reveals, 3D card tilt -- opt-in via has-* classes and [data-*] attributes.",
+                    motion_effects_demo(),
+                ),
+                (
+                    "spline",
+                    "Spline embed",
+                    "Lazy-loaded 3D scene via @splinetool/viewer.",
+                    spline_demo(),
+                ),
+                (
+                    "model-viewer",
+                    "Model viewer",
+                    "Lazy-loaded <model-viewer> via @google/model-viewer.",
+                    model_viewer_demo(),
                 ),
             ],
         ),
